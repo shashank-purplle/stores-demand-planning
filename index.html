@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demand Planning Ops Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<style>
+:root {
+  --lav-50:#f5f3ff; --lav-100:#ede9fe; --lav-200:#ddd6fe; --lav-300:#c4b5fd;
+  --lav-400:#a78bfa; --lav-500:#8b5cf6; --lav-600:#7c3aed;
+  --surface:#fff; --surface-var:#f8f7ff; --surface-dim:#f0eeff;
+  --on:#1c1b2e; --on-m:#6b6585; --border:#e5e1f5;
+  --ok:#16a34a; --err:#dc2626; --warn:#d97706;
+  --r:12px; --rs:8px;
+  --sh-sm:0 1px 3px rgba(109,92,198,.08),0 1px 2px rgba(109,92,198,.06);
+  --sh:0 4px 12px rgba(109,92,198,.10),0 2px 4px rgba(109,92,198,.06);
+  --sh-lg:0 8px 28px rgba(109,92,198,.18);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--lav-50);color:var(--on);font-size:14px;min-height:100vh}
+
+/* NAV */
+.topnav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--sh-sm)}
+.nav-brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px}
+.brand-icon{width:30px;height:30px;background:var(--lav-500);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff}
+.brand-icon .material-icons-round{font-size:16px}
+.nav-chip{background:var(--lav-100);color:var(--lav-600);font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;letter-spacing:.04em;text-transform:uppercase}
+.nav-right{display:flex;align-items:center;gap:12px;color:var(--on-m);font-size:13px}
+.nav-right .material-icons-round{font-size:20px;cursor:pointer}
+.avatar{width:30px;height:30px;background:var(--lav-200);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--lav-600);cursor:pointer}
+
+/* LAYOUT */
+.main{max-width:1120px;margin:0 auto;padding:28px 24px 60px}
+.page-header{margin-bottom:24px}
+.page-header h1{font-size:20px;font-weight:600}
+.page-header p{color:var(--on-m);font-size:13px;margin-top:3px}
+
+/* SECTION */
+.section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:20px;overflow:hidden;box-shadow:var(--sh-sm)}
+.section-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;cursor:pointer;user-select:none;border-bottom:1px solid var(--border);background:var(--surface-var)}
+.section-hdr:hover{background:var(--lav-100)}
+.section-hdr-left{display:flex;align-items:center;gap:10px}
+.sec-badge{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:3px 10px;border-radius:20px}
+.badge-a{background:var(--lav-100);color:var(--lav-600)}
+.badge-b{background:#fef3c7;color:#92400e}
+.badge-c{background:#dcfce7;color:#15803d}
+.sec-title{font-size:15px;font-weight:600}
+.sec-desc{font-size:12px;color:var(--on-m);margin-top:2px}
+.col-icon{color:var(--on-m);transition:transform .2s}
+.section.collapsed .col-icon{transform:rotate(-90deg)}
+.section.collapsed .section-body{display:none}
+.section-body{padding:20px}
+
+/* SUBSECTION */
+.subsec{margin-bottom:24px}
+.subsec:last-child{margin-bottom:0}
+.subsec-title{font-size:11px;font-weight:600;color:var(--on-m);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.subsec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.cards-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}
+
+/* CARD */
+.card{border:1px solid var(--border);border-radius:var(--rs);background:var(--surface);padding:16px;display:flex;flex-direction:column;gap:10px}
+.card-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.card-title{font-size:14px;font-weight:600}
+.card-desc{font-size:12px;color:var(--on-m);margin-top:3px;line-height:1.55}
+.type-chip{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;flex-shrink:0}
+.chip-script{background:#e0f2fe;color:#0369a1}
+.chip-override{background:#fce7f3;color:#9d174d}
+.card-meta{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--on-m);font-family:'DM Mono',monospace;flex-wrap:wrap}
+.card-meta .material-icons-round{font-size:13px}
+.sdot{width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot-ok{background:var(--ok)} .dot-idle{background:#d1d5db} .dot-err{background:var(--err)}
+.meta-sep{color:var(--lav-200)}
+.card-divider{height:1px;background:var(--border);margin:0 -16px}
+.card-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.card-secondary-actions{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.info-row{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--on-m);font-family:'DM Mono',monospace}
+.info-row .material-icons-round{font-size:13px}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border:none;white-space:nowrap}
+.btn .material-icons-round{font-size:15px}
+.btn-primary{background:var(--lav-500);color:#fff}
+.btn-primary:hover{background:var(--lav-600)}
+.btn-primary:disabled{background:var(--lav-200);color:var(--lav-400);cursor:not-allowed}
+.btn-outlined{background:transparent;border:1px solid var(--border);color:var(--on)}
+.btn-outlined:hover{background:var(--surface-dim)}
+.btn-ghost{background:transparent;color:var(--lav-600);padding:5px 8px}
+.btn-ghost:hover{background:var(--lav-100)}
+.btn-ghost-muted{background:transparent;color:var(--on-m);padding:5px 8px;font-size:12px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:4px;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-weight:400}
+.btn-ghost-muted:hover{background:var(--surface-dim);color:var(--on)}
+.btn-ghost-muted .material-icons-round{font-size:14px}
+.btn-destruct{background:#fef2f2;color:var(--err);border:1px solid #fecaca}
+.btn-destruct:hover{background:#fee2e2}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-sm .material-icons-round{font-size:13px}
+.spinner{width:12px;height:12px;border:2px solid var(--lav-300);border-top-color:var(--lav-600);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(28,27,46,.45);z-index:200;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:var(--r);box-shadow:var(--sh-lg);width:100%;max-width:640px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
+.modal-wide{max-width:840px}
+.modal-hdr{padding:18px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.modal-hdr-left{flex:1}
+.modal-hdr-left h2{font-size:15px;font-weight:600}
+.modal-hdr-left p{font-size:12px;color:var(--on-m);margin-top:2px}
+.modal-run-id{font-family:'DM Mono',monospace;font-size:11px;background:var(--lav-100);color:var(--lav-600);padding:2px 8px;border-radius:5px;margin-top:6px;display:inline-block}
+.modal-close{background:none;border:none;cursor:pointer;color:var(--on-m);display:flex;align-items:center;border-radius:6px;padding:2px;flex-shrink:0}
+.modal-close:hover{background:var(--surface-dim)}
+.modal-close .material-icons-round{font-size:20px}
+.modal-body{padding:18px 20px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:14px}
+.modal-ftr{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;align-items:center;flex-wrap:wrap}
+.modal-ftr-left{flex:1;font-size:12px;color:var(--on-m)}
+
+/* FORMAT LINK */
+.fmt-link{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--lav-600);text-decoration:none;font-weight:500}
+.fmt-link:hover{text-decoration:underline}
+.fmt-link .material-icons-round{font-size:13px}
+
+/* UPLOAD ZONE */
+.upload-zone{border:2px dashed var(--lav-300);border-radius:var(--rs);padding:22px 20px;text-align:center;background:var(--lav-50);cursor:pointer}
+.upload-zone:hover{border-color:var(--lav-500);background:var(--lav-100)}
+.upload-zone .material-icons-round{font-size:28px;color:var(--lav-400);margin-bottom:6px}
+.upload-zone p{font-size:13px;color:var(--on-m)}
+.uz-link{font-size:12px;color:var(--lav-500);font-weight:500;cursor:pointer}
+.uz-link:hover{text-decoration:underline}
+.uz-types{font-size:11px;color:var(--on-m);margin-top:3px}
+
+/* PREVIEW */
+.preview-sec{display:none}
+.preview-sec.visible{display:block}
+.preview-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.preview-hdr span{font-size:13px;font-weight:500}
+.val-summary{display:flex;gap:8px;font-size:12px}
+.v-ok{color:var(--ok);font-weight:600} .v-err{color:var(--err);font-weight:600} .v-warn{color:var(--warn);font-weight:600}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--rs)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:var(--surface-dim);padding:7px 10px;text-align:left;font-weight:600;color:var(--on-m);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:6px 10px;border-bottom:1px solid var(--border);color:var(--on)}
+tr:last-child td{border-bottom:none}
+tr.row-err td{background:#fff5f5}
+tr.row-err td:first-child{border-left:3px solid var(--err)}
+tr.row-warn td{background:#fffbeb}
+.err-ico{color:var(--err);font-size:13px;vertical-align:middle}
+
+/* DIFF */
+.diff-table td.up{color:var(--ok)} .diff-table td.dn{color:var(--err)}
+.dbadge{font-size:11px;font-weight:600;padding:1px 6px;border-radius:4px}
+.db-up{background:#dcfce7;color:var(--ok)} .db-dn{background:#fef2f2;color:var(--err)} .db-same{background:var(--surface-dim);color:var(--on-m)}
+
+/* NATIONAL BANNER */
+.nat-banner{background:#fffbeb;border:1px solid #fde68a;border-radius:var(--rs);padding:12px 14px;font-size:12px;color:#92400e;display:flex;gap:8px;align-items:flex-start}
+.nat-banner .material-icons-round{font-size:16px;color:var(--warn);flex-shrink:0;margin-top:1px}
+
+/* DOWNLOAD GATE */
+.dl-gate{background:var(--surface-dim);border:1px solid var(--lav-200);border-radius:var(--rs);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.dl-gate p{font-size:12px;color:var(--on-m);flex:1}
+.dl-gate p strong{color:var(--on)}
+
+/* EXCEL TABS */
+.excel-preview{background:var(--surface-dim);border-radius:var(--rs);overflow:hidden;border:1px solid var(--border)}
+.excel-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--surface-var)}
+.excel-tab{padding:7px 14px;font-size:12px;font-weight:500;cursor:pointer;color:var(--on-m);border-bottom:2px solid transparent;margin-bottom:-1px}
+.excel-tab.active{color:var(--lav-600);border-bottom-color:var(--lav-500);background:var(--surface)}
+
+/* FILTER BAR */
+.filter-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.filter-bar input,.filter-bar select{padding:6px 10px;border:1px solid var(--border);border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:12px;background:var(--surface);color:var(--on);outline:none}
+.filter-bar input:focus,.filter-bar select:focus{border-color:var(--lav-400)}
+
+/* CONFIRM DIALOG */
+.confirm-overlay{display:none;position:fixed;inset:0;background:rgba(28,27,46,.55);z-index:300;align-items:center;justify-content:center;padding:20px}
+.confirm-overlay.open{display:flex}
+.confirm-box{background:var(--surface);border-radius:var(--r);box-shadow:var(--sh-lg);padding:24px;max-width:420px;width:100%}
+.confirm-box h3{font-size:15px;font-weight:600;margin-bottom:8px}
+.confirm-box p{font-size:13px;color:var(--on-m);line-height:1.6;margin-bottom:18px}
+.confirm-actions{display:flex;justify-content:flex-end;gap:8px}
+
+/* ── RUN LOG PANEL ── */
+.log-backdrop{display:none;position:fixed;inset:0;z-index:240;background:rgba(28,27,46,.25)}
+.log-backdrop.open{display:block}
+.log-panel{display:none;position:fixed;top:0;right:0;bottom:0;width:520px;background:var(--surface);border-left:1px solid var(--border);box-shadow:-6px 0 24px rgba(28,27,46,.12);z-index:250;flex-direction:column}
+.log-panel.open{display:flex}
+.log-panel-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;background:var(--surface-var);flex-shrink:0}
+.log-panel-hdr-left h3{font-size:15px;font-weight:600}
+.log-panel-hdr-left p{font-size:12px;color:var(--on-m);margin-top:3px}
+.log-panel-body{flex:1;overflow-y:auto;padding:14px}
+.log-entry{border:1px solid var(--border);border-radius:var(--rs);margin-bottom:10px;overflow:hidden}
+.log-entry-hdr{padding:10px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;background:var(--surface)}
+.log-entry-hdr:hover{background:var(--lav-50)}
+.log-run-id{font-family:'DM Mono',monospace;font-size:11px;background:var(--lav-100);color:var(--lav-600);padding:2px 7px;border-radius:5px;flex-shrink:0}
+.log-entry-meta{flex:1;min-width:0}
+.log-entry-title{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.log-entry-sub{font-size:11px;color:var(--on-m);margin-top:1px}
+.log-status{font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;flex-shrink:0}
+.ls-ok{background:#dcfce7;color:var(--ok)} .ls-fail{background:#fef2f2;color:var(--err)}
+.ls-pend{background:#fef3c7;color:#92400e} .ls-rej{background:var(--surface-dim);color:var(--on-m)}
+.log-exp-ico{color:var(--on-m);font-size:18px;transition:transform .2s;flex-shrink:0}
+.log-entry.expanded .log-exp-ico{transform:rotate(180deg)}
+.log-entry-detail{display:none;padding:12px 14px;border-top:1px solid var(--border);background:var(--lav-50);font-size:12px;line-height:1.6}
+.log-entry.expanded .log-entry-detail{display:block}
+.log-detail-grid{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin-bottom:8px}
+.log-dkey{color:var(--on-m);font-weight:500;white-space:nowrap}
+.log-dval{color:var(--on);font-family:'DM Mono',monospace;font-size:11px;word-break:break-all}
+.log-file-preview{margin-top:8px;border:1px solid var(--border);border-radius:6px;overflow:hidden;max-height:150px;overflow-y:auto;background:var(--surface)}
+.log-detail-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.log-empty{text-align:center;padding:40px 20px;color:var(--on-m);font-size:13px}
+.log-empty .material-icons-round{font-size:36px;color:var(--lav-200);display:block;margin:0 auto 10px}
+
+/* TOAST */
+.toast-c{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:500}
+.toast{background:var(--on);color:#fff;padding:10px 16px;border-radius:var(--rs);font-size:13px;display:flex;align-items:center;gap:8px;box-shadow:var(--sh);opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast .material-icons-round{font-size:16px}
+.toast.success .material-icons-round{color:#86efac}
+.toast.error .material-icons-round{color:#fca5a5}
+.toast.info .material-icons-round{color:var(--lav-300)}
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="nav-brand">
+    <div class="brand-icon"><span class="material-icons-round">auto_graph</span></div>
+    Demand Planning Ops Portal
+    <span class="nav-chip">Phase 1</span>
+  </div>
+  <div class="nav-right">
+    <span class="material-icons-round">notifications_none</span>
+    <span>Stores Team</span>
+    <div class="avatar">ST</div>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="page-header">
+    <h1>Operations Portal — Stores</h1>
+    <p>Execute scripts, push data, and manage manual overrides for demand planning workflows.</p>
+  </div>
+
+  <!-- ═══════════════════ SECTION A ═══════════════════ -->
+  <div class="section" id="section-a">
+    <div class="section-hdr" onclick="toggleSection('section-a')">
+      <div class="section-hdr-left">
+        <span class="sec-badge badge-a">Section A</span>
+        <div>
+          <div class="sec-title">Pre Demand Planning</div>
+          <div class="sec-desc">Product Classification (MPC-Store) · USM · MDQ</div>
+        </div>
+      </div>
+      <span class="material-icons-round col-icon">expand_more</span>
+    </div>
+    <div class="section-body">
+
+      <!-- 5.1.1 Assortment — USM -->
+      <div class="subsec">
+        <div class="subsec-title">Assortment — USM</div>
+        <div class="cards-row">
+          <div class="card">
+            <div class="card-hdr">
+              <div>
+                <div class="card-title">Update USM</div>
+                <div class="card-desc">Upload Universal SKU Master data at MPC-store level. Partial updates are supported.</div>
+              </div>
+              <span class="type-chip chip-override">Override</span>
+            </div>
+            <div class="info-row"><span class="material-icons-round">table_view</span>datos_suministro.warehouse_product_assortment_v2</div>
+            <div class="card-divider"></div>
+            <div class="card-actions">
+              <button class="btn btn-primary" onclick="openModal('modal-usm')">
+                <span class="material-icons-round">upload</span> Upload USM
+              </button>
+            </div>
+            <div class="card-secondary-actions">
+              <button class="btn btn-ghost-muted" onclick="dlCurrentData('warehouse_product_assortment_v2')">
+                <span class="material-icons-round">download</span> Download current USM data
+              </button>
+              <button class="btn btn-ghost-muted" onclick="openLog('usm')">
+                <span class="material-icons-round">receipt_long</span> View logs
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5.1.2 Assortment — MDQ -->
+      <div class="subsec">
+        <div class="subsec-title">Assortment — MDQ</div>
+        <div class="cards-row">
+          <div class="card">
+            <div class="card-hdr">
+              <div>
+                <div class="card-title">Update MDQ</div>
+                <div class="card-desc">Upload Minimum Display Quantity data at MPC-store level. Partial updates are supported. Critical input for Step 4 (buying calculation).</div>
+              </div>
+              <span class="type-chip chip-override">Override</span>
+            </div>
+            <div class="info-row"><span class="material-icons-round">table_view</span>datos_studios.dp_mdq</div>
+            <div class="card-divider"></div>
+            <div class="card-actions">
+              <button class="btn btn-primary" onclick="openModal('modal-mdq')">
+                <span class="material-icons-round">upload</span> Upload MDQ
+              </button>
+            </div>
+            <div class="card-secondary-actions">
+              <button class="btn btn-ghost-muted" onclick="dlCurrentData('dp_mdq')">
+                <span class="material-icons-round">download</span> Download current MDQ data
+              </button>
+              <button class="btn btn-ghost-muted" onclick="openLog('mdq')">
+                <span class="material-icons-round">receipt_long</span> View logs
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5.1.3 Sister Store Mappings (moved from Section B per PRD) -->
+      <div class="subsec">
+        <div class="subsec-title">Sister Store Mappings</div>
+        <div class="cards-row">
+          <div class="card">
+            <div class="card-hdr">
+              <div>
+                <div class="card-title">Upload Sister Store Mappings</div>
+                <div class="card-desc">For new stores without sales history. Maps new_store_id to sister_store_id for demand inheritance.</div>
+              </div>
+              <span class="type-chip chip-override">Override</span>
+            </div>
+            <div class="info-row"><span class="material-icons-round">table_view</span>new_store_id · sister_store_id</div>
+            <div class="card-divider"></div>
+            <div class="card-actions">
+              <button class="btn btn-primary" onclick="openModal('modal-sister-store')">
+                <span class="material-icons-round">upload</span> Upload Mappings
+              </button>
+            </div>
+            <div class="card-secondary-actions">
+              <button class="btn btn-ghost-muted" onclick="dlCurrentData('sister_mappings')">
+                <span class="material-icons-round">download</span> Download existing mappings
+              </button>
+              <button class="btn btn-ghost-muted" onclick="openLog('sister-store')">
+                <span class="material-icons-round">receipt_long</span> View logs
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════ SECTION B ═══════════════════ -->
+  <div class="section" id="section-b">
+    <div class="section-hdr" onclick="toggleSection('section-b')">
+      <div class="section-hdr-left">
+        <span class="sec-badge badge-b">Section B</span>
+        <div>
+          <div class="sec-title">Demand Planning</div>
+          <div class="sec-desc">Base Forward ROS · ROS Multipliers · National Demand Adjustments</div>
+        </div>
+      </div>
+      <span class="material-icons-round col-icon">expand_more</span>
+    </div>
+    <div class="section-body">
+
+      <!-- 5.2.1 Base Forward ROS -->
+      <div class="subsec">
+        <div class="subsec-title">Base Forward ROS — Demand Forecasting</div>
+        <div class="cards-row">
+
+          <!-- Run Demand Forecasting -->
+          <div class="card">
+            <div class="card-hdr">
+              <div>
+                <div class="card-title">Run Demand Forecasting Script</div>
+                <div class="card-desc">Calculates MPC-store DRR for Rest of Month + Next Month. Each run assigned a unique Run ID. Forecast stored per Run ID and downloadable from logs.</div>
+              </div>
+              <span class="type-chip chip-script">Script</span>
+            </div>
+            <div class="card-meta">
+              <span class="sdot dot-ok"></span>
+              <span id="forecast-meta-text">Last run: Yesterday 18:42 · 3m 12s · RUN-2023</span>
+            </div>
+            <div class="card-divider"></div>
+            <div class="card-actions">
+              <button class="btn btn-primary" id="btn-forecast" onclick="runForecast(this)">
+                <span class="material-icons-round">play_arrow</span> Run Forecasting
+              </button>
+            </div>
+            <div class="card-secondary-actions">
+              <button class="btn btn-ghost-muted" onclick="dlCurrentData('active_forecast')">
+                <span class="material-icons-round">download</span> Download current forecast
+              </button>
+              <button class="btn btn-ghost-muted" onclick="openLog('demand-forecast')">
+                <span class="material-icons-round">receipt_long</span> View logs
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 5.2.2 ROS Multipliers -->
+      <div class="subsec">
+        <div class="subsec-title">Forward ROS — Explicit Multipliers</div>
+        <div class="cards-row">
+          <div class="card">
+            <div class="card-hdr">
+              <div>
+                <div class="card-title">Upload ROS Multiplier</div>
+                <div class="card-desc">Week-level multipliers at product × geo granularity. National-level rows require buying plan comparison download before submit.</div>
+              </div>
+              <span class="type-chip chip-override">Override</span>
+            </div>
+            <div class="info-row"><span class="material-icons-round">table_view</span>product_gran · geo_gran · week · multiplier_value</div>
+            <div class="card-divider"></div>
+            <div class="card-actions">
+              <button class="btn btn-primary" onclick="openModal('modal-ros-multiplier')">
+                <span class="material-icons-round">upload</span> Upload Multipliers
+              </button>
+            </div>
+            <div class="card-secondary-actions">
+              <button class="btn btn-ghost-muted" onclick="dlCurrentData('ros_multipliers')">
+                <span class="material-icons-round">download</span> Download active multipliers
+              </button>
+              <button class="btn btn-ghost-muted" onclick="openLog('ros-multiplier')">
+                <span class="material-icons-round">receipt_long</span> View logs
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5.2.3 National Level Demand Adjustment -->
+      <div class="subsec">
+        <div class="subsec-title">National Level Demand Adjustment</div>
+        <div class="cards-row">
+          <div class="card">
+            <div class="card-hdr">
+              <div>
+                <div class="card-title">Upload Demand Adjustments</div>
+                <div class="card-desc">Macro-level demand overrides. Auto-disaggregated to MPC × Store × Week level. Accounts for national campaigns, macro trends, and unplanned discount spikes.</div>
+              </div>
+              <span class="type-chip chip-override">Override</span>
+            </div>
+            <div class="info-row"><span class="material-icons-round">table_view</span>product_gran · geo_gran · time_gran · adjustment_value</div>
+            <div class="card-divider"></div>
+            <div class="card-actions">
+              <button class="btn btn-primary" onclick="openModal('modal-demand-adj')">
+                <span class="material-icons-round">upload</span> Upload Adjustments
+              </button>
+            </div>
+            <div class="card-secondary-actions">
+              <button class="btn btn-ghost-muted" onclick="dlCurrentData('demand_adjustments')">
+                <span class="material-icons-round">download</span> Download current adjustments
+              </button>
+              <button class="btn btn-ghost-muted" onclick="openLog('demand-adj')">
+                <span class="material-icons-round">receipt_long</span> View logs
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════ SECTION C ═══════════════════ -->
+  <div class="section" id="section-c">
+    <div class="section-hdr" onclick="toggleSection('section-c')">
+      <div class="section-hdr-left">
+        <span class="sec-badge badge-c">Section C</span>
+        <div>
+          <div class="sec-title">Supply Planning</div>
+          <div class="sec-desc">National Buying Caps · Final Buying Calculation &amp; Sign-off</div>
+        </div>
+      </div>
+      <span class="material-icons-round col-icon">expand_more</span>
+    </div>
+    <div class="section-body">
+
+      <!-- 5.3.1 National Buying Caps -->
+      <div class="subsec">
+        <div class="subsec-title">National Buying Caps</div>
+        <div class="cards-row">
+          <div class="card">
+            <div class="card-hdr">
+              <div>
+                <div class="card-title">Upload National Caps</div>
+                <div class="card-desc">Maximum buying limits at the MPC level across the national network. Used to prevent over-purchasing before final buying calculation.</div>
+              </div>
+              <span class="type-chip chip-override">Override</span>
+            </div>
+            <div class="info-row"><span class="material-icons-round">table_view</span>mpc · national_cap_quantity</div>
+            <div class="card-divider"></div>
+            <div class="card-actions">
+              <button class="btn btn-primary" onclick="openModal('modal-national-caps')">
+                <span class="material-icons-round">upload</span> Upload Caps
+              </button>
+            </div>
+            <div class="card-secondary-actions">
+              <button class="btn btn-ghost-muted" onclick="dlCurrentData('unconstrained_buying_plan')">
+                <span class="material-icons-round">download</span> Download unconstrained buying plan
+              </button>
+              <button class="btn btn-ghost-muted" onclick="dlCurrentData('active_caps')">
+                <span class="material-icons-round">download</span> Download active caps
+              </button>
+              <button class="btn btn-ghost-muted" onclick="openLog('national-caps')">
+                <span class="material-icons-round">receipt_long</span> View logs
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5.3.2 Final Buying Calculation & Sign-off -->
+      <div class="subsec">
+        <div class="subsec-title">Final Buying Calculation &amp; Sign-off</div>
+        <div class="cards-row">
+          <div class="card">
+            <div class="card-hdr">
+              <div>
+                <div class="card-title">Run Final Buying Calculation</div>
+                <div class="card-desc">Calculates constrained buying quantity from DRR, MDQ, IAPO, and National Caps. After the run, a sign-off diff view is presented for Retail Ops approval before pushing to dp_fulcrum.</div>
+              </div>
+              <span class="type-chip chip-script">Script</span>
+            </div>
+            <div class="card-meta">
+              <span class="sdot dot-idle"></span>
+              <span id="buying-meta-text">Last run: 24 Feb · 2m 44s · RUN-2020</span>
+            </div>
+            <div class="card-divider"></div>
+            <div class="card-actions">
+              <button class="btn btn-primary" id="btn-buying" onclick="runBuying(this)">
+                <span class="material-icons-round">play_arrow</span> Run Buying Calculation
+              </button>
+            </div>
+            <div class="card-secondary-actions">
+              <button class="btn btn-ghost-muted" onclick="dlCurrentData('final_buying_plan')">
+                <span class="material-icons-round">download</span> Download final buying plan
+              </button>
+              <button class="btn btn-ghost-muted" onclick="openLog('buying-calc')">
+                <span class="material-icons-round">receipt_long</span> View logs
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════════════════════ -->
+
+<!-- USM -->
+<div class="modal-overlay" id="modal-usm">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-hdr-left">
+        <h2>Update USM</h2>
+        <p>warehouse_id (or city_name / state_name) · mpc · usm</p>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-usm')"><span class="material-icons-round">close</span></button>
+    </div>
+    <div class="modal-body">
+      <a href="#" class="fmt-link" onclick="return false"><span class="material-icons-round">open_in_new</span>View accepted input format →</a>
+      <div class="upload-zone" onclick="simulateUpload('usm')">
+        <div><span class="material-icons-round">cloud_upload</span></div>
+        <p>Drag &amp; drop file here or <span class="uz-link">browse</span></p>
+        <p class="uz-types">Accepts .csv and .xlsx · Max 10 MB</p>
+      </div>
+      <div class="preview-sec" id="preview-usm">
+        <div class="preview-hdr">
+          <span>Row Preview (first 10 rows)</span>
+          <div class="val-summary"><span class="v-ok">✓ 5 valid</span></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>warehouse_id</th><th>mpc</th><th>usm</th></tr></thead>
+            <tbody>
+              <tr><td>WH-001</td><td>MPC-4421</td><td>24</td></tr>
+              <tr><td>WH-002</td><td>MPC-4422</td><td>12</td></tr>
+              <tr><td>WH-003</td><td>MPC-4423</td><td>6</td></tr>
+              <tr><td>WH-004</td><td>MPC-4424</td><td>36</td></tr>
+              <tr><td>WH-005</td><td>MPC-4425</td><td>18</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-ghost-muted btn-sm" onclick="dlTemplate('usm_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
+      <button class="btn btn-outlined" onclick="closeModal('modal-usm')">Cancel</button>
+      <button class="btn btn-primary" id="submit-usm" disabled onclick="submitModal('modal-usm','5 rows pushed to warehouse_product_assortment_v2','usm',5)">
+        <span class="material-icons-round">send</span> Submit
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MDQ -->
+<div class="modal-overlay" id="modal-mdq">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-hdr-left">
+        <h2>Update MDQ</h2>
+        <p>warehouse_id (or city_name / state_name) · mpc · mdq</p>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-mdq')"><span class="material-icons-round">close</span></button>
+    </div>
+    <div class="modal-body">
+      <a href="#" class="fmt-link" onclick="return false"><span class="material-icons-round">open_in_new</span>View accepted input format →</a>
+      <div class="upload-zone" onclick="simulateUpload('mdq')">
+        <div><span class="material-icons-round">cloud_upload</span></div>
+        <p>Drag &amp; drop file here or <span class="uz-link">browse</span></p>
+        <p class="uz-types">Accepts .csv and .xlsx · Max 10 MB</p>
+      </div>
+      <div class="preview-sec" id="preview-mdq">
+        <div class="preview-hdr">
+          <span>Row Preview (first 10 rows)</span>
+          <div class="val-summary"><span class="v-ok">✓ 5 valid</span></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>warehouse_id</th><th>mpc</th><th>mdq</th></tr></thead>
+            <tbody>
+              <tr><td>WH-001</td><td>MPC-4421</td><td>48</td></tr>
+              <tr><td>WH-002</td><td>MPC-4422</td><td>24</td></tr>
+              <tr><td>WH-003</td><td>MPC-4423</td><td>12</td></tr>
+              <tr><td>WH-004</td><td>MPC-4424</td><td>72</td></tr>
+              <tr><td>WH-005</td><td>MPC-4425</td><td>36</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-ghost-muted btn-sm" onclick="dlTemplate('mdq_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
+      <button class="btn btn-outlined" onclick="closeModal('modal-mdq')">Cancel</button>
+      <button class="btn btn-primary" id="submit-mdq" disabled onclick="submitModal('modal-mdq','5 rows pushed to dp_mdq','mdq',5)">
+        <span class="material-icons-round">send</span> Submit
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Sister Store Mappings -->
+<div class="modal-overlay" id="modal-sister-store">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-hdr-left">
+        <h2>Upload Sister Store Mappings</h2>
+        <p>new_store_id · sister_store_id</p>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-sister-store')"><span class="material-icons-round">close</span></button>
+    </div>
+    <div class="modal-body">
+      <a href="#" class="fmt-link" onclick="return false"><span class="material-icons-round">open_in_new</span>View accepted input format →</a>
+      <div class="upload-zone" onclick="simulateUpload('sister')">
+        <div><span class="material-icons-round">cloud_upload</span></div>
+        <p>Drag &amp; drop file here or <span class="uz-link">browse</span></p>
+        <p class="uz-types">Accepts .csv and .xlsx · Max 10 MB</p>
+      </div>
+      <div class="preview-sec" id="preview-sister">
+        <div class="preview-hdr">
+          <span>Row Preview</span>
+          <div class="val-summary"><span class="v-ok">✓ 4 valid</span></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>new_store_id</th><th>sister_store_id</th></tr></thead>
+            <tbody>
+              <tr><td>S-101</td><td>S-012</td></tr>
+              <tr><td>S-102</td><td>S-034</td></tr>
+              <tr><td>S-103</td><td>S-008</td></tr>
+              <tr><td>S-104</td><td>S-027</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-ghost-muted btn-sm" onclick="dlTemplate('sister_store_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
+      <button class="btn btn-outlined" onclick="closeModal('modal-sister-store')">Cancel</button>
+      <button class="btn btn-primary" id="submit-sister" disabled onclick="submitModal('modal-sister-store','4 mappings pushed','sister-store',4)">
+        <span class="material-icons-round">send</span> Submit
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ROS Multiplier -->
+<div class="modal-overlay" id="modal-ros-multiplier">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-hdr-left">
+        <h2>Upload ROS Multiplier</h2>
+        <p>product_granularity · geo_granularity · week · multiplier_value · remarks</p>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-ros-multiplier')"><span class="material-icons-round">close</span></button>
+    </div>
+    <div class="modal-body">
+      <a href="#" class="fmt-link" onclick="return false"><span class="material-icons-round">open_in_new</span>View accepted input format →</a>
+      <div class="upload-zone" onclick="simulateUpload('ros')">
+        <div><span class="material-icons-round">cloud_upload</span></div>
+        <p>Drag &amp; drop file here or <span class="uz-link">browse</span></p>
+        <p class="uz-types">Accepts .csv and .xlsx · Max 10 MB</p>
+      </div>
+      <div class="preview-sec" id="preview-ros">
+        <div class="preview-hdr">
+          <span>Row Preview</span>
+          <div class="val-summary">
+            <span class="v-ok">✓ 4 valid</span>
+            <span class="v-warn">⚠ 1 national</span>
+          </div>
+        </div>
+        <div class="nat-banner">
+          <span class="material-icons-round">warning_amber</span>
+          <span>1 row has <strong>geo_granularity = national</strong>. You must download and review the national buying plan comparison before submit is enabled.</span>
+        </div>
+        <div class="dl-gate" id="ros-dl-gate">
+          <div>
+            <p><strong>Download National Buying Plan Comparison</strong><br>Sheet 1: current buying plan (from Horizon). Sheet 2: future buying plan = max(MDQ, ROS × DOI) at MPC × Store × Month. Required before submitting.</p>
+          </div>
+          <button class="btn btn-outlined btn-sm" onclick="downloadNationalPlan()">
+            <span class="material-icons-round">table_chart</span> Download
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>product_gran.</th><th>geo_gran.</th><th>week</th><th>multiplier</th><th>remarks</th></tr></thead>
+            <tbody>
+              <tr><td>brand</td><td>city</td><td>2026-W10</td><td>1.2</td><td>Promo boost</td></tr>
+              <tr><td>subcat</td><td>state</td><td>2026-W10</td><td>0.9</td><td>Seasonal adj.</td></tr>
+              <tr class="row-warn"><td>brand-subcat</td><td><strong style="color:var(--warn)">national</strong></td><td>2026-W11</td><td>1.5</td><td>Campaign launch</td></tr>
+              <tr><td>brand</td><td>city</td><td>2026-W11</td><td>1.1</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-ghost-muted btn-sm" onclick="dlTemplate('ros_multiplier_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
+      <button class="btn btn-outlined" onclick="closeModal('modal-ros-multiplier')">Cancel</button>
+      <button class="btn btn-primary" id="submit-ros" disabled onclick="submitModal('modal-ros-multiplier','4 rows pushed to ROS multipliers','ros-multiplier',4)">
+        <span class="material-icons-round">send</span> Submit Multipliers
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Forecast Diff & Approval -->
+
+<!-- Demand Adjustments -->
+<div class="modal-overlay" id="modal-demand-adj">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-hdr-left">
+        <h2>Upload Demand Adjustments</h2>
+        <p>product_granularity · geo_granularity · time_granularity · adjustment_value</p>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-demand-adj')"><span class="material-icons-round">close</span></button>
+    </div>
+    <div class="modal-body">
+      <a href="#" class="fmt-link" onclick="return false"><span class="material-icons-round">open_in_new</span>View accepted input format →</a>
+      <div class="upload-zone" onclick="simulateUpload('demandAdj')">
+        <div><span class="material-icons-round">cloud_upload</span></div>
+        <p>Drag &amp; drop file here or <span class="uz-link">browse</span></p>
+        <p class="uz-types">Accepts .csv and .xlsx · Max 10 MB</p>
+      </div>
+      <div class="preview-sec" id="preview-demandAdj">
+        <div class="preview-hdr">
+          <span>Row Preview (first 10 rows)</span>
+          <div class="val-summary"><span class="v-ok">✓ 4 valid</span></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>product_gran.</th><th>geo_gran.</th><th>time_gran.</th><th>adjustment_value</th></tr></thead>
+            <tbody>
+              <tr><td>brand</td><td>national</td><td>week</td><td>1.15</td></tr>
+              <tr><td>subcat</td><td>state</td><td>month</td><td>0.90</td></tr>
+              <tr><td>mpc</td><td>city</td><td>week</td><td>1.05</td></tr>
+              <tr><td>brand</td><td>national</td><td>month</td><td>1.20</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-ghost-muted btn-sm" onclick="dlTemplate('demand_adj_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
+      <button class="btn btn-outlined" onclick="closeModal('modal-demand-adj')">Cancel</button>
+      <button class="btn btn-primary" id="submit-demandAdj" disabled onclick="submitModal('modal-demand-adj','4 rows pushed to demand adjustments','demand-adj',4)">
+        <span class="material-icons-round">send</span> Submit Adjustments
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- National Caps -->
+<div class="modal-overlay" id="modal-national-caps">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-hdr-left">
+        <h2>Upload National Caps</h2>
+        <p>mpc · national_cap_quantity</p>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-national-caps')"><span class="material-icons-round">close</span></button>
+    </div>
+    <div class="modal-body">
+      <a href="#" class="fmt-link" onclick="return false"><span class="material-icons-round">open_in_new</span>View accepted input format →</a>
+      <div class="upload-zone" onclick="simulateUpload('caps')">
+        <div><span class="material-icons-round">cloud_upload</span></div>
+        <p>Drag &amp; drop file here or <span class="uz-link">browse</span></p>
+        <p class="uz-types">Accepts .csv and .xlsx · Max 10 MB</p>
+      </div>
+      <div class="preview-sec" id="preview-caps">
+        <div class="preview-hdr">
+          <span>Row Preview (first 10 rows)</span>
+          <div class="val-summary"><span class="v-ok">✓ 5 valid</span></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>mpc</th><th>national_cap_quantity</th></tr></thead>
+            <tbody>
+              <tr><td>MPC-4421</td><td>5000</td></tr>
+              <tr><td>MPC-4422</td><td>3200</td></tr>
+              <tr><td>MPC-4423</td><td>8800</td></tr>
+              <tr><td>MPC-4424</td><td>1500</td></tr>
+              <tr><td>MPC-4425</td><td>4100</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-ghost-muted btn-sm" onclick="dlTemplate('national_caps_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
+      <button class="btn btn-outlined" onclick="closeModal('modal-national-caps')">Cancel</button>
+      <button class="btn btn-primary" id="submit-caps" disabled onclick="submitModal('modal-national-caps','5 rows pushed to national caps','national-caps',5)">
+        <span class="material-icons-round">send</span> Submit Caps
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Final Buying Calculation Diff & Sign-off -->
+<div class="modal-overlay" id="modal-buying-diff">
+  <div class="modal modal-wide">
+    <div class="modal-hdr">
+      <div class="modal-hdr-left">
+        <h2>Final Buying Calculation — Review &amp; Sign-off</h2>
+        <p>Staged values are not yet committed. Review unconstrained demand vs. constrained buying quantity, then approve or reject.</p>
+        <span class="modal-run-id" id="buying-diff-run-id">RUN-2021</span>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-buying-diff')"><span class="material-icons-round">close</span></button>
+    </div>
+    <div class="modal-body">
+      <div class="filter-bar">
+        <label style="font-size:12px;color:var(--on-m)">Filter:</label>
+        <input type="text" placeholder="Store ID or MPC…" style="width:160px" oninput="filterBuyingDiff(this.value)">
+        <select onchange="filterBuyingDiffDir(this.value)">
+          <option value="all">All changes</option>
+          <option value="up">Constrained up</option>
+          <option value="down">Constrained down</option>
+          <option value="same">No change</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table class="diff-table">
+          <thead><tr><th>Store ID</th><th>MPC</th><th>Period</th><th>Unconstrained Demand</th><th>Constrained Buying Qty</th><th>Δ</th></tr></thead>
+          <tbody id="buying-diff-tbody">
+            <tr data-dir="same"><td>WH-001</td><td>MPC-4421</td><td>Mar 2026</td><td>162.5</td><td>162.5</td><td><span class="dbadge db-same">0%</span></td></tr>
+            <tr data-dir="down"><td>WH-002</td><td>MPC-4422</td><td>Mar 2026</td><td>79.4</td><td class="dn">70.0</td><td><span class="dbadge db-dn">−11.8%</span></td></tr>
+            <tr data-dir="same"><td>WH-003</td><td>MPC-4423</td><td>Mar 2026</td><td>210.0</td><td>210.0</td><td><span class="dbadge db-same">0%</span></td></tr>
+            <tr data-dir="up"><td>WH-004</td><td>MPC-4424</td><td>Mar 2026</td><td>65.3</td><td class="up">72.0 <small style="color:var(--on-m)">(MDQ floor)</small></td><td><span class="dbadge db-up">+10.3%</span></td></tr>
+            <tr data-dir="down"><td>WH-005</td><td>MPC-4425</td><td>Mar 2026</td><td>190.1</td><td class="dn">175.0 <small style="color:var(--on-m)">(cap)</small></td><td><span class="dbadge db-dn">−7.9%</span></td></tr>
+            <tr data-dir="same"><td>WH-001</td><td>MPC-4421</td><td>Apr 2026</td><td>148.2</td><td>148.2</td><td><span class="dbadge db-same">0%</span></td></tr>
+            <tr data-dir="down"><td>WH-006</td><td>MPC-4426</td><td>Mar 2026</td><td>55.0</td><td class="dn">50.1 <small style="color:var(--on-m)">(cap)</small></td><td><span class="dbadge db-dn">−8.9%</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <div class="modal-ftr-left">Staged as <strong id="buying-ftr-run-id" style="color:var(--lav-600)">RUN-2021</strong> · 7 rows · On approve: pushed to <strong>dp_fulcrum</strong></div>
+      <button class="btn btn-outlined" onclick="rejectBuying()"><span class="material-icons-round">cancel</span> Reject</button>
+      <button class="btn btn-primary" onclick="approveBuying()"><span class="material-icons-round">check_circle</span> Approve &amp; Push to dp_fulcrum</button>
+    </div>
+  </div>
+</div>
+
+<!-- Forecast Diff & Approval -->
+<div class="modal-overlay" id="modal-forecast-diff">
+  <div class="modal modal-wide">
+    <div class="modal-hdr">
+      <div class="modal-hdr-left">
+        <h2>Forecast Diff — Review &amp; Approve</h2>
+        <p>Staged values are not committed to the live table. Review changes, then approve or reject.</p>
+        <span class="modal-run-id" id="diff-run-id">RUN-2025</span>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-forecast-diff')"><span class="material-icons-round">close</span></button>
+    </div>
+    <div class="modal-body">
+      <!-- Diff table -->
+      <div class="filter-bar">
+        <label style="font-size:12px;color:var(--on-m)">Filter:</label>
+        <input type="text" placeholder="Store ID or MPC…" style="width:160px" oninput="filterDiff(this.value)">
+        <select onchange="filterDiffDir(this.value)">
+          <option value="all">All changes</option>
+          <option value="up">Increased only</option>
+          <option value="down">Decreased only</option>
+          <option value="same">No change</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table class="diff-table">
+          <thead><tr><th>Store ID</th><th>MPC</th><th>Period</th><th>Current DRR</th><th>New DRR</th><th>Δ</th></tr></thead>
+          <tbody id="diff-tbody">
+            <tr data-dir="up"><td>WH-001</td><td>MPC-4421</td><td>Mar 2026</td><td>145.2</td><td class="up">162.5</td><td><span class="dbadge db-up">+11.9%</span></td></tr>
+            <tr data-dir="down"><td>WH-002</td><td>MPC-4422</td><td>Mar 2026</td><td>88.0</td><td class="dn">79.4</td><td><span class="dbadge db-dn">−9.8%</span></td></tr>
+            <tr data-dir="same"><td>WH-003</td><td>MPC-4423</td><td>Mar 2026</td><td>210.0</td><td>210.0</td><td><span class="dbadge db-same">0%</span></td></tr>
+            <tr data-dir="up"><td>WH-004</td><td>MPC-4424</td><td>Mar 2026</td><td>65.3</td><td class="up">71.8</td><td><span class="dbadge db-up">+9.9%</span></td></tr>
+            <tr data-dir="down"><td>WH-005</td><td>MPC-4425</td><td>Mar 2026</td><td>190.1</td><td class="dn">175.0</td><td><span class="dbadge db-dn">−7.9%</span></td></tr>
+            <tr data-dir="up"><td>WH-001</td><td>MPC-4421</td><td>Apr 2026</td><td>130.0</td><td class="up">148.2</td><td><span class="dbadge db-up">+14.0%</span></td></tr>
+            <tr data-dir="down"><td>WH-006</td><td>MPC-4426</td><td>Mar 2026</td><td>55.0</td><td class="dn">50.1</td><td><span class="dbadge db-dn">−8.9%</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Forecast Excel Preview -->
+      <div>
+        <div style="font-size:12px;color:var(--on-m);margin-bottom:8px;font-weight:500">On approval — Excel generated &amp; stored against Run ID:</div>
+        <div class="excel-preview">
+          <div class="excel-tabs">
+            <div class="excel-tab active" onclick="switchTab(this,'tab-out')">Forecast Output</div>
+            <div class="excel-tab" onclick="switchTab(this,'tab-horizon')">vs. Horizon (Current)</div>
+          </div>
+          <div id="tab-out" class="table-wrap">
+            <table>
+              <thead><tr><th>store_id</th><th>mpc</th><th>month</th><th>current_moq</th><th>forecasted_demand</th><th>calc. buying no.</th></tr></thead>
+              <tbody>
+                <tr><td>WH-001</td><td>MPC-4421</td><td>Mar 2026</td><td>48</td><td>162.5</td><td style="font-weight:600">162.5</td></tr>
+                <tr><td>WH-002</td><td>MPC-4422</td><td>Mar 2026</td><td>24</td><td>79.4</td><td style="font-weight:600">79.4</td></tr>
+                <tr><td>WH-003</td><td>MPC-4423</td><td>Mar 2026</td><td>12</td><td>210.0</td><td style="font-weight:600">210.0</td></tr>
+                <tr><td>WH-004</td><td>MPC-4424</td><td>Mar 2026</td><td>72</td><td>71.8</td><td style="font-weight:600;color:var(--warn)">72.0 <small style="font-weight:400">(MOQ floor)</small></td></tr>
+                <tr><td>WH-001</td><td>MPC-4421</td><td>Apr 2026</td><td>48</td><td>148.2</td><td style="font-weight:600">148.2</td></tr>
+                <tr><td>WH-005</td><td>MPC-4425</td><td>Mar 2026</td><td>36</td><td>175.0</td><td style="font-weight:600">175.0</td></tr>
+                <tr><td>WH-006</td><td>MPC-4426</td><td>Mar 2026</td><td>24</td><td>50.1</td><td style="font-weight:600">50.1</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div id="tab-horizon" class="table-wrap" style="display:none">
+            <table>
+              <thead><tr><th>store_id</th><th>mpc</th><th>month</th><th>calc. buying no.</th><th>current_uploaded_buying_no. (Horizon)</th><th>Δ</th></tr></thead>
+              <tbody>
+                <tr><td>WH-001</td><td>MPC-4421</td><td>Mar 2026</td><td>162.5</td><td>145.0</td><td><span class="dbadge db-up">+12.1%</span></td></tr>
+                <tr><td>WH-002</td><td>MPC-4422</td><td>Mar 2026</td><td>79.4</td><td>88.0</td><td><span class="dbadge db-dn">−9.8%</span></td></tr>
+                <tr><td>WH-003</td><td>MPC-4423</td><td>Mar 2026</td><td>210.0</td><td>210.0</td><td><span class="dbadge db-same">0%</span></td></tr>
+                <tr><td>WH-004</td><td>MPC-4424</td><td>Mar 2026</td><td>72.0</td><td>65.3</td><td><span class="dbadge db-up">+10.3%</span></td></tr>
+                <tr><td>WH-001</td><td>MPC-4421</td><td>Apr 2026</td><td>148.2</td><td>130.0</td><td><span class="dbadge db-up">+14.0%</span></td></tr>
+                <tr><td>WH-005</td><td>MPC-4425</td><td>Mar 2026</td><td>175.0</td><td>190.1</td><td><span class="dbadge db-dn">−7.9%</span></td></tr>
+                <tr><td>WH-006</td><td>MPC-4426</td><td>Mar 2026</td><td>50.1</td><td>55.0</td><td><span class="dbadge db-dn">−8.9%</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <div class="modal-ftr-left">Staged as <strong id="ftr-run-id" style="color:var(--lav-600)">RUN-2025</strong> · 7 rows changed</div>
+      <button class="btn btn-outlined" onclick="rejectForecast()"><span class="material-icons-round">cancel</span> Reject</button>
+      <button class="btn btn-primary" onclick="approveForecast()"><span class="material-icons-round">check_circle</span> Approve &amp; Generate Excel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     RUN LOG PANEL
+══════════════════════════════════════════════════════════ -->
+<div class="log-backdrop" id="log-backdrop" onclick="closeLog()"></div>
+<div class="log-panel" id="log-panel">
+  <div class="log-panel-hdr">
+    <div class="log-panel-hdr-left">
+      <h3 id="log-panel-title">Run Logs</h3>
+      <p id="log-panel-sub">Chronological · stored by Run ID · 3-month retention</p>
+    </div>
+    <button class="modal-close" onclick="closeLog()"><span class="material-icons-round">close</span></button>
+  </div>
+  <div class="log-panel-body" id="log-panel-body"></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-c" id="toast-c"></div>
+
+<script>
+// ── DATA STORE ─────────────────────────────────────────────────────────────────
+const runLogs = {
+  'usm': [
+    { id:'UPL-0445', ts:'2026-02-26 16:00', user:'arjun.m', status:'success', type:'Manual Upload',
+      file:'usm_update_feb26.csv', rows:52,
+      preview:[['WH-001','MPC-4421','24'],['WH-002','MPC-4422','12'],['WH-003','MPC-4423','6']] },
+    { id:'UPL-0421', ts:'2026-02-20 09:30', user:'sneha.r', status:'success', type:'Manual Upload',
+      file:'usm_update_batch2.csv', rows:18,
+      preview:[['WH-005','MPC-4425','18'],['WH-006','MPC-4426','36']] },
+  ],
+  'mdq': [
+    { id:'UPL-0446', ts:'2026-02-26 16:10', user:'arjun.m', status:'success', type:'Manual Upload',
+      file:'mdq_update_feb26.csv', rows:48,
+      preview:[['WH-001','MPC-4421','48'],['WH-002','MPC-4422','24'],['WH-003','MPC-4423','12']] },
+    { id:'UPL-0422', ts:'2026-02-20 09:45', user:'sneha.r', status:'success', type:'Manual Upload',
+      file:'mdq_update_batch2.csv', rows:15,
+      preview:[['WH-005','MPC-4425','36'],['WH-006','MPC-4426','72']] },
+  ],
+  'demand-forecast': [
+    { id:'RUN-2023', ts:'2026-02-26 18:42', user:'priya.k', status:'approved', type:'Script', duration:'3m 12s',
+      params:{ 'In-stock window':'60 days', 'Bucket size':'15 days', 'Weights':'0.4 / 0.3 / 0.2 / 0.1', 'Fallback':'city → state', 'New MPC-store default':'0' }, rows:4210, hasExcel:true },
+    { id:'RUN-2018', ts:'2026-02-25 18:30', user:'priya.k', status:'rejected', type:'Script', duration:'3m 05s',
+      params:{ 'In-stock window':'60 days', 'Weights':'0.4 / 0.3 / 0.2 / 0.1' }, rows:4198, hasExcel:true },
+    { id:'RUN-2011', ts:'2026-02-24 18:45', user:'arjun.m', status:'approved', type:'Script', duration:'3m 20s',
+      params:{ 'In-stock window':'60 days', 'Weights':'0.4 / 0.3 / 0.2 / 0.1' }, rows:4205, hasExcel:true },
+    { id:'RUN-1999', ts:'2026-02-23 19:10', user:'priya.k', status:'failed', type:'Script', duration:'1m 02s',
+      params:{ 'In-stock window':'60 days' }, error:'Query timeout on dp_class join', rows:0, hasExcel:false },
+  ],
+  'ros-multiplier': [
+    { id:'UPL-0448', ts:'2026-02-27 08:55', user:'priya.k', status:'success', type:'Manual Upload',
+      file:'ros_multipliers_w10_w11.csv', rows:4,
+      preview:[['brand','city','2026-W10','1.2','Promo boost'],['brand-subcat','national','2026-W11','1.5','Campaign launch']] },
+    { id:'UPL-0410', ts:'2026-02-19 10:00', user:'sneha.r', status:'success', type:'Manual Upload',
+      file:'ros_multipliers_w09.csv', rows:2,
+      preview:[['subcat','state','2026-W09','0.85','Winter adj.']] },
+  ],
+  'demand-adj': [
+    { id:'UPL-0451', ts:'2026-02-27 11:00', user:'priya.k', status:'success', type:'Manual Upload',
+      file:'demand_adj_feb27.csv', rows:6,
+      preview:[['brand','national','week','1.15'],['subcat','state','month','0.90']] },
+  ],
+  'sister-store': [
+    { id:'UPL-0430', ts:'2026-02-22 14:00', user:'arjun.m', status:'success', type:'Manual Upload',
+      file:'sister_store_batch_feb22.csv', rows:4,
+      preview:[['S-101','S-012'],['S-102','S-034'],['S-103','S-008'],['S-104','S-027']] },
+  ],
+  'national-caps': [
+    { id:'UPL-0449', ts:'2026-02-27 09:30', user:'priya.k', status:'success', type:'Manual Upload',
+      file:'national_caps_feb27.csv', rows:12,
+      preview:[['MPC-4421','5000'],['MPC-4422','3200'],['MPC-4423','8800']] },
+  ],
+  'buying-calc': [
+    { id:'RUN-2020', ts:'2026-02-24 14:10', user:'priya.k', status:'approved', type:'Script', duration:'2m 44s',
+      params:{ 'Inputs':'DRR, MDQ, IAPO, National Caps', 'Target':'dp_fulcrum' }, rows:4195 },
+    { id:'RUN-2012', ts:'2026-02-17 13:55', user:'arjun.m', status:'approved', type:'Script', duration:'2m 51s',
+      params:{ 'Inputs':'DRR, MDQ, IAPO, National Caps' }, rows:4180 },
+  ],
+};
+
+const LOG_LABELS = {
+  'usm':'USM Updates','mdq':'MDQ Updates',
+  'demand-forecast':'Demand Forecasting','ros-multiplier':'ROS Multipliers',
+  'demand-adj':'Demand Adjustments','sister-store':'Sister Store Mappings',
+  'national-caps':'National Buying Caps','buying-calc':'Final Buying Calculation',
+};
+
+let runCounter = 2026;
+function nextId(pfx='RUN'){ return pfx+'-'+(runCounter++); }
+function nowTs(){ return new Date().toISOString().replace('T',' ').slice(0,16); }
+
+// ── SECTION TOGGLE ────────────────────────────────────────────────────────────
+function toggleSection(id){ document.getElementById(id).classList.toggle('collapsed'); }
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); });
+});
+
+// ── UPLOAD SIMULATION ─────────────────────────────────────────────────────────
+const uMap={
+  usm:{preview:'preview-usm',submit:'submit-usm',errs:false},
+  mdq:{preview:'preview-mdq',submit:'submit-mdq',errs:false},
+  demand:{preview:'preview-demand',submit:'submit-demand',errs:false},
+  sister:{preview:'preview-sister',submit:'submit-sister',errs:false},
+  ros:{preview:'preview-ros',submit:'submit-ros',errs:false,natGate:true},
+  demandAdj:{preview:'preview-demandAdj',submit:'submit-demandAdj',errs:false},
+  caps:{preview:'preview-caps',submit:'submit-caps',errs:false},
+};
+function simulateUpload(k){
+  const m=uMap[k];
+  document.getElementById(m.preview).classList.add('visible');
+  if(!m.errs && !m.natGate) document.getElementById(m.submit).disabled=false;
+  showToast('File parsed — reviewing preview…','info');
+}
+
+// ── NATIONAL PLAN DOWNLOAD GATE ───────────────────────────────────────────────
+function downloadNationalPlan(){
+  document.getElementById('ros-dl-gate').innerHTML=
+    `<div style="display:flex;align-items:center;gap:8px;color:var(--ok);font-size:12px;font-weight:500">
+      <span class="material-icons-round" style="font-size:16px">check_circle</span>
+      National buying plan comparison downloaded. Submit is now enabled.
+    </div>`;
+  document.getElementById('submit-ros').disabled=false;
+  showToast('Comparison file downloaded — submit enabled','success');
+}
+
+// ── SUBMIT MODAL ──────────────────────────────────────────────────────────────
+function submitModal(modalId, msg, logKey, rowCount){
+  closeModal(modalId);
+  const id=nextId('UPL');
+  if(runLogs[logKey]) runLogs[logKey].unshift({
+    id, ts:nowTs(), user:'priya.k', status:'success', type:'Manual Upload',
+    file:'uploaded_file_'+id+'.csv', rows:rowCount,
+    preview:[['—','(file stored server-side)']]
+  });
+  showToast(msg+' · '+id,'success');
+}
+
+// ── RUN BUYING CALCULATION ────────────────────────────────────────────────────
+function runBuying(btn){
+  btn.disabled=true;
+  btn.innerHTML='<span class="spinner"></span> Running…';
+  setTimeout(()=>{
+    btn.disabled=false;
+    btn.innerHTML='<span class="material-icons-round">play_arrow</span> Run Buying Calculation';
+    const id=nextId();
+    document.getElementById('buying-diff-run-id').textContent=id;
+    document.getElementById('buying-ftr-run-id').textContent=id;
+    runLogs['buying-calc'].unshift({
+      id, ts:nowTs(), user:'priya.k', status:'pending', type:'Script', duration:'2m 44s',
+      params:{'Inputs':'DRR, MDQ, IAPO, National Caps','Target':'dp_fulcrum'}, rows:4195
+    });
+    document.getElementById('buying-meta-text').textContent=`Last run: Just now · 2m 44s · ${id}`;
+    openModal('modal-buying-diff');
+  },2400);
+}
+
+function approveBuying(){
+  const id=document.getElementById('buying-diff-run-id').textContent;
+  const e=runLogs['buying-calc'].find(x=>x.id===id);
+  if(e){e.status='approved';}
+  closeModal('modal-buying-diff');
+  showToast(`Buying plan approved · ${id} · Pushed to dp_fulcrum`,'success');
+  setTimeout(()=>showToast(`Download: final_buying_plan_${id}.xlsx`,'info'),700);
+}
+
+function rejectBuying(){
+  const id=document.getElementById('buying-diff-run-id').textContent;
+  const e=runLogs['buying-calc'].find(x=>x.id===id);
+  if(e) e.status='rejected';
+  closeModal('modal-buying-diff');
+  showToast(`Buying plan rejected · ${id} · Staged values discarded`,'info');
+}
+
+// ── BUYING DIFF FILTERS ───────────────────────────────────────────────────────
+function filterBuyingDiff(q){
+  document.querySelectorAll('#buying-diff-tbody tr').forEach(r=>{
+    r.style.display=(!q||r.textContent.toLowerCase().includes(q.toLowerCase()))?'':'none';
+  });
+}
+function filterBuyingDiffDir(val){
+  document.querySelectorAll('#buying-diff-tbody tr').forEach(r=>{
+    r.style.display=(val==='all'||r.dataset.dir===val)?'':'none';
+  });
+}
+
+// ── RUN CLASSIFICATION (removed — not in scope) ───────────────────────────────
+
+// ── RUN FORECAST ──────────────────────────────────────────────────────────────
+function runForecast(btn){
+  btn.disabled=true;
+  btn.innerHTML='<span class="spinner"></span> Running…';
+  setTimeout(()=>{
+    btn.disabled=false;
+    btn.innerHTML='<span class="material-icons-round">play_arrow</span> Run Forecasting';
+    const id=nextId();
+    document.getElementById('diff-run-id').textContent=id;
+    document.getElementById('ftr-run-id').textContent=id;
+    runLogs['demand-forecast'].unshift({
+      id, ts:nowTs(), user:'priya.k', status:'pending', type:'Script', duration:'3m 10s',
+      params:{'In-stock window':'60 days','Bucket size':'15 days','Weights':'0.4/0.3/0.2/0.1'}, rows:4215, hasExcel:false
+    });
+    document.getElementById('forecast-meta-text').textContent=`Last run: Just now · 3m 10s · ${id}`;
+    openModal('modal-forecast-diff');
+  },2200);
+}
+
+function approveForecast(){
+  const id=document.getElementById('diff-run-id').textContent;
+  const e=runLogs['demand-forecast'].find(x=>x.id===id);
+  if(e){e.status='approved';e.hasExcel=true;}
+  closeModal('modal-forecast-diff');
+  showToast(`Forecast approved · ${id}`,'success');
+  setTimeout(()=>showToast(`Excel generated: forecast_${id}.xlsx — download prompted`,'info'),700);
+}
+
+function rejectForecast(){
+  const id=document.getElementById('diff-run-id').textContent;
+  const e=runLogs['demand-forecast'].find(x=>x.id===id);
+  if(e) e.status='rejected';
+  closeModal('modal-forecast-diff');
+  showToast(`Forecast rejected · ${id} · Staged values discarded`,'info');
+}
+
+// ── DIFF FILTERS ──────────────────────────────────────────────────────────────
+function filterDiff(q){
+  document.querySelectorAll('#diff-tbody tr').forEach(r=>{
+    r.style.display=(!q||r.textContent.toLowerCase().includes(q.toLowerCase()))?'':'none';
+  });
+}
+function filterDiffDir(val){
+  document.querySelectorAll('#diff-tbody tr').forEach(r=>{
+    r.style.display=(val==='all'||r.dataset.dir===val)?'':'none';
+  });
+}
+
+// ── EXCEL TABS ────────────────────────────────────────────────────────────────
+function switchTab(tab, activeId){
+  tab.closest('.excel-preview').querySelectorAll('.excel-tab').forEach(t=>t.classList.remove('active'));
+  tab.classList.add('active');
+  ['tab-out','tab-horizon'].forEach(id=>{
+    document.getElementById(id).style.display=(id===activeId)?'':'none';
+  });
+}
+
+// ── DOWNLOADS ─────────────────────────────────────────────────────────────────
+function dlCurrentData(t){ showToast('Fetching current data from '+t+'…','info'); }
+function dlTemplate(f){ showToast('Template downloaded: '+f,'info'); }
+function dlForecastExcel(id){ showToast('Downloading forecast_'+id+'.xlsx…','info'); }
+function dlUploadedFile(f){ showToast('Downloading '+f+'…','info'); }
+
+// ── LOG PANEL ─────────────────────────────────────────────────────────────────
+function openLog(key){
+  document.getElementById('log-panel-title').textContent=LOG_LABELS[key]||'Run Logs';
+  document.getElementById('log-panel-sub').textContent='Chronological · stored by Run ID · 3-month retention';
+  renderLog(key);
+  document.getElementById('log-backdrop').classList.add('open');
+  document.getElementById('log-panel').classList.add('open');
+}
+function closeLog(){
+  document.getElementById('log-backdrop').classList.remove('open');
+  document.getElementById('log-panel').classList.remove('open');
+}
+
+function renderLog(key){
+  const entries=runLogs[key]||[];
+  const body=document.getElementById('log-panel-body');
+  if(!entries.length){
+    body.innerHTML=`<div class="log-empty"><span class="material-icons-round">receipt_long</span>No entries yet.</div>`;
+    return;
+  }
+  body.innerHTML=entries.map(e=>buildEntry(e)).join('');
+}
+
+function buildEntry(e){
+  const scls={'success':'ls-ok','approved':'ls-ok','failed':'ls-fail','pending':'ls-pend','rejected':'ls-rej'}[e.status]||'ls-ok';
+  const slbl={'success':'Success','approved':'Approved','failed':'Failed','pending':'Pending Approval','rejected':'Rejected'}[e.status]||e.status;
+
+  const paramsHtml=e.params?Object.entries(e.params).map(([k,v])=>
+    `<div class="log-dkey">${k}</div><div class="log-dval">${v}</div>`).join(''):'';
+  const fileHtml=e.file?`<div class="log-dkey">File</div><div class="log-dval">${e.file}</div>`:'';
+  const rowsHtml=e.rows!==undefined?`<div class="log-dkey">Rows</div><div class="log-dval">${e.rows.toLocaleString()}</div>`:'';
+  const errHtml=e.error?`<div class="log-dkey" style="color:var(--err)">Error</div><div class="log-dval" style="color:var(--err)">${e.error}</div>`:'';
+  const durHtml=e.duration?`<div class="log-dkey">Duration</div><div class="log-dval">${e.duration}</div>`:'';
+
+  let previewHtml='';
+  if(e.preview&&e.preview.length){
+    previewHtml=`<div style="font-size:11px;color:var(--on-m);margin:8px 0 4px">Submitted data preview:</div>
+    <div class="log-file-preview"><table><tbody>${e.preview.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  }
+
+  let actions='';
+  if(e.hasExcel) actions+=`<button class="btn btn-outlined btn-sm" onclick="dlForecastExcel('${e.id}')"><span class="material-icons-round">table_chart</span> Download forecast Excel</button>`;
+  if(e.file) actions+=`<button class="btn btn-ghost-muted btn-sm" onclick="dlUploadedFile('${e.file}')"><span class="material-icons-round">file_download</span> Download submitted file</button>`;
+
+  return `<div class="log-entry" id="le-${e.id}">
+    <div class="log-entry-hdr" onclick="this.parentElement.classList.toggle('expanded')">
+      <span class="log-run-id">${e.id}</span>
+      <div class="log-entry-meta">
+        <div class="log-entry-title">${e.type==='Script'?'Script Run':(e.file||'Upload')}</div>
+        <div class="log-entry-sub">${e.ts} · ${e.user}${e.duration?' · '+e.duration:''}</div>
+      </div>
+      <span class="log-status ${scls}">${slbl}</span>
+      <span class="material-icons-round log-exp-ico">expand_more</span>
+    </div>
+    <div class="log-entry-detail">
+      <div class="log-detail-grid">${paramsHtml}${fileHtml}${rowsHtml}${durHtml}${errHtml}</div>
+      ${previewHtml}
+      ${actions?`<div class="log-detail-actions">${actions}</div>`:''}
+    </div>
+  </div>`;
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function showToast(msg,type='info'){
+  const icons={success:'check_circle',error:'error',info:'info'};
+  const c=document.getElementById('toast-c');
+  const t=document.createElement('div');
+  t.className='toast '+type;
+  t.innerHTML=`<span class="material-icons-round">${icons[type]}</span>${msg}`;
+  c.appendChild(t);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300);},3800);
+}
+</script>
+</body>
+</html>
