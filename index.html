@@ -56,18 +56,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--lav-50);color:var(--on);f
 /* SUBSECTION */
 .subsec{margin-bottom:24px}
 .subsec:last-child{margin-bottom:0}
-
-.cards-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,480px),1fr));gap:14px}
+.subsec-title{font-size:11px;font-weight:600;color:var(--on-m);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.subsec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.cards-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}
 
 /* CARD */
-.card{border:1px solid var(--border);border-radius:var(--rs);background:var(--surface);padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0;word-break:break-word;overflow:hidden}
+.card{border:1px solid var(--border);border-radius:var(--rs);background:var(--surface);padding:16px;display:flex;flex-direction:column;gap:10px}
 .card-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
 .card-title{font-size:14px;font-weight:600}
 .card-desc{font-size:12px;color:var(--on-m);margin-top:3px;line-height:1.55}
 .type-chip{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;flex-shrink:0}
 .chip-script{background:#e0f2fe;color:#0369a1}
 .chip-override{background:#fce7f3;color:#9d174d}
-.card-meta{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--on-m);font-family:'DM Mono',monospace;flex-wrap:wrap;min-width:0;overflow:hidden}
+.card-meta{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--on-m);font-family:'DM Mono',monospace;flex-wrap:wrap}
 .card-meta .material-icons-round{font-size:13px}
 .sdot{width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0}
 .dot-ok{background:var(--ok)} .dot-idle{background:#d1d5db} .dot-err{background:var(--err)}
@@ -75,7 +76,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--lav-50);color:var(--on);f
 .card-divider{height:1px;background:var(--border);margin:0 -16px}
 .card-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .card-secondary-actions{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
-.info-row{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--on-m);font-family:'DM Mono',monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.info-row{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--on-m);font-family:'DM Mono',monospace}
 .info-row .material-icons-round{font-size:13px}
 
 /* BUTTONS */
@@ -212,6 +213,49 @@ tr.row-warn td{background:#fffbeb}
 
 /* TOAST */
 .toast-c{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:500}
+
+/* ── HEALTH STRIPE ── */
+.card{position:relative;border-left:4px solid var(--border)}
+.card.health-ok{border-left-color:var(--ok)}
+.card.health-err{border-left-color:var(--err)}
+.card.health-checking{border-left-color:var(--warn)}
+
+/* ── HEALTH BADGE ── */
+.health-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;margin-top:4px}
+.health-badge.ok{background:#dcfce7;color:var(--ok)}
+.health-badge.err{background:#fef2f2;color:var(--err)}
+.health-badge.checking{background:#fef3c7;color:var(--warn)}
+.health-badge .material-icons-round{font-size:12px}
+
+/* ── HEALTH ERROR DETAIL ── */
+.health-errors{background:#fef2f2;border:1px solid #fecaca;border-radius:var(--rs);padding:8px 12px;font-size:11px;color:var(--err);line-height:1.6;margin-top:2px}
+.health-errors ul{margin:4px 0 0 14px}
+.health-errors ul li{margin-bottom:2px}
+
+/* ── LOCKED SECTION ── */
+.section.section-locked .section-hdr{opacity:.6;cursor:default;pointer-events:none}
+.section.section-locked .section-hdr:hover{background:var(--surface-var)}
+.section.section-locked .col-icon{display:none}
+.section-lock-icon{display:none;color:var(--on-m);font-size:20px}
+.section.section-locked .section-lock-icon{display:inline-flex}
+.section-locked-body{display:none;padding:20px}
+.section.section-locked .section-body{display:none}
+.section.section-locked .section-locked-body{display:block}
+.section-locked-banner{background:var(--surface-dim);border:1px solid var(--lav-200);border-radius:var(--rs);padding:16px 18px;display:flex;align-items:flex-start;gap:12px}
+.section-locked-banner .material-icons-round{font-size:20px;color:var(--on-m);flex-shrink:0;margin-top:1px}
+.section-locked-banner-text h4{font-size:13px;font-weight:600;color:var(--on);margin-bottom:3px}
+.section-locked-banner-text p{font-size:12px;color:var(--on-m);line-height:1.55}
+.section-locked-banner-text ul{margin:6px 0 0 16px;font-size:12px;color:var(--on-m);line-height:1.7}
+
+/* ── RECHECK BAR ── */
+.recheck-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px;box-shadow:var(--sh-sm)}
+.recheck-bar-left{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--on-m)}
+.recheck-bar-left .material-icons-round{font-size:16px;color:var(--lav-500)}
+.recheck-bar-status{font-size:11px;font-family:'DM Mono',monospace;color:var(--on-m)}
+.btn-recheck{background:var(--lav-100);color:var(--lav-600);border:1px solid var(--lav-200);padding:6px 14px;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.btn-recheck:hover{background:var(--lav-200)}
+.btn-recheck .material-icons-round{font-size:14px}
+.btn-recheck:disabled{opacity:.5;cursor:not-allowed}
 .toast{background:var(--on);color:#fff;padding:10px 16px;border-radius:var(--rs);font-size:13px;display:flex;align-items:center;gap:8px;box-shadow:var(--sh);opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s}
 .toast.show{opacity:1;transform:translateY(0)}
 .toast .material-icons-round{font-size:16px}
@@ -242,6 +286,18 @@ tr.row-warn td{background:#fffbeb}
     <p>Execute scripts, push data, and manage manual overrides for demand planning workflows.</p>
   </div>
 
+  <!-- ═══════════════════ RECHECK BAR ═══════════════════ -->
+  <div class="recheck-bar" id="recheck-bar">
+    <div class="recheck-bar-left">
+      <span class="material-icons-round">health_and_safety</span>
+      <span>Data health is checked live from backend on page load, after each upload, and on demand.</span>
+      <span class="recheck-bar-status" id="recheck-last-ts">Last checked: —</span>
+    </div>
+    <button class="btn-recheck" id="btn-recheck" onclick="recheckAllHealth()">
+      <span class="material-icons-round">refresh</span> Recheck Health
+    </button>
+  </div>
+
   <!-- ═══════════════════ SECTION A ═══════════════════ -->
   <div class="section" id="section-a">
     <div class="section-hdr" onclick="toggleSection('section-a')">
@@ -249,24 +305,37 @@ tr.row-warn td{background:#fffbeb}
         <span class="sec-badge badge-a">Section A</span>
         <div>
           <div class="sec-title">Pre Demand Planning</div>
-          <div class="sec-desc">Product Classification (MPC-Store) · USM · MDQ</div>
+          <div class="sec-desc">Product Classification (MPC-Store) · USM · MDQ · Sister Store Mappings · ROS Multipliers</div>
         </div>
       </div>
+      <span class="material-icons-round section-lock-icon">lock</span>
       <span class="material-icons-round col-icon">expand_more</span>
+    </div>
+    <div class="section-locked-body">
+      <div class="section-locked-banner">
+        <span class="material-icons-round">lock</span>
+        <div class="section-locked-banner-text">
+          <h4>Section A is locked</h4>
+          <p>This section has no prerequisites and should always be accessible. If you see this, there may be a configuration issue.</p>
+        </div>
+      </div>
     </div>
     <div class="section-body">
 
       <!-- 5.1.1 Assortment — USM -->
       <div class="subsec">
+        <div class="subsec-title">Assortment — USM</div>
         <div class="cards-row">
-          <div class="card">
+          <div class="card" id="card-usm">
             <div class="card-hdr">
               <div>
                 <div class="card-title">Update USM</div>
                 <div class="card-desc">Upload Universal SKU Master data at MPC-store level. Partial updates are supported.</div>
+                <span class="health-badge checking" id="health-badge-usm"><span class="material-icons-round">hourglass_empty</span> Checking…</span>
               </div>
               <span class="type-chip chip-override">Override</span>
             </div>
+            <div id="health-errors-usm"></div>
             <div class="info-row"><span class="material-icons-round">table_view</span>datos_suministro.warehouse_product_assortment_v2</div>
             <div class="card-divider"></div>
             <div class="card-actions">
@@ -288,15 +357,18 @@ tr.row-warn td{background:#fffbeb}
 
       <!-- 5.1.2 Assortment — MDQ -->
       <div class="subsec">
+        <div class="subsec-title">Assortment — MDQ</div>
         <div class="cards-row">
-          <div class="card">
+          <div class="card" id="card-mdq">
             <div class="card-hdr">
               <div>
                 <div class="card-title">Update MDQ</div>
                 <div class="card-desc">Upload Minimum Display Quantity data at MPC-store level. Partial updates are supported. Critical input for Step 4 (buying calculation).</div>
+                <span class="health-badge checking" id="health-badge-mdq"><span class="material-icons-round">hourglass_empty</span> Checking…</span>
               </div>
               <span class="type-chip chip-override">Override</span>
             </div>
+            <div id="health-errors-mdq"></div>
             <div class="info-row"><span class="material-icons-round">table_view</span>datos_studios.dp_mdq</div>
             <div class="card-divider"></div>
             <div class="card-actions">
@@ -318,15 +390,18 @@ tr.row-warn td{background:#fffbeb}
 
       <!-- 5.1.3 Sister Store Mappings (moved from Section B per PRD) -->
       <div class="subsec">
+        <div class="subsec-title">Sister Store Mappings</div>
         <div class="cards-row">
-          <div class="card">
+          <div class="card" id="card-sister">
             <div class="card-hdr">
               <div>
                 <div class="card-title">Upload Sister Store Mappings</div>
                 <div class="card-desc">For new stores without sales history. Maps new_store_id to sister_store_id for demand inheritance.</div>
+                <span class="health-badge checking" id="health-badge-sister"><span class="material-icons-round">hourglass_empty</span> Checking…</span>
               </div>
               <span class="type-chip chip-override">Override</span>
             </div>
+            <div id="health-errors-sister"></div>
             <div class="info-row"><span class="material-icons-round">table_view</span>new_store_id · sister_store_id</div>
             <div class="card-divider"></div>
             <div class="card-actions">
@@ -346,36 +421,81 @@ tr.row-warn td{background:#fffbeb}
         </div>
       </div>
 
+      <!-- 5.1.4 ROS Multipliers (moved from Section B) -->
+      <div class="subsec">
+        <div class="subsec-title">Forward ROS — Explicit Multipliers</div>
+        <div class="cards-row">
+          <div class="card" id="card-ros">
+            <div class="card-hdr">
+              <div>
+                <div class="card-title">Upload ROS Multiplier</div>
+                <div class="card-desc">Week-level multipliers at product × geo granularity. National-level rows require buying plan comparison download before submit.</div>
+                <span class="health-badge checking" id="health-badge-ros"><span class="material-icons-round">hourglass_empty</span> Checking…</span>
+              </div>
+              <span class="type-chip chip-override">Override</span>
+            </div>
+            <div id="health-errors-ros"></div>
+            <div class="info-row"><span class="material-icons-round">table_view</span>product_gran · geo_gran · week · multiplier_value</div>
+            <div class="card-divider"></div>
+            <div class="card-actions">
+              <button class="btn btn-primary" onclick="openModal('modal-ros-multiplier')">
+                <span class="material-icons-round">upload</span> Upload Multipliers
+              </button>
+            </div>
+            <div class="card-secondary-actions">
+              <button class="btn btn-ghost-muted" onclick="dlCurrentData('ros_multipliers')">
+                <span class="material-icons-round">download</span> Download active multipliers
+              </button>
+              <button class="btn btn-ghost-muted" onclick="openLog('ros-multiplier')">
+                <span class="material-icons-round">receipt_long</span> View logs
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
-
-  <!-- ═══════════════════ SECTION B ═══════════════════ -->
   <div class="section" id="section-b">
     <div class="section-hdr" onclick="toggleSection('section-b')">
       <div class="section-hdr-left">
         <span class="sec-badge badge-b">Section B</span>
         <div>
           <div class="sec-title">Demand Planning</div>
-          <div class="sec-desc">Base Forward ROS · ROS Multipliers · National Demand Adjustments</div>
+          <div class="sec-desc">Base Forward ROS · National Demand Adjustments</div>
         </div>
       </div>
+      <span class="material-icons-round section-lock-icon">lock</span>
       <span class="material-icons-round col-icon">expand_more</span>
+    </div>
+    <div class="section-locked-body">
+      <div class="section-locked-banner">
+        <span class="material-icons-round">lock</span>
+        <div class="section-locked-banner-text">
+          <h4>Section B is locked — complete Section A first</h4>
+          <p>All Section A data sources must be healthy before Demand Planning can proceed. The following cards are currently unhealthy:</p>
+          <ul id="section-b-lock-reasons"></ul>
+        </div>
+      </div>
     </div>
     <div class="section-body">
 
       <!-- 5.2.1 Base Forward ROS -->
       <div class="subsec">
+        <div class="subsec-title">Base Forward ROS — Demand Forecasting</div>
         <div class="cards-row">
 
           <!-- Run Demand Forecasting -->
-          <div class="card">
+          <div class="card" id="card-forecast">
             <div class="card-hdr">
               <div>
                 <div class="card-title">Run Demand Forecasting Script</div>
                 <div class="card-desc">Calculates MPC-store DRR for Rest of Month + Next Month. Each run assigned a unique Run ID. Forecast stored per Run ID and downloadable from logs.</div>
+                <span class="health-badge checking" id="health-badge-forecast"><span class="material-icons-round">hourglass_empty</span> Checking…</span>
               </div>
               <span class="type-chip chip-script">Script</span>
             </div>
+            <div id="health-errors-forecast"></div>
             <div class="card-meta">
               <span class="sdot dot-ok"></span>
               <span id="forecast-meta-text">Last run: Yesterday 18:42 · 3m 12s · RUN-2023</span>
@@ -399,47 +519,20 @@ tr.row-warn td{background:#fffbeb}
         </div>
       </div>
 
-      <!-- 5.2.2 ROS Multipliers -->
+      <!-- 5.2.2 National Level Demand Adjustment -->
       <div class="subsec">
+        <div class="subsec-title">National Level Demand Adjustment</div>
         <div class="cards-row">
-          <div class="card">
-            <div class="card-hdr">
-              <div>
-                <div class="card-title">Upload ROS Multiplier</div>
-                <div class="card-desc">Week-level multipliers at product × geo granularity. National-level rows require buying plan comparison download before submit.</div>
-              </div>
-              <span class="type-chip chip-override">Override</span>
-            </div>
-            <div class="info-row"><span class="material-icons-round">table_view</span>product_gran · geo_gran · week · multiplier_value</div>
-            <div class="card-divider"></div>
-            <div class="card-actions">
-              <button class="btn btn-primary" onclick="openModal('modal-ros-multiplier')">
-                <span class="material-icons-round">upload</span> Upload Multipliers
-              </button>
-            </div>
-            <div class="card-secondary-actions">
-              <button class="btn btn-ghost-muted" onclick="dlCurrentData('ros_multipliers')">
-                <span class="material-icons-round">download</span> Download active multipliers
-              </button>
-              <button class="btn btn-ghost-muted" onclick="openLog('ros-multiplier')">
-                <span class="material-icons-round">receipt_long</span> View logs
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 5.2.3 National Level Demand Adjustment -->
-      <div class="subsec">
-        <div class="cards-row">
-          <div class="card">
+          <div class="card" id="card-demand-adj">
             <div class="card-hdr">
               <div>
                 <div class="card-title">Upload Demand Adjustments</div>
                 <div class="card-desc">Macro-level demand overrides. Auto-disaggregated to MPC × Store × Week level. Accounts for national campaigns, macro trends, and unplanned discount spikes.</div>
+                <span class="health-badge checking" id="health-badge-demand-adj"><span class="material-icons-round">hourglass_empty</span> Checking…</span>
               </div>
               <span class="type-chip chip-override">Override</span>
             </div>
+            <div id="health-errors-demand-adj"></div>
             <div class="info-row"><span class="material-icons-round">table_view</span>product_gran · geo_gran · time_gran · adjustment_value</div>
             <div class="card-divider"></div>
             <div class="card-actions">
@@ -472,21 +565,35 @@ tr.row-warn td{background:#fffbeb}
           <div class="sec-desc">National Buying Caps · Final Buying Calculation &amp; Sign-off</div>
         </div>
       </div>
+      <span class="material-icons-round section-lock-icon">lock</span>
       <span class="material-icons-round col-icon">expand_more</span>
+    </div>
+    <div class="section-locked-body">
+      <div class="section-locked-banner">
+        <span class="material-icons-round">lock</span>
+        <div class="section-locked-banner-text">
+          <h4>Section C is locked — complete Section B first</h4>
+          <p>All Section B steps must be completed before Supply Planning can proceed. The following are pending:</p>
+          <ul id="section-c-lock-reasons"></ul>
+        </div>
+      </div>
     </div>
     <div class="section-body">
 
       <!-- 5.3.1 National Buying Caps -->
       <div class="subsec">
+        <div class="subsec-title">National Buying Caps</div>
         <div class="cards-row">
-          <div class="card">
+          <div class="card" id="card-national-caps">
             <div class="card-hdr">
               <div>
                 <div class="card-title">Upload National Caps</div>
                 <div class="card-desc">Maximum buying limits at the MPC level across the national network. Used to prevent over-purchasing before final buying calculation.</div>
+                <span class="health-badge checking" id="health-badge-national-caps"><span class="material-icons-round">hourglass_empty</span> Checking…</span>
               </div>
               <span class="type-chip chip-override">Override</span>
             </div>
+            <div id="health-errors-national-caps"></div>
             <div class="info-row"><span class="material-icons-round">table_view</span>mpc · national_cap_quantity</div>
             <div class="card-divider"></div>
             <div class="card-actions">
@@ -511,15 +618,18 @@ tr.row-warn td{background:#fffbeb}
 
       <!-- 5.3.2 Final Buying Calculation & Sign-off -->
       <div class="subsec">
+        <div class="subsec-title">Final Buying Calculation &amp; Sign-off</div>
         <div class="cards-row">
-          <div class="card">
+          <div class="card" id="card-buying">
             <div class="card-hdr">
               <div>
                 <div class="card-title">Run Final Buying Calculation</div>
                 <div class="card-desc">Calculates constrained buying quantity from DRR, MDQ, IAPO, and National Caps. After the run, a sign-off diff view is presented for Retail Ops approval before pushing to dp_fulcrum.</div>
+                <span class="health-badge checking" id="health-badge-buying"><span class="material-icons-round">hourglass_empty</span> Checking…</span>
               </div>
               <span class="type-chip chip-script">Script</span>
             </div>
+            <div id="health-errors-buying"></div>
             <div class="card-meta">
               <span class="sdot dot-idle"></span>
               <span id="buying-meta-text">Last run: 24 Feb · 2m 44s · RUN-2020</span>
@@ -989,6 +1099,189 @@ tr.row-warn td{background:#fffbeb}
 <div class="toast-c" id="toast-c"></div>
 
 <script>
+// ── HEALTH ENGINE ──────────────────────────────────────────────────────────────
+// Simulates backend health-check API responses.
+// In production, replace fetchHealthStatus() with a real fetch() to your API.
+// Each card has: healthy (bool), errors (string[]), lastChecked (ISO string | null)
+
+const MOCK_HEALTH = {
+  // Section A — mixed initial state as specified
+  usm:          { healthy: true,  errors: [] },
+  mdq:          { healthy: true,  errors: [] },
+  sister:       { healthy: false, errors: ['No mappings found for 3 new stores opened this cycle (S-105, S-106, S-107)', 'Last upload: 2026-02-22 — older than 7 days'] },
+  ros:          { healthy: false, errors: ['Active multiplier rows expire in 2 days (week 2026-W12 not covered)', 'Missing coverage for 4 MPCs at city-level granularity'] },
+  // Section B — health reflects whether these scripts have been run+approved
+  forecast:     { healthy: false, errors: ['No approved forecast run found for current cycle (cycle starts 2026-03-01)', 'Last approved run: RUN-2023 (2026-02-26) — stale for current cycle'] },
+  'demand-adj': { healthy: true,  errors: [] },
+  // Section C
+  'national-caps': { healthy: true, errors: [] },
+  buying:       { healthy: false, errors: ['No approved buying calculation for current cycle', 'Depends on approved forecast — run Section B first'] },
+};
+
+// Card metadata: label for lock reason messages
+const CARD_LABELS = {
+  usm: 'USM',
+  mdq: 'MDQ',
+  sister: 'Sister Store Mappings',
+  ros: 'ROS Multipliers',
+  forecast: 'Demand Forecasting',
+  'demand-adj': 'Demand Adjustments',
+  'national-caps': 'National Buying Caps',
+  buying: 'Final Buying Calculation',
+};
+
+// Section A cards — always unlocked, health tracked
+const SECTION_A_CARDS = ['usm', 'mdq', 'sister', 'ros'];
+// Section B cards — locked until all Section A healthy
+const SECTION_B_CARDS = ['forecast', 'demand-adj'];
+// Section C cards — locked until all Section B healthy
+const SECTION_C_CARDS = ['national-caps', 'buying'];
+
+let healthState = {}; // live health state, populated on check
+let isRechecking = false;
+
+// ── Simulate backend fetch ─────────────────────────────────────────────────────
+function fetchHealthStatus() {
+  // Simulates a network call. Returns a promise that resolves with health data.
+  return new Promise(resolve => {
+    setTimeout(() => {
+      // Deep-clone mock so mutations don't affect the source
+      const result = {};
+      for (const [k, v] of Object.entries(MOCK_HEALTH)) {
+        result[k] = { ...v, errors: [...v.errors], lastChecked: new Date().toISOString() };
+      }
+      resolve(result);
+    }, 900); // simulate ~900ms API round-trip
+  });
+}
+
+// ── Apply health state to UI ───────────────────────────────────────────────────
+function applyHealthToCard(cardKey, status) {
+  const card    = document.getElementById('card-' + cardKey);
+  const badge   = document.getElementById('health-badge-' + cardKey);
+  const errBox  = document.getElementById('health-errors-' + cardKey);
+  if (!card || !badge) return;
+
+  card.classList.remove('health-ok', 'health-err', 'health-checking');
+  badge.classList.remove('ok', 'err', 'checking');
+
+  if (status.healthy) {
+    card.classList.add('health-ok');
+    badge.classList.add('ok');
+    badge.innerHTML = '<span class="material-icons-round">check_circle</span> Healthy';
+  } else {
+    card.classList.add('health-err');
+    badge.classList.add('err');
+    badge.innerHTML = '<span class="material-icons-round">error</span> Unhealthy';
+  }
+
+  // Error detail box
+  if (errBox) {
+    if (!status.healthy && status.errors && status.errors.length) {
+      const items = status.errors.map(e => `<li>${e}</li>`).join('');
+      errBox.innerHTML = `<div class="health-errors"><ul>${items}</ul></div>`;
+    } else {
+      errBox.innerHTML = '';
+    }
+  }
+}
+
+function setCardChecking(cardKey) {
+  const card  = document.getElementById('card-' + cardKey);
+  const badge = document.getElementById('health-badge-' + cardKey);
+  if (!card || !badge) return;
+  card.classList.remove('health-ok', 'health-err');
+  card.classList.add('health-checking');
+  badge.classList.remove('ok', 'err');
+  badge.classList.add('checking');
+  badge.innerHTML = '<span class="material-icons-round">hourglass_empty</span> Checking…';
+}
+
+// ── Section locking ────────────────────────────────────────────────────────────
+function evaluateSectionLocks() {
+  const allAHealthy = SECTION_A_CARDS.every(k => healthState[k] && healthState[k].healthy);
+  const allBHealthy = SECTION_B_CARDS.every(k => healthState[k] && healthState[k].healthy);
+
+  // Section B: locked if any Section A card is unhealthy
+  const sectionB = document.getElementById('section-b');
+  if (!allAHealthy) {
+    sectionB.classList.add('section-locked');
+    const reasons = document.getElementById('section-b-lock-reasons');
+    if (reasons) {
+      reasons.innerHTML = SECTION_A_CARDS
+        .filter(k => !(healthState[k] && healthState[k].healthy))
+        .map(k => `<li><strong>${CARD_LABELS[k]}</strong> — ${
+          (healthState[k] && healthState[k].errors && healthState[k].errors[0]) || 'unhealthy'
+        }</li>`)
+        .join('');
+    }
+  } else {
+    sectionB.classList.remove('section-locked');
+  }
+
+  // Section C: locked if any Section B card is unhealthy
+  const sectionC = document.getElementById('section-c');
+  if (!allBHealthy) {
+    sectionC.classList.add('section-locked');
+    const reasons = document.getElementById('section-c-lock-reasons');
+    if (reasons) {
+      reasons.innerHTML = SECTION_B_CARDS
+        .filter(k => !(healthState[k] && healthState[k].healthy))
+        .map(k => `<li><strong>${CARD_LABELS[k]}</strong> — ${
+          (healthState[k] && healthState[k].errors && healthState[k].errors[0]) || 'not yet complete'
+        }</li>`)
+        .join('');
+    }
+  } else {
+    sectionC.classList.remove('section-locked');
+  }
+}
+
+// ── Main recheck function ──────────────────────────────────────────────────────
+async function recheckAllHealth(triggeredByUpload) {
+  if (isRechecking) return;
+  isRechecking = true;
+
+  const btn = document.getElementById('btn-recheck');
+  const tsEl = document.getElementById('recheck-last-ts');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Checking…';
+
+  // Set all cards to "checking" state
+  const allCards = [...SECTION_A_CARDS, ...SECTION_B_CARDS, ...SECTION_C_CARDS];
+  allCards.forEach(k => setCardChecking(k));
+
+  try {
+    const result = await fetchHealthStatus();
+    healthState = result;
+    allCards.forEach(k => {
+      if (result[k]) applyHealthToCard(k, result[k]);
+    });
+    evaluateSectionLocks();
+    const now = new Date();
+    tsEl.textContent = `Last checked: ${now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
+    if (!triggeredByUpload) showToast('Health check complete', 'success');
+  } catch (err) {
+    tsEl.textContent = 'Last checked: failed';
+    showToast('Health check failed — could not reach backend', 'error');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<span class="material-icons-round">refresh</span> Recheck Health';
+  isRechecking = false;
+}
+
+// ── Auto-recheck after a successful upload or approval ─────────────────────────
+function recheckAfterUpload(cardKey) {
+  // Optimistically mark that card as healthy in mock (simulates DB update)
+  if (MOCK_HEALTH[cardKey]) {
+    MOCK_HEALTH[cardKey].healthy = true;
+    MOCK_HEALTH[cardKey].errors = [];
+  }
+  showToast('Re-checking data health…', 'info');
+  setTimeout(() => recheckAllHealth(true), 600);
+}
+
 // ── DATA STORE ─────────────────────────────────────────────────────────────────
 const runLogs = {
   'usm': [
@@ -1060,7 +1353,11 @@ function nextId(pfx='RUN'){ return pfx+'-'+(runCounter++); }
 function nowTs(){ return new Date().toISOString().replace('T',' ').slice(0,16); }
 
 // ── SECTION TOGGLE ────────────────────────────────────────────────────────────
-function toggleSection(id){ document.getElementById(id).classList.toggle('collapsed'); }
+function toggleSection(id){
+  const sec = document.getElementById(id);
+  if (sec.classList.contains('section-locked')) return; // locked sections can't be toggled
+  sec.classList.toggle('collapsed');
+}
 
 // ── MODAL ─────────────────────────────────────────────────────────────────────
 function openModal(id){ document.getElementById(id).classList.add('open'); }
@@ -1098,15 +1395,25 @@ function downloadNationalPlan(){
 }
 
 // ── SUBMIT MODAL ──────────────────────────────────────────────────────────────
+// logKeyToCardKey maps log keys to health card keys
+const LOG_TO_CARD = {
+  'usm': 'usm', 'mdq': 'mdq', 'sister-store': 'sister',
+  'ros-multiplier': 'ros', 'demand-adj': 'demand-adj',
+  'national-caps': 'national-caps',
+};
+
 function submitModal(modalId, msg, logKey, rowCount){
   closeModal(modalId);
-  const id=nextId('UPL');
+  const id = nextId('UPL');
   if(runLogs[logKey]) runLogs[logKey].unshift({
     id, ts:nowTs(), user:'priya.k', status:'success', type:'Manual Upload',
     file:'uploaded_file_'+id+'.csv', rows:rowCount,
     preview:[['—','(file stored server-side)']]
   });
-  showToast(msg+' · '+id,'success');
+  showToast(msg+' · '+id, 'success');
+  // Recheck health for the card that was just updated
+  const cardKey = LOG_TO_CARD[logKey];
+  if (cardKey) recheckAfterUpload(cardKey);
 }
 
 // ── RUN BUYING CALCULATION ────────────────────────────────────────────────────
@@ -1135,6 +1442,7 @@ function approveBuying(){
   closeModal('modal-buying-diff');
   showToast(`Buying plan approved · ${id} · Pushed to dp_fulcrum`,'success');
   setTimeout(()=>showToast(`Download: final_buying_plan_${id}.xlsx`,'info'),700);
+  recheckAfterUpload('buying');
 }
 
 function rejectBuying(){
@@ -1185,6 +1493,7 @@ function approveForecast(){
   closeModal('modal-forecast-diff');
   showToast(`Forecast approved · ${id}`,'success');
   setTimeout(()=>showToast(`Excel generated: forecast_${id}.xlsx — download prompted`,'info'),700);
+  recheckAfterUpload('forecast');
 }
 
 function rejectForecast(){
@@ -1295,6 +1604,11 @@ function showToast(msg,type='info'){
   requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
   setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300);},3800);
 }
+
+// ── BOOT ──────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  recheckAllHealth(true); // silent initial check — no toast
+});
 </script>
 </body>
 </html>
