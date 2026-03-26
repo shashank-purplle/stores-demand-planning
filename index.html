@@ -388,7 +388,7 @@ tr.row-warn td{background:#fffbeb}
         </div>
       </div>
 
-      <!-- 5.1.3 Sister Store Mappings (moved from Section B per PRD) -->
+      <!-- 5.1.3 Sister Store Mappings -->
       <div class="subsec">
         <div class="subsec-title">Sister Store Mappings</div>
         <div class="cards-row">
@@ -421,7 +421,7 @@ tr.row-warn td{background:#fffbeb}
         </div>
       </div>
 
-      <!-- 5.1.4 ROS Multipliers (moved from Section B) -->
+      <!-- 5.1.4 ROS Multipliers -->
       <div class="subsec">
         <div class="subsec-title">Forward ROS — Explicit Multipliers</div>
         <div class="cards-row">
@@ -485,7 +485,6 @@ tr.row-warn td{background:#fffbeb}
         <div class="subsec-title">Base Forward ROS — Demand Forecasting</div>
         <div class="cards-row">
 
-          <!-- Run Demand Forecasting -->
           <div class="card" id="card-forecast">
             <div class="card-hdr">
               <div>
@@ -666,7 +665,7 @@ tr.row-warn td{background:#fffbeb}
     <div class="modal-hdr">
       <div class="modal-hdr-left">
         <h2>Update USM</h2>
-        <p>warehouse_id (or city_name / state_name) · mpc · usm</p>
+        <p>warehouse_id (or city_name / state_name) · mpc</p>
       </div>
       <button class="modal-close" onclick="closeModal('modal-usm')"><span class="material-icons-round">close</span></button>
     </div>
@@ -684,13 +683,13 @@ tr.row-warn td{background:#fffbeb}
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>warehouse_id</th><th>mpc</th><th>usm</th></tr></thead>
+            <thead><tr><th>warehouse_id</th><th>mpc</th></tr></thead>
             <tbody>
-              <tr><td>WH-001</td><td>MPC-4421</td><td>24</td></tr>
-              <tr><td>WH-002</td><td>MPC-4422</td><td>12</td></tr>
-              <tr><td>WH-003</td><td>MPC-4423</td><td>6</td></tr>
-              <tr><td>WH-004</td><td>MPC-4424</td><td>36</td></tr>
-              <tr><td>WH-005</td><td>MPC-4425</td><td>18</td></tr>
+              <tr><td>WH-001</td><td>MPC-4421</td></tr>
+              <tr><td>WH-002</td><td>MPC-4422</td></tr>
+              <tr><td>WH-003</td><td>MPC-4423</td></tr>
+              <tr><td>WH-004</td><td>MPC-4424</td></tr>
+              <tr><td>WH-005</td><td>MPC-4425</td></tr>
             </tbody>
           </table>
         </div>
@@ -857,8 +856,6 @@ tr.row-warn td{background:#fffbeb}
   </div>
 </div>
 
-<!-- Forecast Diff & Approval -->
-
 <!-- Demand Adjustments -->
 <div class="modal-overlay" id="modal-demand-adj">
   <div class="modal">
@@ -1007,7 +1004,6 @@ tr.row-warn td{background:#fffbeb}
       <button class="modal-close" onclick="closeModal('modal-forecast-diff')"><span class="material-icons-round">close</span></button>
     </div>
     <div class="modal-body">
-      <!-- Diff table -->
       <div class="filter-bar">
         <label style="font-size:12px;color:var(--on-m)">Filter:</label>
         <input type="text" placeholder="Store ID or MPC…" style="width:160px" oninput="filterDiff(this.value)">
@@ -1033,7 +1029,6 @@ tr.row-warn td{background:#fffbeb}
         </table>
       </div>
 
-      <!-- Forecast Excel Preview -->
       <div>
         <div style="font-size:12px;color:var(--on-m);margin-bottom:8px;font-weight:500">On approval — Excel generated &amp; stored against Run ID:</div>
         <div class="excel-preview">
@@ -1099,164 +1094,108 @@ tr.row-warn td{background:#fffbeb}
 <div class="toast-c" id="toast-c"></div>
 
 <script>
-// ── HEALTH ENGINE ──────────────────────────────────────────────────────────────
-// Simulates backend health-check API responses.
-// In production, replace fetchHealthStatus() with a real fetch() to your API.
-// Each card has: healthy (bool), errors (string[]), lastChecked (ISO string | null)
-
 const MOCK_HEALTH = {
-  // Section A — mixed initial state as specified
   usm:          { healthy: true,  errors: [] },
   mdq:          { healthy: true,  errors: [] },
   sister:       { healthy: false, errors: ['No mappings found for 3 new stores opened this cycle (S-105, S-106, S-107)', 'Last upload: 2026-02-22 — older than 7 days'] },
   ros:          { healthy: false, errors: ['Active multiplier rows expire in 2 days (week 2026-W12 not covered)', 'Missing coverage for 4 MPCs at city-level granularity'] },
-  // Section B — health reflects whether these scripts have been run+approved
   forecast:     { healthy: false, errors: ['No approved forecast run found for current cycle (cycle starts 2026-03-01)', 'Last approved run: RUN-2023 (2026-02-26) — stale for current cycle'] },
   'demand-adj': { healthy: true,  errors: [] },
-  // Section C
   'national-caps': { healthy: true, errors: [] },
   buying:       { healthy: false, errors: ['No approved buying calculation for current cycle', 'Depends on approved forecast — run Section B first'] },
 };
 
-// Card metadata: label for lock reason messages
 const CARD_LABELS = {
-  usm: 'USM',
-  mdq: 'MDQ',
-  sister: 'Sister Store Mappings',
-  ros: 'ROS Multipliers',
-  forecast: 'Demand Forecasting',
-  'demand-adj': 'Demand Adjustments',
-  'national-caps': 'National Buying Caps',
-  buying: 'Final Buying Calculation',
+  usm: 'USM', mdq: 'MDQ', sister: 'Sister Store Mappings', ros: 'ROS Multipliers',
+  forecast: 'Demand Forecasting', 'demand-adj': 'Demand Adjustments',
+  'national-caps': 'National Buying Caps', buying: 'Final Buying Calculation',
 };
 
-// Section A cards — always unlocked, health tracked
 const SECTION_A_CARDS = ['usm', 'mdq', 'sister', 'ros'];
-// Section B cards — locked until all Section A healthy
 const SECTION_B_CARDS = ['forecast', 'demand-adj'];
-// Section C cards — locked until all Section B healthy
 const SECTION_C_CARDS = ['national-caps', 'buying'];
 
-let healthState = {}; // live health state, populated on check
+let healthState = {};
 let isRechecking = false;
 
-// ── Simulate backend fetch ─────────────────────────────────────────────────────
 function fetchHealthStatus() {
-  // Simulates a network call. Returns a promise that resolves with health data.
   return new Promise(resolve => {
     setTimeout(() => {
-      // Deep-clone mock so mutations don't affect the source
       const result = {};
       for (const [k, v] of Object.entries(MOCK_HEALTH)) {
         result[k] = { ...v, errors: [...v.errors], lastChecked: new Date().toISOString() };
       }
       resolve(result);
-    }, 900); // simulate ~900ms API round-trip
+    }, 900);
   });
 }
 
-// ── Apply health state to UI ───────────────────────────────────────────────────
 function applyHealthToCard(cardKey, status) {
-  const card    = document.getElementById('card-' + cardKey);
-  const badge   = document.getElementById('health-badge-' + cardKey);
-  const errBox  = document.getElementById('health-errors-' + cardKey);
+  const card = document.getElementById('card-' + cardKey);
+  const badge = document.getElementById('health-badge-' + cardKey);
+  const errBox = document.getElementById('health-errors-' + cardKey);
   if (!card || !badge) return;
-
   card.classList.remove('health-ok', 'health-err', 'health-checking');
   badge.classList.remove('ok', 'err', 'checking');
-
   if (status.healthy) {
-    card.classList.add('health-ok');
-    badge.classList.add('ok');
+    card.classList.add('health-ok'); badge.classList.add('ok');
     badge.innerHTML = '<span class="material-icons-round">check_circle</span> Healthy';
   } else {
-    card.classList.add('health-err');
-    badge.classList.add('err');
+    card.classList.add('health-err'); badge.classList.add('err');
     badge.innerHTML = '<span class="material-icons-round">error</span> Unhealthy';
   }
-
-  // Error detail box
   if (errBox) {
     if (!status.healthy && status.errors && status.errors.length) {
-      const items = status.errors.map(e => `<li>${e}</li>`).join('');
-      errBox.innerHTML = `<div class="health-errors"><ul>${items}</ul></div>`;
-    } else {
-      errBox.innerHTML = '';
-    }
+      errBox.innerHTML = `<div class="health-errors"><ul>${status.errors.map(e => `<li>${e}</li>`).join('')}</ul></div>`;
+    } else { errBox.innerHTML = ''; }
   }
 }
 
 function setCardChecking(cardKey) {
-  const card  = document.getElementById('card-' + cardKey);
+  const card = document.getElementById('card-' + cardKey);
   const badge = document.getElementById('health-badge-' + cardKey);
   if (!card || !badge) return;
-  card.classList.remove('health-ok', 'health-err');
-  card.classList.add('health-checking');
-  badge.classList.remove('ok', 'err');
-  badge.classList.add('checking');
+  card.classList.remove('health-ok', 'health-err'); card.classList.add('health-checking');
+  badge.classList.remove('ok', 'err'); badge.classList.add('checking');
   badge.innerHTML = '<span class="material-icons-round">hourglass_empty</span> Checking…';
 }
 
-// ── Section locking ────────────────────────────────────────────────────────────
 function evaluateSectionLocks() {
   const allAHealthy = SECTION_A_CARDS.every(k => healthState[k] && healthState[k].healthy);
   const allBHealthy = SECTION_B_CARDS.every(k => healthState[k] && healthState[k].healthy);
-
-  // Section B: locked if any Section A card is unhealthy
   const sectionB = document.getElementById('section-b');
   if (!allAHealthy) {
     sectionB.classList.add('section-locked');
     const reasons = document.getElementById('section-b-lock-reasons');
     if (reasons) {
-      reasons.innerHTML = SECTION_A_CARDS
-        .filter(k => !(healthState[k] && healthState[k].healthy))
-        .map(k => `<li><strong>${CARD_LABELS[k]}</strong> — ${
-          (healthState[k] && healthState[k].errors && healthState[k].errors[0]) || 'unhealthy'
-        }</li>`)
-        .join('');
+      reasons.innerHTML = SECTION_A_CARDS.filter(k => !(healthState[k] && healthState[k].healthy))
+        .map(k => `<li><strong>${CARD_LABELS[k]}</strong> — ${(healthState[k] && healthState[k].errors && healthState[k].errors[0]) || 'unhealthy'}</li>`).join('');
     }
-  } else {
-    sectionB.classList.remove('section-locked');
-  }
-
-  // Section C: locked if any Section B card is unhealthy
+  } else { sectionB.classList.remove('section-locked'); }
   const sectionC = document.getElementById('section-c');
   if (!allBHealthy) {
     sectionC.classList.add('section-locked');
     const reasons = document.getElementById('section-c-lock-reasons');
     if (reasons) {
-      reasons.innerHTML = SECTION_B_CARDS
-        .filter(k => !(healthState[k] && healthState[k].healthy))
-        .map(k => `<li><strong>${CARD_LABELS[k]}</strong> — ${
-          (healthState[k] && healthState[k].errors && healthState[k].errors[0]) || 'not yet complete'
-        }</li>`)
-        .join('');
+      reasons.innerHTML = SECTION_B_CARDS.filter(k => !(healthState[k] && healthState[k].healthy))
+        .map(k => `<li><strong>${CARD_LABELS[k]}</strong> — ${(healthState[k] && healthState[k].errors && healthState[k].errors[0]) || 'not yet complete'}</li>`).join('');
     }
-  } else {
-    sectionC.classList.remove('section-locked');
-  }
+  } else { sectionC.classList.remove('section-locked'); }
 }
 
-// ── Main recheck function ──────────────────────────────────────────────────────
 async function recheckAllHealth(triggeredByUpload) {
   if (isRechecking) return;
   isRechecking = true;
-
   const btn = document.getElementById('btn-recheck');
   const tsEl = document.getElementById('recheck-last-ts');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Checking…';
-
-  // Set all cards to "checking" state
   const allCards = [...SECTION_A_CARDS, ...SECTION_B_CARDS, ...SECTION_C_CARDS];
   allCards.forEach(k => setCardChecking(k));
-
   try {
     const result = await fetchHealthStatus();
     healthState = result;
-    allCards.forEach(k => {
-      if (result[k]) applyHealthToCard(k, result[k]);
-    });
+    allCards.forEach(k => { if (result[k]) applyHealthToCard(k, result[k]); });
     evaluateSectionLocks();
     const now = new Date();
     tsEl.textContent = `Last checked: ${now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
@@ -1265,112 +1204,75 @@ async function recheckAllHealth(triggeredByUpload) {
     tsEl.textContent = 'Last checked: failed';
     showToast('Health check failed — could not reach backend', 'error');
   }
-
   btn.disabled = false;
   btn.innerHTML = '<span class="material-icons-round">refresh</span> Recheck Health';
   isRechecking = false;
 }
 
-// ── Auto-recheck after a successful upload or approval ─────────────────────────
 function recheckAfterUpload(cardKey) {
-  // Optimistically mark that card as healthy in mock (simulates DB update)
-  if (MOCK_HEALTH[cardKey]) {
-    MOCK_HEALTH[cardKey].healthy = true;
-    MOCK_HEALTH[cardKey].errors = [];
-  }
+  if (MOCK_HEALTH[cardKey]) { MOCK_HEALTH[cardKey].healthy = true; MOCK_HEALTH[cardKey].errors = []; }
   showToast('Re-checking data health…', 'info');
   setTimeout(() => recheckAllHealth(true), 600);
 }
 
-// ── DATA STORE ─────────────────────────────────────────────────────────────────
 const runLogs = {
   'usm': [
-    { id:'UPL-0445', ts:'2026-02-26 16:00', user:'arjun.m', status:'success', type:'Manual Upload',
-      file:'usm_update_feb26.csv', rows:52,
-      preview:[['WH-001','MPC-4421','24'],['WH-002','MPC-4422','12'],['WH-003','MPC-4423','6']] },
-    { id:'UPL-0421', ts:'2026-02-20 09:30', user:'sneha.r', status:'success', type:'Manual Upload',
-      file:'usm_update_batch2.csv', rows:18,
-      preview:[['WH-005','MPC-4425','18'],['WH-006','MPC-4426','36']] },
+    { id:'UPL-0445', ts:'2026-02-26 16:00', user:'arjun.m', status:'success', type:'Manual Upload', file:'usm_update_feb26.csv', rows:52, preview:[['WH-001','MPC-4421'],['WH-002','MPC-4422'],['WH-003','MPC-4423']] },
+    { id:'UPL-0421', ts:'2026-02-20 09:30', user:'sneha.r', status:'success', type:'Manual Upload', file:'usm_update_batch2.csv', rows:18, preview:[['WH-005','MPC-4425'],['WH-006','MPC-4426']] },
   ],
   'mdq': [
-    { id:'UPL-0446', ts:'2026-02-26 16:10', user:'arjun.m', status:'success', type:'Manual Upload',
-      file:'mdq_update_feb26.csv', rows:48,
-      preview:[['WH-001','MPC-4421','48'],['WH-002','MPC-4422','24'],['WH-003','MPC-4423','12']] },
-    { id:'UPL-0422', ts:'2026-02-20 09:45', user:'sneha.r', status:'success', type:'Manual Upload',
-      file:'mdq_update_batch2.csv', rows:15,
-      preview:[['WH-005','MPC-4425','36'],['WH-006','MPC-4426','72']] },
+    { id:'UPL-0446', ts:'2026-02-26 16:10', user:'arjun.m', status:'success', type:'Manual Upload', file:'mdq_update_feb26.csv', rows:48, preview:[['WH-001','MPC-4421','48'],['WH-002','MPC-4422','24'],['WH-003','MPC-4423','12']] },
+    { id:'UPL-0422', ts:'2026-02-20 09:45', user:'sneha.r', status:'success', type:'Manual Upload', file:'mdq_update_batch2.csv', rows:15, preview:[['WH-005','MPC-4425','36'],['WH-006','MPC-4426','72']] },
   ],
   'demand-forecast': [
-    { id:'RUN-2023', ts:'2026-02-26 18:42', user:'priya.k', status:'approved', type:'Script', duration:'3m 12s',
-      params:{ 'In-stock window':'60 days', 'Bucket size':'15 days', 'Weights':'0.4 / 0.3 / 0.2 / 0.1', 'Fallback':'city → state', 'New MPC-store default':'0' }, rows:4210, hasExcel:true },
-    { id:'RUN-2018', ts:'2026-02-25 18:30', user:'priya.k', status:'rejected', type:'Script', duration:'3m 05s',
-      params:{ 'In-stock window':'60 days', 'Weights':'0.4 / 0.3 / 0.2 / 0.1' }, rows:4198, hasExcel:true },
-    { id:'RUN-2011', ts:'2026-02-24 18:45', user:'arjun.m', status:'approved', type:'Script', duration:'3m 20s',
-      params:{ 'In-stock window':'60 days', 'Weights':'0.4 / 0.3 / 0.2 / 0.1' }, rows:4205, hasExcel:true },
-    { id:'RUN-1999', ts:'2026-02-23 19:10', user:'priya.k', status:'failed', type:'Script', duration:'1m 02s',
-      params:{ 'In-stock window':'60 days' }, error:'Query timeout on dp_class join', rows:0, hasExcel:false },
+    { id:'RUN-2023', ts:'2026-02-26 18:42', user:'priya.k', status:'approved', type:'Script', duration:'3m 12s', params:{ 'In-stock window':'60 days', 'Bucket size':'15 days', 'Weights':'0.4 / 0.3 / 0.2 / 0.1', 'Fallback':'city → state', 'New MPC-store default':'0' }, rows:4210, hasExcel:true },
+    { id:'RUN-2018', ts:'2026-02-25 18:30', user:'priya.k', status:'rejected', type:'Script', duration:'3m 05s', params:{ 'In-stock window':'60 days', 'Weights':'0.4 / 0.3 / 0.2 / 0.1' }, rows:4198, hasExcel:true },
+    { id:'RUN-2011', ts:'2026-02-24 18:45', user:'arjun.m', status:'approved', type:'Script', duration:'3m 20s', params:{ 'In-stock window':'60 days', 'Weights':'0.4 / 0.3 / 0.2 / 0.1' }, rows:4205, hasExcel:true },
+    { id:'RUN-1999', ts:'2026-02-23 19:10', user:'priya.k', status:'failed', type:'Script', duration:'1m 02s', params:{ 'In-stock window':'60 days' }, error:'Query timeout on dp_class join', rows:0, hasExcel:false },
   ],
   'ros-multiplier': [
-    { id:'UPL-0448', ts:'2026-02-27 08:55', user:'priya.k', status:'success', type:'Manual Upload',
-      file:'ros_multipliers_w10_w11.csv', rows:4,
-      preview:[['brand','city','2026-W10','1.2','Promo boost'],['brand-subcat','national','2026-W11','1.5','Campaign launch']] },
-    { id:'UPL-0410', ts:'2026-02-19 10:00', user:'sneha.r', status:'success', type:'Manual Upload',
-      file:'ros_multipliers_w09.csv', rows:2,
-      preview:[['subcat','state','2026-W09','0.85','Winter adj.']] },
+    { id:'UPL-0448', ts:'2026-02-27 08:55', user:'priya.k', status:'success', type:'Manual Upload', file:'ros_multipliers_w10_w11.csv', rows:4, preview:[['brand','city','2026-W10','1.2','Promo boost'],['brand-subcat','national','2026-W11','1.5','Campaign launch']] },
+    { id:'UPL-0410', ts:'2026-02-19 10:00', user:'sneha.r', status:'success', type:'Manual Upload', file:'ros_multipliers_w09.csv', rows:2, preview:[['subcat','state','2026-W09','0.85','Winter adj.']] },
   ],
   'demand-adj': [
-    { id:'UPL-0451', ts:'2026-02-27 11:00', user:'priya.k', status:'success', type:'Manual Upload',
-      file:'demand_adj_feb27.csv', rows:6,
-      preview:[['brand','national','week','1.15'],['subcat','state','month','0.90']] },
+    { id:'UPL-0451', ts:'2026-02-27 11:00', user:'priya.k', status:'success', type:'Manual Upload', file:'demand_adj_feb27.csv', rows:6, preview:[['brand','national','week','1.15'],['subcat','state','month','0.90']] },
   ],
   'sister-store': [
-    { id:'UPL-0430', ts:'2026-02-22 14:00', user:'arjun.m', status:'success', type:'Manual Upload',
-      file:'sister_store_batch_feb22.csv', rows:4,
-      preview:[['S-101','S-012'],['S-102','S-034'],['S-103','S-008'],['S-104','S-027']] },
+    { id:'UPL-0430', ts:'2026-02-22 14:00', user:'arjun.m', status:'success', type:'Manual Upload', file:'sister_store_batch_feb22.csv', rows:4, preview:[['S-101','S-012'],['S-102','S-034'],['S-103','S-008'],['S-104','S-027']] },
   ],
   'national-caps': [
-    { id:'UPL-0449', ts:'2026-02-27 09:30', user:'priya.k', status:'success', type:'Manual Upload',
-      file:'national_caps_feb27.csv', rows:12,
-      preview:[['MPC-4421','5000'],['MPC-4422','3200'],['MPC-4423','8800']] },
+    { id:'UPL-0449', ts:'2026-02-27 09:30', user:'priya.k', status:'success', type:'Manual Upload', file:'national_caps_feb27.csv', rows:12, preview:[['MPC-4421','5000'],['MPC-4422','3200'],['MPC-4423','8800']] },
   ],
   'buying-calc': [
-    { id:'RUN-2020', ts:'2026-02-24 14:10', user:'priya.k', status:'approved', type:'Script', duration:'2m 44s',
-      params:{ 'Inputs':'DRR, MDQ, IAPO, National Caps', 'Target':'dp_fulcrum' }, rows:4195 },
-    { id:'RUN-2012', ts:'2026-02-17 13:55', user:'arjun.m', status:'approved', type:'Script', duration:'2m 51s',
-      params:{ 'Inputs':'DRR, MDQ, IAPO, National Caps' }, rows:4180 },
+    { id:'RUN-2020', ts:'2026-02-24 14:10', user:'priya.k', status:'approved', type:'Script', duration:'2m 44s', params:{ 'Inputs':'DRR, MDQ, IAPO, National Caps', 'Target':'dp_fulcrum' }, rows:4195 },
+    { id:'RUN-2012', ts:'2026-02-17 13:55', user:'arjun.m', status:'approved', type:'Script', duration:'2m 51s', params:{ 'Inputs':'DRR, MDQ, IAPO, National Caps' }, rows:4180 },
   ],
 };
 
 const LOG_LABELS = {
-  'usm':'USM Updates','mdq':'MDQ Updates',
-  'demand-forecast':'Demand Forecasting','ros-multiplier':'ROS Multipliers',
-  'demand-adj':'Demand Adjustments','sister-store':'Sister Store Mappings',
-  'national-caps':'National Buying Caps','buying-calc':'Final Buying Calculation',
+  'usm':'USM Updates','mdq':'MDQ Updates','demand-forecast':'Demand Forecasting','ros-multiplier':'ROS Multipliers',
+  'demand-adj':'Demand Adjustments','sister-store':'Sister Store Mappings','national-caps':'National Buying Caps','buying-calc':'Final Buying Calculation',
 };
 
 let runCounter = 2026;
 function nextId(pfx='RUN'){ return pfx+'-'+(runCounter++); }
 function nowTs(){ return new Date().toISOString().replace('T',' ').slice(0,16); }
 
-// ── SECTION TOGGLE ────────────────────────────────────────────────────────────
 function toggleSection(id){
   const sec = document.getElementById(id);
-  if (sec.classList.contains('section-locked')) return; // locked sections can't be toggled
+  if (sec.classList.contains('section-locked')) return;
   sec.classList.toggle('collapsed');
 }
 
-// ── MODAL ─────────────────────────────────────────────────────────────────────
 function openModal(id){ document.getElementById(id).classList.add('open'); }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.modal-overlay').forEach(o=>{
   o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); });
 });
 
-// ── UPLOAD SIMULATION ─────────────────────────────────────────────────────────
 const uMap={
   usm:{preview:'preview-usm',submit:'submit-usm',errs:false},
   mdq:{preview:'preview-mdq',submit:'submit-mdq',errs:false},
-  demand:{preview:'preview-demand',submit:'submit-demand',errs:false},
   sister:{preview:'preview-sister',submit:'submit-sister',errs:false},
   ros:{preview:'preview-ros',submit:'submit-ros',errs:false,natGate:true},
   demandAdj:{preview:'preview-demandAdj',submit:'submit-demandAdj',errs:false},
@@ -1383,7 +1285,6 @@ function simulateUpload(k){
   showToast('File parsed — reviewing preview…','info');
 }
 
-// ── NATIONAL PLAN DOWNLOAD GATE ───────────────────────────────────────────────
 function downloadNationalPlan(){
   document.getElementById('ros-dl-gate').innerHTML=
     `<div style="display:flex;align-items:center;gap:8px;color:var(--ok);font-size:12px;font-weight:500">
@@ -1394,12 +1295,9 @@ function downloadNationalPlan(){
   showToast('Comparison file downloaded — submit enabled','success');
 }
 
-// ── SUBMIT MODAL ──────────────────────────────────────────────────────────────
-// logKeyToCardKey maps log keys to health card keys
 const LOG_TO_CARD = {
   'usm': 'usm', 'mdq': 'mdq', 'sister-store': 'sister',
-  'ros-multiplier': 'ros', 'demand-adj': 'demand-adj',
-  'national-caps': 'national-caps',
+  'ros-multiplier': 'ros', 'demand-adj': 'demand-adj', 'national-caps': 'national-caps',
 };
 
 function submitModal(modalId, msg, logKey, rowCount){
@@ -1407,29 +1305,21 @@ function submitModal(modalId, msg, logKey, rowCount){
   const id = nextId('UPL');
   if(runLogs[logKey]) runLogs[logKey].unshift({
     id, ts:nowTs(), user:'priya.k', status:'success', type:'Manual Upload',
-    file:'uploaded_file_'+id+'.csv', rows:rowCount,
-    preview:[['—','(file stored server-side)']]
+    file:'uploaded_file_'+id+'.csv', rows:rowCount, preview:[['—','(file stored server-side)']]
   });
   showToast(msg+' · '+id, 'success');
-  // Recheck health for the card that was just updated
   const cardKey = LOG_TO_CARD[logKey];
   if (cardKey) recheckAfterUpload(cardKey);
 }
 
-// ── RUN BUYING CALCULATION ────────────────────────────────────────────────────
 function runBuying(btn){
-  btn.disabled=true;
-  btn.innerHTML='<span class="spinner"></span> Running…';
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Running…';
   setTimeout(()=>{
-    btn.disabled=false;
-    btn.innerHTML='<span class="material-icons-round">play_arrow</span> Run Buying Calculation';
+    btn.disabled=false; btn.innerHTML='<span class="material-icons-round">play_arrow</span> Run Buying Calculation';
     const id=nextId();
     document.getElementById('buying-diff-run-id').textContent=id;
     document.getElementById('buying-ftr-run-id').textContent=id;
-    runLogs['buying-calc'].unshift({
-      id, ts:nowTs(), user:'priya.k', status:'pending', type:'Script', duration:'2m 44s',
-      params:{'Inputs':'DRR, MDQ, IAPO, National Caps','Target':'dp_fulcrum'}, rows:4195
-    });
+    runLogs['buying-calc'].unshift({ id, ts:nowTs(), user:'priya.k', status:'pending', type:'Script', duration:'2m 44s', params:{'Inputs':'DRR, MDQ, IAPO, National Caps','Target':'dp_fulcrum'}, rows:4195 });
     document.getElementById('buying-meta-text').textContent=`Last run: Just now · 2m 44s · ${id}`;
     openModal('modal-buying-diff');
   },2400);
@@ -1453,7 +1343,6 @@ function rejectBuying(){
   showToast(`Buying plan rejected · ${id} · Staged values discarded`,'info');
 }
 
-// ── BUYING DIFF FILTERS ───────────────────────────────────────────────────────
 function filterBuyingDiff(q){
   document.querySelectorAll('#buying-diff-tbody tr').forEach(r=>{
     r.style.display=(!q||r.textContent.toLowerCase().includes(q.toLowerCase()))?'':'none';
@@ -1465,22 +1354,14 @@ function filterBuyingDiffDir(val){
   });
 }
 
-// ── RUN CLASSIFICATION (removed — not in scope) ───────────────────────────────
-
-// ── RUN FORECAST ──────────────────────────────────────────────────────────────
 function runForecast(btn){
-  btn.disabled=true;
-  btn.innerHTML='<span class="spinner"></span> Running…';
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Running…';
   setTimeout(()=>{
-    btn.disabled=false;
-    btn.innerHTML='<span class="material-icons-round">play_arrow</span> Run Forecasting';
+    btn.disabled=false; btn.innerHTML='<span class="material-icons-round">play_arrow</span> Run Forecasting';
     const id=nextId();
     document.getElementById('diff-run-id').textContent=id;
     document.getElementById('ftr-run-id').textContent=id;
-    runLogs['demand-forecast'].unshift({
-      id, ts:nowTs(), user:'priya.k', status:'pending', type:'Script', duration:'3m 10s',
-      params:{'In-stock window':'60 days','Bucket size':'15 days','Weights':'0.4/0.3/0.2/0.1'}, rows:4215, hasExcel:false
-    });
+    runLogs['demand-forecast'].unshift({ id, ts:nowTs(), user:'priya.k', status:'pending', type:'Script', duration:'3m 10s', params:{'In-stock window':'60 days','Bucket size':'15 days','Weights':'0.4/0.3/0.2/0.1'}, rows:4215, hasExcel:false });
     document.getElementById('forecast-meta-text').textContent=`Last run: Just now · 3m 10s · ${id}`;
     openModal('modal-forecast-diff');
   },2200);
@@ -1504,7 +1385,6 @@ function rejectForecast(){
   showToast(`Forecast rejected · ${id} · Staged values discarded`,'info');
 }
 
-// ── DIFF FILTERS ──────────────────────────────────────────────────────────────
 function filterDiff(q){
   document.querySelectorAll('#diff-tbody tr').forEach(r=>{
     r.style.display=(!q||r.textContent.toLowerCase().includes(q.toLowerCase()))?'':'none';
@@ -1516,7 +1396,6 @@ function filterDiffDir(val){
   });
 }
 
-// ── EXCEL TABS ────────────────────────────────────────────────────────────────
 function switchTab(tab, activeId){
   tab.closest('.excel-preview').querySelectorAll('.excel-tab').forEach(t=>t.classList.remove('active'));
   tab.classList.add('active');
@@ -1525,13 +1404,11 @@ function switchTab(tab, activeId){
   });
 }
 
-// ── DOWNLOADS ─────────────────────────────────────────────────────────────────
 function dlCurrentData(t){ showToast('Fetching current data from '+t+'…','info'); }
 function dlTemplate(f){ showToast('Template downloaded: '+f,'info'); }
 function dlForecastExcel(id){ showToast('Downloading forecast_'+id+'.xlsx…','info'); }
 function dlUploadedFile(f){ showToast('Downloading '+f+'…','info'); }
 
-// ── LOG PANEL ─────────────────────────────────────────────────────────────────
 function openLog(key){
   document.getElementById('log-panel-title').textContent=LOG_LABELS[key]||'Run Logs';
   document.getElementById('log-panel-sub').textContent='Chronological · stored by Run ID · 3-month retention';
@@ -1547,34 +1424,26 @@ function closeLog(){
 function renderLog(key){
   const entries=runLogs[key]||[];
   const body=document.getElementById('log-panel-body');
-  if(!entries.length){
-    body.innerHTML=`<div class="log-empty"><span class="material-icons-round">receipt_long</span>No entries yet.</div>`;
-    return;
-  }
+  if(!entries.length){ body.innerHTML=`<div class="log-empty"><span class="material-icons-round">receipt_long</span>No entries yet.</div>`; return; }
   body.innerHTML=entries.map(e=>buildEntry(e)).join('');
 }
 
 function buildEntry(e){
   const scls={'success':'ls-ok','approved':'ls-ok','failed':'ls-fail','pending':'ls-pend','rejected':'ls-rej'}[e.status]||'ls-ok';
   const slbl={'success':'Success','approved':'Approved','failed':'Failed','pending':'Pending Approval','rejected':'Rejected'}[e.status]||e.status;
-
-  const paramsHtml=e.params?Object.entries(e.params).map(([k,v])=>
-    `<div class="log-dkey">${k}</div><div class="log-dval">${v}</div>`).join(''):'';
+  const paramsHtml=e.params?Object.entries(e.params).map(([k,v])=>`<div class="log-dkey">${k}</div><div class="log-dval">${v}</div>`).join(''):'';
   const fileHtml=e.file?`<div class="log-dkey">File</div><div class="log-dval">${e.file}</div>`:'';
   const rowsHtml=e.rows!==undefined?`<div class="log-dkey">Rows</div><div class="log-dval">${e.rows.toLocaleString()}</div>`:'';
   const errHtml=e.error?`<div class="log-dkey" style="color:var(--err)">Error</div><div class="log-dval" style="color:var(--err)">${e.error}</div>`:'';
   const durHtml=e.duration?`<div class="log-dkey">Duration</div><div class="log-dval">${e.duration}</div>`:'';
-
   let previewHtml='';
   if(e.preview&&e.preview.length){
     previewHtml=`<div style="font-size:11px;color:var(--on-m);margin:8px 0 4px">Submitted data preview:</div>
     <div class="log-file-preview"><table><tbody>${e.preview.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
   }
-
   let actions='';
   if(e.hasExcel) actions+=`<button class="btn btn-outlined btn-sm" onclick="dlForecastExcel('${e.id}')"><span class="material-icons-round">table_chart</span> Download forecast Excel</button>`;
   if(e.file) actions+=`<button class="btn btn-ghost-muted btn-sm" onclick="dlUploadedFile('${e.file}')"><span class="material-icons-round">file_download</span> Download submitted file</button>`;
-
   return `<div class="log-entry" id="le-${e.id}">
     <div class="log-entry-hdr" onclick="this.parentElement.classList.toggle('expanded')">
       <span class="log-run-id">${e.id}</span>
@@ -1593,7 +1462,6 @@ function buildEntry(e){
   </div>`;
 }
 
-// ── TOAST ─────────────────────────────────────────────────────────────────────
 function showToast(msg,type='info'){
   const icons={success:'check_circle',error:'error',info:'info'};
   const c=document.getElementById('toast-c');
@@ -1605,10 +1473,7 @@ function showToast(msg,type='info'){
   setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300);},3800);
 }
 
-// ── BOOT ──────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  recheckAllHealth(true); // silent initial check — no toast
-});
+document.addEventListener('DOMContentLoaded', () => { recheckAllHealth(true); });
 </script>
 </body>
 </html>
