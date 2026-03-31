@@ -1097,12 +1097,12 @@ tr.row-warn td{background:#fffbeb}
 const MOCK_HEALTH = {
   usm:          { healthy: true,  errors: [] },
   mdq:          { healthy: true,  errors: [] },
-  sister:       { healthy: false, errors: ['No mappings found for 3 new stores opened this cycle (S-105, S-106, S-107)', 'Last upload: 2026-02-22 — older than 7 days'] },
-  ros:          { healthy: false, errors: ['Active multiplier rows expire in 2 days (week 2026-W12 not covered)', 'Missing coverage for 4 MPCs at city-level granularity'] },
-  forecast:     { healthy: false, errors: ['No approved forecast run found for current cycle (cycle starts 2026-03-01)', 'Last approved run: RUN-2023 (2026-02-26) — stale for current cycle'] },
+  sister:       { healthy: true,  errors: [] },
+  ros:          { healthy: true,  errors: [] },
+  forecast:     { healthy: true,  errors: [] },
   'demand-adj': { healthy: true,  errors: [] },
   'national-caps': { healthy: true, errors: [] },
-  buying:       { healthy: false, errors: ['No approved buying calculation for current cycle', 'Depends on approved forecast — run Section B first'] },
+  buying:       { healthy: true,  errors: [] },
 };
 
 const CARD_LABELS = {
