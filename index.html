@@ -1098,7 +1098,7 @@ const MOCK_HEALTH = {
   usm:          { healthy: true,  errors: [] },
   mdq:          { healthy: true,  errors: [] },
   sister:       { healthy: true,  errors: [] },
-  ros:          { healthy: true,  errors: [] },
+  ros:          { healthy: false, errors: ['Active multiplier rows expire in 2 days (week 2026-W12 not covered)', 'Missing coverage for 4 MPCs at city-level granularity'] },
   forecast:     { healthy: true,  errors: [] },
   'demand-adj': { healthy: true,  errors: [] },
   'national-caps': { healthy: true, errors: [] },
@@ -1173,11 +1173,12 @@ function evaluateSectionLocks() {
     }
   } else { sectionB.classList.remove('section-locked'); }
   const sectionC = document.getElementById('section-c');
-  if (!allBHealthy) {
+  if (!allAHealthy || !allBHealthy) {
     sectionC.classList.add('section-locked');
     const reasons = document.getElementById('section-c-lock-reasons');
     if (reasons) {
-      reasons.innerHTML = SECTION_B_CARDS.filter(k => !(healthState[k] && healthState[k].healthy))
+      const unhealthyCards = [...SECTION_A_CARDS, ...SECTION_B_CARDS].filter(k => !(healthState[k] && healthState[k].healthy));
+      reasons.innerHTML = unhealthyCards
         .map(k => `<li><strong>${CARD_LABELS[k]}</strong> — ${(healthState[k] && healthState[k].errors && healthState[k].errors[0]) || 'not yet complete'}</li>`).join('');
     }
   } else { sectionC.classList.remove('section-locked'); }
@@ -1192,6 +1193,9 @@ async function recheckAllHealth(triggeredByUpload) {
   btn.innerHTML = '<span class="spinner"></span> Checking…';
   const allCards = [...SECTION_A_CARDS, ...SECTION_B_CARDS, ...SECTION_C_CARDS];
   allCards.forEach(k => setCardChecking(k));
+  if (!triggeredByUpload) {
+    MOCK_HEALTH.ros = { healthy: true, errors: [] };
+  }
   try {
     const result = await fetchHealthStatus();
     healthState = result;
