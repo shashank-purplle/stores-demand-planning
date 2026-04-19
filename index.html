@@ -36,7 +36,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--lav-50);color:var(--on);f
 .sec-badge{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:3px 10px;border-radius:20px}
 .badge-a{background:var(--lav-100);color:var(--lav-600)}
 .badge-b{background:#fef3c7;color:#92400e}
-.badge-c{background:#dcfce7;color:#15803d}
 .sec-title{font-size:15px;font-weight:600}
 .sec-desc{font-size:12px;color:var(--on-m);margin-top:2px}
 .col-icon{color:var(--on-m);transition:transform .2s}
@@ -419,7 +418,7 @@ tr.row-warn td{background:#fffbeb}
         <span class="sec-badge badge-b">Section B</span>
         <div>
           <div class="sec-title">Demand Planning</div>
-          <div class="sec-desc">Base Forward ROS · National Demand Adjustments</div>
+          <div class="sec-desc">Base Forward ROS</div>
         </div>
       </div>
       <span class="material-icons-round section-lock-icon">lock</span>
@@ -468,126 +467,10 @@ tr.row-warn td{background:#fffbeb}
             </div>
           </div>
 
-          <div class="card" id="card-demand-adj">
-            <div class="card-hdr">
-              <div>
-                <div class="card-title">Upload Demand Adjustments</div>
-                <div class="card-desc">Macro-level demand overrides. Auto-disaggregated to MPC × Store × Week level. Accounts for national campaigns, macro trends, and unplanned discount spikes.</div>
-                <span class="health-badge checking" id="health-badge-demand-adj"><span class="material-icons-round">hourglass_empty</span> Checking…</span>
-              </div>
-              <span class="type-chip chip-override">Override</span>
-            </div>
-            <div id="health-errors-demand-adj"></div>
-            <div class="info-row"><span class="material-icons-round">table_view</span>product_gran · geo_gran · time_gran · adjustment_value</div>
-            <div class="card-divider"></div>
-            <div class="card-actions">
-              <button class="btn btn-primary" onclick="openModal('modal-demand-adj')">
-                <span class="material-icons-round">upload</span> Upload Adjustments
-              </button>
-            </div>
-            <div class="card-secondary-actions">
-              <button class="btn btn-ghost-muted" onclick="dlCurrentData('demand_adjustments')">
-                <span class="material-icons-round">download</span> Download current adjustments
-              </button>
-              <button class="btn btn-ghost-muted" onclick="openLog('demand-adj')">
-                <span class="material-icons-round">receipt_long</span> View logs
-              </button>
-            </div>
-          </div>
-
       </div>
     </div>
   </div>
 
-  <!-- ═══════════════════ SECTION C ═══════════════════ -->
-  <div class="section" id="section-c">
-    <div class="section-hdr" onclick="toggleSection('section-c')">
-      <div class="section-hdr-left">
-        <span class="sec-badge badge-c">Section C</span>
-        <div>
-          <div class="sec-title">Supply Planning</div>
-          <div class="sec-desc">National Buying Caps · Final Buying Calculation &amp; Sign-off</div>
-        </div>
-      </div>
-      <span class="material-icons-round section-lock-icon">lock</span>
-      <span class="material-icons-round col-icon">expand_more</span>
-    </div>
-    <div class="section-locked-body">
-      <div class="section-locked-banner">
-        <span class="material-icons-round">lock</span>
-        <div class="section-locked-banner-text">
-          <h4>Section C is locked — complete Section B first</h4>
-          <p>All Section B steps must be completed before Supply Planning can proceed. The following are pending:</p>
-          <ul id="section-c-lock-reasons"></ul>
-        </div>
-      </div>
-    </div>
-    <div class="section-body">
-      <div class="cards-row">
-
-          <div class="card" id="card-national-caps">
-            <div class="card-hdr">
-              <div>
-                <div class="card-title">Upload National Caps</div>
-                <div class="card-desc">Maximum buying limits at the MPC level across the national network. Used to prevent over-purchasing before final buying calculation.</div>
-                <span class="health-badge checking" id="health-badge-national-caps"><span class="material-icons-round">hourglass_empty</span> Checking…</span>
-              </div>
-              <span class="type-chip chip-override">Override</span>
-            </div>
-            <div id="health-errors-national-caps"></div>
-            <div class="info-row"><span class="material-icons-round">table_view</span>mpc · national_cap_quantity</div>
-            <div class="card-divider"></div>
-            <div class="card-actions">
-              <button class="btn btn-primary" onclick="openModal('modal-national-caps')">
-                <span class="material-icons-round">upload</span> Upload Caps
-              </button>
-            </div>
-            <div class="card-secondary-actions">
-              <button class="btn btn-ghost-muted" onclick="dlCurrentData('unconstrained_buying_plan')">
-                <span class="material-icons-round">download</span> Download unconstrained buying plan
-              </button>
-              <button class="btn btn-ghost-muted" onclick="dlCurrentData('active_caps')">
-                <span class="material-icons-round">download</span> Download active caps
-              </button>
-              <button class="btn btn-ghost-muted" onclick="openLog('national-caps')">
-                <span class="material-icons-round">receipt_long</span> View logs
-              </button>
-            </div>
-          </div>
-
-          <div class="card" id="card-buying">
-            <div class="card-hdr">
-              <div>
-                <div class="card-title">Run Final Buying Calculation</div>
-                <div class="card-desc">Calculates constrained buying quantity from DRR, MDQ, IAPO, and National Caps. After the run, a sign-off diff view is presented for Retail Ops approval before pushing to dp_fulcrum.</div>
-                <span class="health-badge checking" id="health-badge-buying"><span class="material-icons-round">hourglass_empty</span> Checking…</span>
-              </div>
-              <span class="type-chip chip-script">Script</span>
-            </div>
-            <div id="health-errors-buying"></div>
-            <div class="card-meta">
-              <span class="sdot dot-idle"></span>
-              <span id="buying-meta-text">Last run: 24 Feb · 2m 44s · RUN-2020</span>
-            </div>
-            <div class="card-divider"></div>
-            <div class="card-actions">
-              <button class="btn btn-primary" id="btn-buying" onclick="runBuying(this)">
-                <span class="material-icons-round">play_arrow</span> Run Buying Calculation
-              </button>
-            </div>
-            <div class="card-secondary-actions">
-              <button class="btn btn-ghost-muted" onclick="dlCurrentData('final_buying_plan')">
-                <span class="material-icons-round">download</span> Download final buying plan
-              </button>
-              <button class="btn btn-ghost-muted" onclick="openLog('buying-calc')">
-                <span class="material-icons-round">receipt_long</span> View logs
-              </button>
-            </div>
-          </div>
-
-      </div>
-    </div>
-  </div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════
@@ -791,141 +674,7 @@ tr.row-warn td{background:#fffbeb}
   </div>
 </div>
 
-<!-- Demand Adjustments -->
-<div class="modal-overlay" id="modal-demand-adj">
-  <div class="modal">
-    <div class="modal-hdr">
-      <div class="modal-hdr-left">
-        <h2>Upload Demand Adjustments</h2>
-        <p>product_granularity · geo_granularity · time_granularity · adjustment_value</p>
-      </div>
-      <button class="modal-close" onclick="closeModal('modal-demand-adj')"><span class="material-icons-round">close</span></button>
-    </div>
-    <div class="modal-body">
-      <a href="#" class="fmt-link" onclick="return false"><span class="material-icons-round">open_in_new</span>View accepted input format →</a>
-      <div class="upload-zone" onclick="simulateUpload('demandAdj')">
-        <div><span class="material-icons-round">cloud_upload</span></div>
-        <p>Drag &amp; drop file here or <span class="uz-link">browse</span></p>
-        <p class="uz-types">Accepts .csv and .xlsx · Max 10 MB</p>
-      </div>
-      <div class="preview-sec" id="preview-demandAdj">
-        <div class="preview-hdr">
-          <span>Row Preview (first 10 rows)</span>
-          <div class="val-summary"><span class="v-ok">✓ 4 valid</span></div>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>product_gran.</th><th>geo_gran.</th><th>time_gran.</th><th>adjustment_value</th></tr></thead>
-            <tbody>
-              <tr><td>brand</td><td>national</td><td>week</td><td>1.15</td></tr>
-              <tr><td>subcat</td><td>state</td><td>month</td><td>0.90</td></tr>
-              <tr><td>mpc</td><td>city</td><td>week</td><td>1.05</td></tr>
-              <tr><td>brand</td><td>national</td><td>month</td><td>1.20</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-    <div class="modal-ftr">
-      <button class="btn btn-ghost-muted btn-sm" onclick="dlTemplate('demand_adj_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
-      <button class="btn btn-outlined" onclick="closeModal('modal-demand-adj')">Cancel</button>
-      <button class="btn btn-primary" id="submit-demandAdj" disabled onclick="submitModal('modal-demand-adj','4 rows pushed to demand adjustments','demand-adj',4)">
-        <span class="material-icons-round">send</span> Submit Adjustments
-      </button>
-    </div>
-  </div>
-</div>
 
-<!-- National Caps -->
-<div class="modal-overlay" id="modal-national-caps">
-  <div class="modal">
-    <div class="modal-hdr">
-      <div class="modal-hdr-left">
-        <h2>Upload National Caps</h2>
-        <p>mpc · national_cap_quantity</p>
-      </div>
-      <button class="modal-close" onclick="closeModal('modal-national-caps')"><span class="material-icons-round">close</span></button>
-    </div>
-    <div class="modal-body">
-      <a href="#" class="fmt-link" onclick="return false"><span class="material-icons-round">open_in_new</span>View accepted input format →</a>
-      <div class="upload-zone" onclick="simulateUpload('caps')">
-        <div><span class="material-icons-round">cloud_upload</span></div>
-        <p>Drag &amp; drop file here or <span class="uz-link">browse</span></p>
-        <p class="uz-types">Accepts .csv and .xlsx · Max 10 MB</p>
-      </div>
-      <div class="preview-sec" id="preview-caps">
-        <div class="preview-hdr">
-          <span>Row Preview (first 10 rows)</span>
-          <div class="val-summary"><span class="v-ok">✓ 5 valid</span></div>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>mpc</th><th>national_cap_quantity</th></tr></thead>
-            <tbody>
-              <tr><td>MPC-4421</td><td>5000</td></tr>
-              <tr><td>MPC-4422</td><td>3200</td></tr>
-              <tr><td>MPC-4423</td><td>8800</td></tr>
-              <tr><td>MPC-4424</td><td>1500</td></tr>
-              <tr><td>MPC-4425</td><td>4100</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-    <div class="modal-ftr">
-      <button class="btn btn-ghost-muted btn-sm" onclick="dlTemplate('national_caps_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
-      <button class="btn btn-outlined" onclick="closeModal('modal-national-caps')">Cancel</button>
-      <button class="btn btn-primary" id="submit-caps" disabled onclick="submitModal('modal-national-caps','5 rows pushed to national caps','national-caps',5)">
-        <span class="material-icons-round">send</span> Submit Caps
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- Final Buying Calculation Diff & Sign-off -->
-<div class="modal-overlay" id="modal-buying-diff">
-  <div class="modal modal-wide">
-    <div class="modal-hdr">
-      <div class="modal-hdr-left">
-        <h2>Final Buying Calculation — Review &amp; Sign-off</h2>
-        <p>Staged values are not yet committed. Review unconstrained demand vs. constrained buying quantity, then approve or reject.</p>
-        <span class="modal-run-id" id="buying-diff-run-id">RUN-2021</span>
-      </div>
-      <button class="modal-close" onclick="closeModal('modal-buying-diff')"><span class="material-icons-round">close</span></button>
-    </div>
-    <div class="modal-body">
-      <div class="filter-bar">
-        <label style="font-size:12px;color:var(--on-m)">Filter:</label>
-        <input type="text" placeholder="Store ID or MPC…" style="width:160px" oninput="filterBuyingDiff(this.value)">
-        <select onchange="filterBuyingDiffDir(this.value)">
-          <option value="all">All changes</option>
-          <option value="up">Constrained up</option>
-          <option value="down">Constrained down</option>
-          <option value="same">No change</option>
-        </select>
-      </div>
-      <div class="table-wrap">
-        <table class="diff-table">
-          <thead><tr><th>Store ID</th><th>MPC</th><th>Period</th><th>Unconstrained Demand</th><th>Constrained Buying Qty</th><th>Δ</th></tr></thead>
-          <tbody id="buying-diff-tbody">
-            <tr data-dir="same"><td>WH-001</td><td>MPC-4421</td><td>Mar 2026</td><td>162.5</td><td>162.5</td><td><span class="dbadge db-same">0%</span></td></tr>
-            <tr data-dir="down"><td>WH-002</td><td>MPC-4422</td><td>Mar 2026</td><td>79.4</td><td class="dn">70.0</td><td><span class="dbadge db-dn">−11.8%</span></td></tr>
-            <tr data-dir="same"><td>WH-003</td><td>MPC-4423</td><td>Mar 2026</td><td>210.0</td><td>210.0</td><td><span class="dbadge db-same">0%</span></td></tr>
-            <tr data-dir="up"><td>WH-004</td><td>MPC-4424</td><td>Mar 2026</td><td>65.3</td><td class="up">72.0 <small style="color:var(--on-m)">(MDQ floor)</small></td><td><span class="dbadge db-up">+10.3%</span></td></tr>
-            <tr data-dir="down"><td>WH-005</td><td>MPC-4425</td><td>Mar 2026</td><td>190.1</td><td class="dn">175.0 <small style="color:var(--on-m)">(cap)</small></td><td><span class="dbadge db-dn">−7.9%</span></td></tr>
-            <tr data-dir="same"><td>WH-001</td><td>MPC-4421</td><td>Apr 2026</td><td>148.2</td><td>148.2</td><td><span class="dbadge db-same">0%</span></td></tr>
-            <tr data-dir="down"><td>WH-006</td><td>MPC-4426</td><td>Mar 2026</td><td>55.0</td><td class="dn">50.1 <small style="color:var(--on-m)">(cap)</small></td><td><span class="dbadge db-dn">−8.9%</span></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <div class="modal-ftr">
-      <div class="modal-ftr-left">Staged as <strong id="buying-ftr-run-id" style="color:var(--lav-600)">RUN-2021</strong> · 7 rows · On approve: pushed to <strong>dp_fulcrum</strong></div>
-      <button class="btn btn-outlined" onclick="rejectBuying()"><span class="material-icons-round">cancel</span> Reject</button>
-      <button class="btn btn-primary" onclick="approveBuying()"><span class="material-icons-round">check_circle</span> Approve &amp; Push to dp_fulcrum</button>
-    </div>
-  </div>
-</div>
 
 <!-- Forecast Diff & Approval -->
 <div class="modal-overlay" id="modal-forecast-diff">
@@ -1035,20 +784,15 @@ const MOCK_HEALTH = {
   sister:       { healthy: true,  errors: [] },
   ros:          { healthy: false, errors: ['Active multiplier rows expire in 2 days (week 2026-W12 not covered)', 'Missing coverage for 4 MPCs at city-level granularity'] },
   forecast:     { healthy: true,  errors: [] },
-  'demand-adj': { healthy: true,  errors: [] },
-  'national-caps': { healthy: true, errors: [] },
-  buying:       { healthy: true,  errors: [] },
 };
 
 const CARD_LABELS = {
   usm: 'USM', mdq: 'MDQ', sister: 'Sister Store Mappings', ros: 'ROS Multipliers',
-  forecast: 'Demand Forecasting', 'demand-adj': 'Demand Adjustments',
-  'national-caps': 'National Buying Caps', buying: 'Final Buying Calculation',
+  forecast: 'Demand Forecasting',
 };
 
 const SECTION_A_CARDS = ['usm', 'mdq', 'sister', 'ros'];
-const SECTION_B_CARDS = ['forecast', 'demand-adj'];
-const SECTION_C_CARDS = ['national-caps', 'buying'];
+const SECTION_B_CARDS = ['forecast'];
 
 let healthState = {};
 let isRechecking = false;
@@ -1097,7 +841,6 @@ function setCardChecking(cardKey) {
 
 function evaluateSectionLocks() {
   const allAHealthy = SECTION_A_CARDS.every(k => healthState[k] && healthState[k].healthy);
-  const allBHealthy = SECTION_B_CARDS.every(k => healthState[k] && healthState[k].healthy);
   const sectionB = document.getElementById('section-b');
   if (!allAHealthy) {
     sectionB.classList.add('section-locked');
@@ -1107,16 +850,6 @@ function evaluateSectionLocks() {
         .map(k => `<li><strong>${CARD_LABELS[k]}</strong> — ${(healthState[k] && healthState[k].errors && healthState[k].errors[0]) || 'unhealthy'}</li>`).join('');
     }
   } else { sectionB.classList.remove('section-locked'); }
-  const sectionC = document.getElementById('section-c');
-  if (!allAHealthy || !allBHealthy) {
-    sectionC.classList.add('section-locked');
-    const reasons = document.getElementById('section-c-lock-reasons');
-    if (reasons) {
-      const unhealthyCards = [...SECTION_A_CARDS, ...SECTION_B_CARDS].filter(k => !(healthState[k] && healthState[k].healthy));
-      reasons.innerHTML = unhealthyCards
-        .map(k => `<li><strong>${CARD_LABELS[k]}</strong> — ${(healthState[k] && healthState[k].errors && healthState[k].errors[0]) || 'not yet complete'}</li>`).join('');
-    }
-  } else { sectionC.classList.remove('section-locked'); }
 }
 
 async function recheckAllHealth(triggeredByUpload) {
@@ -1126,7 +859,7 @@ async function recheckAllHealth(triggeredByUpload) {
   const tsEl = document.getElementById('recheck-last-ts');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Checking…';
-  const allCards = [...SECTION_A_CARDS, ...SECTION_B_CARDS, ...SECTION_C_CARDS];
+  const allCards = [...SECTION_A_CARDS, ...SECTION_B_CARDS];
   allCards.forEach(k => setCardChecking(k));
   if (!triggeredByUpload) {
     MOCK_HEALTH.ros = { healthy: true, errors: [] };
@@ -1173,24 +906,14 @@ const runLogs = {
     { id:'UPL-0448', ts:'2026-02-27 08:55', user:'priya.k', status:'success', type:'Manual Upload', file:'ros_multipliers_w10_w11.csv', rows:4, preview:[['brand','city','2026-W10','1.2','Promo boost'],['brand-subcat','national','2026-W11','1.5','Campaign launch']] },
     { id:'UPL-0410', ts:'2026-02-19 10:00', user:'sneha.r', status:'success', type:'Manual Upload', file:'ros_multipliers_w09.csv', rows:2, preview:[['subcat','state','2026-W09','0.85','Winter adj.']] },
   ],
-  'demand-adj': [
-    { id:'UPL-0451', ts:'2026-02-27 11:00', user:'priya.k', status:'success', type:'Manual Upload', file:'demand_adj_feb27.csv', rows:6, preview:[['brand','national','week','1.15'],['subcat','state','month','0.90']] },
-  ],
   'sister-store': [
     { id:'UPL-0430', ts:'2026-02-22 14:00', user:'arjun.m', status:'success', type:'Manual Upload', file:'sister_store_batch_feb22.csv', rows:4, preview:[['S-101','S-012'],['S-102','S-034'],['S-103','S-008'],['S-104','S-027']] },
-  ],
-  'national-caps': [
-    { id:'UPL-0449', ts:'2026-02-27 09:30', user:'priya.k', status:'success', type:'Manual Upload', file:'national_caps_feb27.csv', rows:12, preview:[['MPC-4421','5000'],['MPC-4422','3200'],['MPC-4423','8800']] },
-  ],
-  'buying-calc': [
-    { id:'RUN-2020', ts:'2026-02-24 14:10', user:'priya.k', status:'approved', type:'Script', duration:'2m 44s', params:{ 'Inputs':'DRR, MDQ, IAPO, National Caps', 'Target':'dp_fulcrum' }, rows:4195 },
-    { id:'RUN-2012', ts:'2026-02-17 13:55', user:'arjun.m', status:'approved', type:'Script', duration:'2m 51s', params:{ 'Inputs':'DRR, MDQ, IAPO, National Caps' }, rows:4180 },
   ],
 };
 
 const LOG_LABELS = {
   'usm':'USM Updates','mdq':'MDQ Updates','demand-forecast':'Demand Forecasting','ros-multiplier':'ROS Multipliers',
-  'demand-adj':'Demand Adjustments','sister-store':'Sister Store Mappings','national-caps':'National Buying Caps','buying-calc':'Final Buying Calculation',
+  'sister-store':'Sister Store Mappings',
 };
 
 let runCounter = 2026;
@@ -1214,8 +937,6 @@ const uMap={
   mdq:{preview:'preview-mdq',submit:'submit-mdq',errs:false},
   sister:{preview:'preview-sister',submit:'submit-sister',errs:false},
   ros:{preview:'preview-ros',submit:'submit-ros',errs:false,natGate:true},
-  demandAdj:{preview:'preview-demandAdj',submit:'submit-demandAdj',errs:false},
-  caps:{preview:'preview-caps',submit:'submit-caps',errs:false},
 };
 function simulateUpload(k){
   const m=uMap[k];
@@ -1236,7 +957,7 @@ function downloadNationalPlan(){
 
 const LOG_TO_CARD = {
   'usm': 'usm', 'mdq': 'mdq', 'sister-store': 'sister',
-  'ros-multiplier': 'ros', 'demand-adj': 'demand-adj', 'national-caps': 'national-caps',
+  'ros-multiplier': 'ros',
 };
 
 function submitModal(modalId, msg, logKey, rowCount){
@@ -1249,48 +970,6 @@ function submitModal(modalId, msg, logKey, rowCount){
   showToast(msg+' · '+id, 'success');
   const cardKey = LOG_TO_CARD[logKey];
   if (cardKey) recheckAfterUpload(cardKey);
-}
-
-function runBuying(btn){
-  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Running…';
-  setTimeout(()=>{
-    btn.disabled=false; btn.innerHTML='<span class="material-icons-round">play_arrow</span> Run Buying Calculation';
-    const id=nextId();
-    document.getElementById('buying-diff-run-id').textContent=id;
-    document.getElementById('buying-ftr-run-id').textContent=id;
-    runLogs['buying-calc'].unshift({ id, ts:nowTs(), user:'priya.k', status:'pending', type:'Script', duration:'2m 44s', params:{'Inputs':'DRR, MDQ, IAPO, National Caps','Target':'dp_fulcrum'}, rows:4195 });
-    document.getElementById('buying-meta-text').textContent=`Last run: Just now · 2m 44s · ${id}`;
-    openModal('modal-buying-diff');
-  },2400);
-}
-
-function approveBuying(){
-  const id=document.getElementById('buying-diff-run-id').textContent;
-  const e=runLogs['buying-calc'].find(x=>x.id===id);
-  if(e){e.status='approved';}
-  closeModal('modal-buying-diff');
-  showToast(`Buying plan approved · ${id} · Pushed to dp_fulcrum`,'success');
-  setTimeout(()=>showToast(`Download: final_buying_plan_${id}.xlsx`,'info'),700);
-  recheckAfterUpload('buying');
-}
-
-function rejectBuying(){
-  const id=document.getElementById('buying-diff-run-id').textContent;
-  const e=runLogs['buying-calc'].find(x=>x.id===id);
-  if(e) e.status='rejected';
-  closeModal('modal-buying-diff');
-  showToast(`Buying plan rejected · ${id} · Staged values discarded`,'info');
-}
-
-function filterBuyingDiff(q){
-  document.querySelectorAll('#buying-diff-tbody tr').forEach(r=>{
-    r.style.display=(!q||r.textContent.toLowerCase().includes(q.toLowerCase()))?'':'none';
-  });
-}
-function filterBuyingDiffDir(val){
-  document.querySelectorAll('#buying-diff-tbody tr').forEach(r=>{
-    r.style.display=(val==='all'||r.dataset.dir===val)?'':'none';
-  });
 }
 
 function runForecast(btn){
