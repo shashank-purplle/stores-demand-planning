@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Demand Planning Ops Portal</title>
+<title>Horizon — Retail Stores</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root {
   --lav-50:#f5f3ff; --lav-100:#ede9fe; --lav-200:#ddd6fe; --lav-300:#c4b5fd;
@@ -23,10 +24,42 @@ body{font-family:'DM Sans',sans-serif;background:var(--lav-50);color:var(--on);f
 
 
 /* LAYOUT */
-.main{max-width:1120px;margin:0 auto;padding:28px 24px 60px}
-.page-header{margin-bottom:24px}
-.page-header h1{font-size:20px;font-weight:600}
-.page-header p{color:var(--on-m);font-size:13px;margin-top:3px}
+.main{max-width:1120px;margin:0 auto;padding:24px 24px 60px}
+
+/* ── TOPNAV ── */
+.topnav{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,.05);z-index:90}
+.topnav-inner{max-width:1120px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand-mark{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,var(--lav-500),var(--lav-600));flex-shrink:0;box-shadow:0 2px 6px rgba(124,58,237,.25)}
+.brand-text{display:flex;flex-direction:column;line-height:1.1}
+.brand-name{font-size:13px;font-weight:700;color:#111827}
+.brand-sub{font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+.topnav-actions{display:flex;align-items:center;gap:10px}
+.topnav-cycle{display:inline-flex;align-items:center;gap:6px;background:var(--surface-var);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:500;color:var(--on);font-family:'DM Sans',sans-serif}
+.topnav-cycle .material-icons-round{font-size:14px;color:var(--lav-500)}
+.topnav-btn{display:inline-flex;align-items:center;gap:6px;background:transparent;border:1px solid var(--border);color:var(--on);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:6px 12px;border-radius:8px;cursor:pointer;position:relative}
+.topnav-btn:hover{background:var(--surface-var);border-color:var(--lav-300)}
+.topnav-btn .material-icons-round{font-size:16px;color:var(--on-m)}
+.topnav-btn-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;background:var(--lav-100);color:var(--lav-600);border-radius:10px;font-size:11px;font-weight:700;margin-left:2px}
+.topnav-btn-count.zero{display:none}
+.avatar-block{display:flex;align-items:center;gap:8px;padding-left:10px;border-left:1px solid var(--border);margin-left:4px}
+.role-chip{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:20px;background:var(--lav-100);color:var(--lav-600);cursor:pointer;user-select:none}
+.role-chip.admin{background:#dcfce7;color:var(--ok)}
+.role-chip:hover{filter:brightness(.95)}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--lav-500);color:#fff;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;border:none;font-family:'DM Sans',sans-serif}
+
+/* ── APPROVALS PANE ── */
+/* ── INLINE BUTTONS reused by forecast Line 2 ── */
+.btn-reject{background:#fef2f2;color:var(--err);border:1px solid #fecaca}
+.btn-reject:hover{background:#fee2e2}
+
+/* ── FORECAST CURRENT-RUN (Line 2 inside #card-forecast) ── */
+.forecast-current-run{display:none;align-items:center;gap:8px;padding:9px 14px;border-top:1px solid var(--border);flex-wrap:wrap;background:var(--surface-var)}
+.forecast-current-run.visible{display:flex}
+.forecast-run-id{font-family:'DM Mono',monospace;font-size:11px;background:var(--lav-100);color:var(--lav-600);padding:2px 7px;border-radius:5px;flex-shrink:0}
+.forecast-run-meta{flex:1;min-width:120px;font-size:11px;color:var(--on-m);font-family:'DM Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.forecast-run-actions{display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0;align-items:center}
+
 
 /* SECTION */
 .section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:20px;overflow:hidden;box-shadow:var(--sh-sm)}
@@ -41,33 +74,32 @@ body{font-family:'DM Sans',sans-serif;background:var(--lav-50);color:var(--on);f
 .col-icon{color:var(--on-m);transition:transform .2s}
 .section.collapsed .col-icon{transform:rotate(-90deg)}
 .section.collapsed .section-body{display:none}
-.section-body{padding:20px}
+.section-body{padding:16px 18px}
 
 /* SUBSECTION */
-.subsec{margin-bottom:24px}
+.subsec{margin-bottom:16px}
 .subsec:last-child{margin-bottom:0}
-.subsec-title{font-size:11px;font-weight:600;color:var(--on-m);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.subsec-title{font-size:11px;font-weight:600;color:var(--on-m);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .subsec-title::after{content:'';flex:1;height:1px;background:var(--border)}
-.cards-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}
+.cards-row{display:flex;flex-direction:column;gap:6px}
 
-/* CARD */
-.card{border:1px solid var(--border);border-radius:var(--rs);background:var(--surface);padding:16px;display:flex;flex-direction:column;gap:10px}
-.card-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
-.card-title{font-size:14px;font-weight:600}
-.card-desc{font-size:12px;color:var(--on-m);margin-top:3px;line-height:1.55}
-.type-chip{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;flex-shrink:0}
-.chip-script{background:#e0f2fe;color:#0369a1}
-.chip-override{background:#fce7f3;color:#9d174d}
-.card-meta{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--on-m);font-family:'DM Mono',monospace;flex-wrap:wrap}
-.card-meta .material-icons-round{font-size:13px}
-.sdot{width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0}
+/* CARD — repurposed as a compact horizontal row */
+.card{border:1px solid var(--border);border-radius:var(--rs);background:var(--surface);transition:background .2s ease,border-color .2s ease;display:flex;flex-direction:column;overflow:visible}
+.card-main-line{display:flex;align-items:center;gap:12px;padding:10px 14px;min-height:46px}
+.card-title-line{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
+.card-title{font-size:13px;font-weight:600;color:var(--on);line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-info{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;color:var(--on-m);cursor:help;flex-shrink:0;outline:none}
+.card-info:hover,.card-info:focus{color:var(--lav-600);background:var(--lav-50)}
+.card-info .material-icons-round{font-size:16px}
+.card-subtitle{font-size:11px;color:var(--on-m);font-family:'DM Mono',monospace;display:inline-flex;align-items:center;gap:5px;margin-left:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.card-subtitle .sdot{flex-shrink:0}
+.sdot{width:6px;height:6px;border-radius:50%;display:inline-block}
 .dot-ok{background:var(--ok)} .dot-idle{background:#d1d5db} .dot-err{background:var(--err)}
-.meta-sep{color:var(--lav-200)}
-.card-divider{height:1px;background:var(--border);margin:0 -16px}
-.card-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.card-secondary-actions{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
-.info-row{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--on-m);font-family:'DM Mono',monospace}
-.info-row .material-icons-round{font-size:13px}
+.card-actions{display:flex;gap:6px;align-items:center;flex-shrink:0}
+/* Errors block sits below main line; tighter padding to keep the row compact */
+.card > [id^="health-errors-"]:not(:empty){padding:0 14px 12px}
+/* Retired card-hdr / divider / meta classes (compatibility) */
+.card-hdr,.card-desc,.card-divider,.card-meta,.card-secondary-actions{display:none !important}
 
 /* BUTTONS */
 .btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border:none;white-space:nowrap}
@@ -122,6 +154,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--lav-50);color:var(--on);f
 .uz-link{font-size:12px;color:var(--lav-500);font-weight:500;cursor:pointer}
 .uz-link:hover{text-decoration:underline}
 .uz-types{font-size:11px;color:var(--on-m);margin-top:3px}
+.uz-demo{text-align:center;margin-top:8px}
+.uz-demo a{font-size:11px;color:var(--on-m);text-decoration:none;cursor:pointer;font-family:'DM Sans',sans-serif}
+.uz-demo a:hover{color:var(--err);text-decoration:underline}
+
+/* UPLOAD ERROR BANNER (wrong-upload path) */
+.upload-error-banner{margin-top:10px;padding:11px 14px;background:#fef5f5;border:1px solid #fecaca;border-radius:var(--rs);display:flex;align-items:flex-start;gap:10px;color:var(--err);font-size:12px;line-height:1.5}
+.upload-error-banner .ico{font-size:18px;flex-shrink:0;margin-top:1px}
+.upload-error-banner-text{flex:1}
+.upload-error-banner-text strong{font-weight:600;display:block;margin-bottom:2px}
 
 /* PREVIEW */
 .preview-sec{display:none}
@@ -157,93 +198,95 @@ tr.row-warn td{background:#fffbeb}
 .confirm-box p{font-size:13px;color:var(--on-m);line-height:1.6;margin-bottom:18px}
 .confirm-actions{display:flex;justify-content:flex-end;gap:8px}
 
-/* ── RUN LOG PANEL ── */
-.log-backdrop{display:none;position:fixed;inset:0;z-index:240;background:rgba(28,27,46,.25)}
-.log-backdrop.open{display:block}
-.log-panel{display:none;position:fixed;top:0;right:0;bottom:0;width:520px;background:var(--surface);border-left:1px solid var(--border);box-shadow:-6px 0 24px rgba(28,27,46,.12);z-index:250;flex-direction:column}
-.log-panel.open{display:flex}
-.log-panel-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;background:var(--surface-var);flex-shrink:0}
-.log-panel-hdr-left h3{font-size:15px;font-weight:600}
-.log-panel-hdr-left p{font-size:12px;color:var(--on-m);margin-top:3px}
-.log-panel-body{flex:1;overflow-y:auto;padding:14px}
-.log-entry{border:1px solid var(--border);border-radius:var(--rs);margin-bottom:10px;overflow:hidden}
-.log-entry-hdr{padding:10px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;background:var(--surface)}
-.log-entry-hdr:hover{background:var(--lav-50)}
-.log-run-id{font-family:'DM Mono',monospace;font-size:11px;background:var(--lav-100);color:var(--lav-600);padding:2px 7px;border-radius:5px;flex-shrink:0}
-.log-entry-meta{flex:1;min-width:0}
-.log-entry-title{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.log-entry-sub{font-size:11px;color:var(--on-m);margin-top:1px}
+/* ── STATUS PILL + INLINE APPROVE/REJECT (reused on the forecast row) ── */
 .log-status{font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;flex-shrink:0}
-.ls-ok{background:#dcfce7;color:var(--ok)} .ls-fail{background:#fef2f2;color:var(--err)}
-.ls-pend{background:#fef3c7;color:#92400e} .ls-rej{background:var(--surface-dim);color:var(--on-m)}
-.log-exp-ico{color:var(--on-m);font-size:18px;transition:transform .2s;flex-shrink:0}
-.log-entry.expanded .log-exp-ico{transform:rotate(180deg)}
-.log-entry-detail{display:none;padding:12px 14px;border-top:1px solid var(--border);background:var(--lav-50);font-size:12px;line-height:1.6}
-.log-entry.expanded .log-entry-detail{display:block}
-.log-detail-grid{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin-bottom:8px}
-.log-dkey{color:var(--on-m);font-weight:500;white-space:nowrap}
-.log-dval{color:var(--on);font-family:'DM Mono',monospace;font-size:11px;word-break:break-all}
-.log-file-preview{margin-top:8px;border:1px solid var(--border);border-radius:6px;overflow:hidden;max-height:150px;overflow-y:auto;background:var(--surface)}
-.log-detail-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
-.log-rollup{margin-top:12px;border:1px solid var(--border);border-radius:var(--rs);background:var(--surface);overflow:hidden}
-.log-rollup-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--surface-var)}
-.log-rollup-tab{padding:6px 12px;font-size:11px;font-weight:500;cursor:pointer;color:var(--on-m);border-bottom:2px solid transparent;margin-bottom:-1px}
-.log-rollup-tab.active{color:var(--lav-600);border-bottom-color:var(--lav-500);background:var(--surface)}
-.log-rollup-body{max-height:180px;overflow-y:auto}
-.log-rollup-body table{font-size:11px}
-.log-rollup-body th,.log-rollup-body td{padding:5px 9px}
-.log-rollup-pane{display:none}
-.log-rollup-pane.active{display:block}
-.log-approval{margin-top:10px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-wrap:wrap}
-.log-approval-left{flex:1;font-size:11px;color:var(--on-m)}
+.ls-pend{background:#fef3c7;color:#92400e}
+.ls-ok{background:#dcfce7;color:var(--ok)}
+.ls-fail{background:#fef2f2;color:var(--err)}
+.ls-rej{background:var(--surface-dim);color:var(--on-m)}
 .btn-approve{background:var(--ok);color:#fff}
 .btn-approve:hover{background:#15803d}
 .btn-approve:disabled{background:#d1d5db;color:#fff;cursor:not-allowed}
-.log-b2-banner{background:#fef2f2;border:1px solid #fecaca;border-radius:var(--rs);padding:10px 12px;font-size:11px;color:var(--err);display:flex;gap:6px;align-items:flex-start;margin-top:10px;line-height:1.5}
-.log-b2-banner .material-icons-round{font-size:14px;color:var(--err);flex-shrink:0;margin-top:1px}
-.log-empty{text-align:center;padding:40px 20px;color:var(--on-m);font-size:13px}
-.log-empty .material-icons-round{font-size:36px;color:var(--lav-200);display:block;margin:0 auto 10px}
 
 /* TOAST */
 .toast-c{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:500}
 
-/* ── HEALTH STRIPE ── */
-.card{position:relative;border-left:4px solid var(--border)}
-.card.health-ok{border-left-color:var(--ok)}
-.card.health-err{border-left-color:var(--err)}
-.card.health-checking{border-left-color:var(--warn)}
+/* APP TOOLTIP (position:fixed — avoids clipping inside .section{overflow:hidden}) */
+.app-tooltip{position:fixed;display:none;background:#1f2937;color:#fff;padding:8px 12px;border-radius:6px;font-size:11px;font-weight:500;line-height:1.5;max-width:320px;box-shadow:0 6px 16px rgba(0,0,0,.2);z-index:1000;pointer-events:none;font-family:'DM Sans',sans-serif}
 
-/* ── HEALTH BADGE ── */
-.health-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;margin-top:4px}
-.health-badge.ok{background:#dcfce7;color:var(--ok)}
-.health-badge.err{background:#fef2f2;color:var(--err)}
-.health-badge.checking{background:#fef3c7;color:var(--warn)}
-.health-badge .material-icons-round{font-size:12px}
+/* ── HEALTH HUE (whole-card tint) ── */
+.card{position:relative;transition:background .2s ease,border-color .2s ease}
+.card.health-ok{background:#f4fbf6;border-color:#d1f0db}
+/* Warning-only cards keep the healthy green tint — only the inner warnings bar carries the amber signal */
+.card.health-warn{background:#f4fbf6;border-color:#d1f0db}
+.card.health-err{background:#fef5f5;border-color:#fecaca}
+.card.health-checking{background:var(--surface);border-color:var(--border)}
+/* health-badge fully retired in favour of card-wide hue; defensive hide */
+.health-badge{display:none !important}
 
-/* ── HEALTH ERROR DETAIL ── */
-.health-errors{background:#fef2f2;border:1px solid #fecaca;border-radius:var(--rs);padding:8px 12px;font-size:11px;color:var(--err);line-height:1.6;margin-top:2px}
-.health-errors ul{margin:4px 0 0 14px}
-.health-errors ul li{margin-bottom:2px}
+/* ── HEALTH ERROR DETAIL (compact summary + expand-on-click) ── */
+.health-errors{margin-top:2px}
+.health-errors-summary{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--err);cursor:pointer;padding:7px 11px;background:#fef5f5;border:1px solid #fecaca;border-radius:var(--rs);user-select:none}
+.health-errors-summary:hover{background:#fee2e2}
+.health-errors-summary .ico-warn{font-size:14px}
+.health-errors-summary .spacer{flex:1}
+.health-errors-summary .label-view{font-size:11px;font-weight:500;color:var(--err);opacity:.85}
+.health-errors-summary .expand-ico{font-size:16px;transition:transform .2s}
+.health-errors.expanded .health-errors-summary{border-bottom-left-radius:0;border-bottom-right-radius:0}
+.health-errors.expanded .health-errors-summary .expand-ico{transform:rotate(180deg)}
+.health-errors-list{display:none;margin-top:-1px;padding:8px 12px;background:#fef5f5;border:1px solid #fecaca;border-top:none;border-bottom-left-radius:var(--rs);border-bottom-right-radius:var(--rs);font-size:11px;color:var(--err);line-height:1.6}
+.health-errors.expanded .health-errors-list{display:block}
+.health-errors-list ul{margin:0 0 0 14px}
+.health-errors-list ul li{margin-bottom:2px}
+
+/* ── HEALTH WARNINGS (amber; non-blocking; same expand-on-click pattern) ── */
+.health-warnings{margin-top:6px}
+.health-warnings-summary{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:#92400e;cursor:pointer;padding:7px 11px;background:#fef3c7;border:1px solid #fde68a;border-radius:var(--rs);user-select:none}
+.health-warnings-summary:hover{background:#fde68a}
+.health-warnings-summary .ico-warn{font-size:14px;color:#d97706}
+.health-warnings-summary .spacer{flex:1}
+.health-warnings-summary .label-view{font-size:11px;font-weight:500;opacity:.85}
+.health-warnings-summary .expand-ico{font-size:16px;transition:transform .2s}
+.health-warnings.expanded .health-warnings-summary{border-bottom-left-radius:0;border-bottom-right-radius:0}
+.health-warnings.expanded .health-warnings-summary .expand-ico{transform:rotate(180deg)}
+.health-warnings-list{display:none;margin-top:-1px;padding:8px 12px;background:#fef3c7;border:1px solid #fde68a;border-top:none;border-bottom-left-radius:var(--rs);border-bottom-right-radius:var(--rs);font-size:11px;color:#92400e;line-height:1.6}
+.health-warnings.expanded .health-warnings-list{display:block}
+.health-warnings-list ul{margin:0 0 0 14px}
+.health-warnings-list ul li{margin-bottom:2px}
 
 /* ── LOCKED SECTION ── */
-.section.section-locked .section-hdr{opacity:.6;cursor:default;pointer-events:none}
-.section.section-locked .section-hdr:hover{background:var(--surface-var)}
-.section.section-locked .col-icon{display:none}
-.section-lock-icon{display:none;color:var(--on-m);font-size:20px}
-.section.section-locked .section-lock-icon{display:inline-flex}
-.section-locked-body{display:none;padding:20px}
-.section.section-locked .section-body{display:none}
-.section.section-locked .section-locked-body{display:block}
-.section-locked-banner{background:var(--surface-dim);border:1px solid var(--lav-200);border-radius:var(--rs);padding:16px 18px;display:flex;align-items:flex-start;gap:12px}
-.section-locked-banner .material-icons-round{font-size:20px;color:var(--on-m);flex-shrink:0;margin-top:1px}
-.section-locked-banner-text h4{font-size:13px;font-weight:600;color:var(--on);margin-bottom:3px}
-.section-locked-banner-text p{font-size:12px;color:var(--on-m);line-height:1.55}
-.section-locked-banner-text ul{margin:6px 0 0 16px;font-size:12px;color:var(--on-m);line-height:1.7}
+/* ── SECTION LOCKED (legacy; no longer applied to Section B — kept defensive) ── */
+.section-locked-body,.section-locked-banner{display:none !important}
+
+/* Soft-locked Run Forecasting button: greyed but still clickable (click = shake unhealthy above) */
+.btn-soft-locked{opacity:.45;filter:grayscale(.6);cursor:pointer !important;pointer-events:auto !important;background:var(--lav-200) !important;color:var(--lav-400) !important}
+.btn-soft-locked:hover{opacity:.55;background:var(--lav-200) !important;color:var(--lav-400) !important}
+
+/* Shake animation to draw attention to unhealthy cards */
+@keyframes shake-attn {
+  0%,100% { transform: translateX(0) }
+  15% { transform: translateX(-5px) }
+  30% { transform: translateX(5px) }
+  45% { transform: translateX(-4px) }
+  60% { transform: translateX(4px) }
+  75% { transform: translateX(-2px) }
+  90% { transform: translateX(2px) }
+}
+.card.shake{animation:shake-attn .55s ease-in-out}
 
 /* ── RECHECK BAR ── */
-.recheck-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px;box-shadow:var(--sh-sm)}
-.recheck-bar-left{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--on-m)}
-.recheck-bar-left .material-icons-round{font-size:16px;color:var(--lav-500)}
+.recheck-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;box-shadow:var(--sh-sm)}
+.recheck-bar-left{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;color:var(--on-m)}
+.recheck-bar-left .material-icons-round{font-size:16px}
+.recheck-bar-left.healthy{color:var(--ok)}
+.recheck-bar-left.healthy .material-icons-round{color:var(--ok)}
+.recheck-bar-left.unhealthy{color:var(--err)}
+.recheck-bar-left.unhealthy .material-icons-round{color:var(--err)}
+.recheck-bar-left.warning{color:var(--warn)}
+.recheck-bar-left.warning .material-icons-round{color:var(--warn)}
+.recheck-bar-left.checking{color:var(--warn)}
+.recheck-bar-left.checking .material-icons-round{color:var(--warn)}
+.recheck-bar-right{display:flex;align-items:center;gap:10px}
 .recheck-bar-status{font-size:11px;font-family:'DM Mono',monospace;color:var(--on-m)}
 .btn-recheck{background:var(--lav-100);color:var(--lav-600);border:1px solid var(--lav-200);padding:6px 14px;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
 .btn-recheck:hover{background:var(--lav-200)}
@@ -259,24 +302,43 @@ tr.row-warn td{background:#fffbeb}
 </head>
 <body>
 
-<!-- TOP NAV -->
+<!-- ═══════════════════ TOP NAV ═══════════════════ -->
+<nav class="topnav">
+  <div class="topnav-inner">
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <div class="brand-text">
+        <div class="brand-name">Horizon</div>
+        <div class="brand-sub">Retail Stores</div>
+      </div>
+    </div>
+    <div class="topnav-actions">
+      <div class="topnav-cycle" id="topnav-cycle">
+        <span class="material-icons-round">event</span>
+        <span id="topnav-cycle-label">Cycle: May W3 · 11–17</span>
+      </div>
+      <div class="avatar-block">
+        <span class="role-chip" id="role-chip" onclick="toggleRole()" title="Click to switch role (demo)">Planner</span>
+        <div class="avatar">SR</div>
+      </div>
+    </div>
+  </div>
+</nav>
 
 <div class="main">
-  <div class="page-header">
-    <h1>Demand Planning Portal — Stores</h1>
-    <p>Execute scripts, push data, and manage manual overrides for demand planning workflows.</p>
-  </div>
 
   <!-- ═══════════════════ RECHECK BAR ═══════════════════ -->
   <div class="recheck-bar" id="recheck-bar">
-    <div class="recheck-bar-left">
-      <span class="material-icons-round">health_and_safety</span>
-      <span>Data health is checked live from backend on page load, after each upload, and on demand.</span>
-      <span class="recheck-bar-status" id="recheck-last-ts">Last checked: —</span>
+    <div class="recheck-bar-left" id="recheck-bar-summary">
+      <span class="material-icons-round">hourglass_empty</span>
+      <span>Checking data health…</span>
     </div>
-    <button class="btn-recheck" id="btn-recheck" onclick="recheckAllHealth()">
-      <span class="material-icons-round">refresh</span> Recheck Health
-    </button>
+    <div class="recheck-bar-right">
+      <span class="recheck-bar-status" id="recheck-last-ts">Last checked: —</span>
+      <button class="btn-recheck" id="btn-recheck" onclick="recheckAllHealth()">
+        <span class="material-icons-round">refresh</span> Recheck Health
+      </button>
+    </div>
   </div>
 
   <!-- ═══════════════════ SECTION A ═══════════════════ -->
@@ -289,244 +351,139 @@ tr.row-warn td{background:#fffbeb}
           <div class="sec-desc">Assortment · MDQ · Store universe (City-Store &amp; NSO) · Classification · ROS Multipliers</div>
         </div>
       </div>
-      <span class="material-icons-round section-lock-icon">lock</span>
       <span class="material-icons-round col-icon">expand_more</span>
     </div>
-    <div class="section-locked-body">
-      <div class="section-locked-banner">
-        <span class="material-icons-round">lock</span>
-        <div class="section-locked-banner-text">
-          <h4>Section A is locked</h4>
-          <p>This section has no prerequisites and should always be accessible. If you see this, there may be a configuration issue.</p>
-        </div>
-      </div>
-    </div>
     <div class="section-body">
-      <div class="cards-row">
+
+      <div class="subsec">
+        <div class="subsec-title">Assortment</div>
+        <div class="cards-row">
 
           <div class="card" id="card-usm">
-            <div class="card-hdr">
-              <div>
-                <div class="card-title">Update USM</div>
-                <div class="card-desc">Upload Universal SKU Master data at store × MPC. Complete-only — file replaces the full USM list.</div>
-                <span class="health-badge checking" id="health-badge-usm"><span class="material-icons-round">hourglass_empty</span> Checking…</span>
+            <div class="card-main-line">
+              <div class="card-title-line">
+                <span class="card-title">Update USM</span>
+                <span class="card-info" tabindex="0"
+                      onmouseenter="showTooltip(this,'Upload Universal SKU Master data at store × MPC. Complete-only — file replaces the full USM list.')"
+                      onmouseleave="hideTooltip()" onfocus="showTooltip(this,'Upload Universal SKU Master data at store × MPC. Complete-only — file replaces the full USM list.')" onblur="hideTooltip()">
+                  <span class="material-icons-round">info</span>
+                </span>
               </div>
-              <span class="type-chip chip-override">Override</span>
+              <div class="card-actions">
+                <button class="btn btn-outlined btn-sm" onclick="dlTemplate('usm_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
+                <button class="btn btn-primary btn-sm" onclick="openModal('modal-usm')"><span class="material-icons-round">upload</span> Upload</button>
+              </div>
             </div>
             <div id="health-errors-usm"></div>
-            <div class="info-row"><span class="material-icons-round">table_view</span>datos_suministro.warehouse_product_assortment_v2</div>
-            <div class="card-divider"></div>
-            <div class="card-actions">
-              <button class="btn btn-primary" onclick="openModal('modal-usm')">
-                <span class="material-icons-round">upload</span> Upload USM
-              </button>
-            </div>
-            <div class="card-secondary-actions">
-              <button class="btn btn-ghost-muted" onclick="dlCurrentData('warehouse_product_assortment_v2')">
-                <span class="material-icons-round">download</span> Download current USM data
-              </button>
-              <button class="btn btn-ghost-muted" onclick="openLog('usm')">
-                <span class="material-icons-round">receipt_long</span> View logs
-              </button>
-            </div>
           </div>
 
           <div class="card" id="card-nonusm">
-            <div class="card-hdr">
-              <div>
-                <div class="card-title">Update Non-USM</div>
-                <div class="card-desc">Store × MPC rows not bought afresh (Consumables / GWP / Testers / Others). Partial or complete mode. Overlap with USM is rejected.</div>
-                <span class="health-badge checking" id="health-badge-nonusm"><span class="material-icons-round">hourglass_empty</span> Checking…</span>
+            <div class="card-main-line">
+              <div class="card-title-line">
+                <span class="card-title">Update Non-USM</span>
+                <span class="card-info" tabindex="0"
+                      onmouseenter="showTooltip(this,'Store × MPC rows not bought afresh (Consumables / GWP / Testers / Others). Partial or complete mode. Overlap with USM is rejected.')"
+                      onmouseleave="hideTooltip()" onfocus="showTooltip(this,'Store × MPC rows not bought afresh (Consumables / GWP / Testers / Others). Partial or complete mode. Overlap with USM is rejected.')" onblur="hideTooltip()">
+                  <span class="material-icons-round">info</span>
+                </span>
               </div>
-              <span class="type-chip chip-override">Override</span>
+              <div class="card-actions">
+                <button class="btn btn-outlined btn-sm" onclick="dlTemplate('nonusm_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
+                <button class="btn btn-primary btn-sm" onclick="openModal('modal-nonusm')"><span class="material-icons-round">upload</span> Upload</button>
+              </div>
             </div>
             <div id="health-errors-nonusm"></div>
-            <div class="info-row"><span class="material-icons-round">table_view</span>datos_studios.dp_non_usm</div>
-            <div class="card-divider"></div>
-            <div class="card-actions">
-              <button class="btn btn-primary" onclick="openModal('modal-nonusm')">
-                <span class="material-icons-round">upload</span> Upload Non-USM
-              </button>
-            </div>
-            <div class="card-secondary-actions">
-              <button class="btn btn-ghost-muted" onclick="dlCurrentData('dp_non_usm')">
-                <span class="material-icons-round">download</span> Download current Non-USM
-              </button>
-              <button class="btn btn-ghost-muted" onclick="openLog('nonusm')">
-                <span class="material-icons-round">receipt_long</span> View logs
-              </button>
-            </div>
           </div>
+
+        </div>
+      </div>
+
+      <div class="subsec">
+        <div class="subsec-title">Product level inputs</div>
+        <div class="cards-row">
 
           <div class="card" id="card-mdq">
-            <div class="card-hdr">
-              <div>
-                <div class="card-title">Update MDQ</div>
-                <div class="card-desc">Upload Minimum Display Quantity data at MPC-store level. Partial updates are supported. Critical input for Step 4 (buying calculation).</div>
-                <span class="health-badge checking" id="health-badge-mdq"><span class="material-icons-round">hourglass_empty</span> Checking…</span>
+            <div class="card-main-line">
+              <div class="card-title-line">
+                <span class="card-title">Update MDQ</span>
+                <span class="card-info" tabindex="0"
+                      onmouseenter="showTooltip(this,'Upload Minimum Display Quantity data at MPC-store level. Partial updates are supported. Critical input for Step 4 (buying calculation).')"
+                      onmouseleave="hideTooltip()" onfocus="showTooltip(this,'Upload Minimum Display Quantity data at MPC-store level. Partial updates are supported. Critical input for Step 4 (buying calculation).')" onblur="hideTooltip()">
+                  <span class="material-icons-round">info</span>
+                </span>
               </div>
-              <span class="type-chip chip-override">Override</span>
+              <div class="card-actions">
+                <button class="btn btn-outlined btn-sm" onclick="dlTemplate('mdq_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
+                <button class="btn btn-primary btn-sm" onclick="openModal('modal-mdq')"><span class="material-icons-round">upload</span> Upload</button>
+              </div>
             </div>
             <div id="health-errors-mdq"></div>
-            <div class="info-row"><span class="material-icons-round">table_view</span>datos_studios.dp_mdq</div>
-            <div class="card-divider"></div>
-            <div class="card-actions">
-              <button class="btn btn-primary" onclick="openModal('modal-mdq')">
-                <span class="material-icons-round">upload</span> Upload MDQ
-              </button>
-            </div>
-            <div class="card-secondary-actions">
-              <button class="btn btn-ghost-muted" onclick="dlCurrentData('dp_mdq')">
-                <span class="material-icons-round">download</span> Download current MDQ data
-              </button>
-              <button class="btn btn-ghost-muted" onclick="openLog('mdq')">
-                <span class="material-icons-round">receipt_long</span> View logs
-              </button>
-            </div>
-          </div>
-
-          <div class="card" id="card-city">
-            <div class="card-hdr">
-              <div>
-                <div class="card-title">Update City-Store Mappings</div>
-                <div class="card-desc">Cluster/geo attributes patched on top of warehouse master (Zone, State, cluster, sister store). Partial updates supported.</div>
-                <span class="health-badge checking" id="health-badge-city"><span class="material-icons-round">hourglass_empty</span> Checking…</span>
-              </div>
-              <span class="type-chip chip-override">Override</span>
-            </div>
-            <div id="health-errors-city"></div>
-            <div class="info-row"><span class="material-icons-round">table_view</span>datos_studios.dp_city_store_patch</div>
-            <div class="card-divider"></div>
-            <div class="card-actions">
-              <button class="btn btn-primary" onclick="openModal('modal-city-store')">
-                <span class="material-icons-round">upload</span> Upload Mappings
-              </button>
-            </div>
-            <div class="card-secondary-actions">
-              <button class="btn btn-ghost-muted" onclick="dlCurrentData('dp_city_store_patch')">
-                <span class="material-icons-round">download</span> Download current patch
-              </button>
-              <button class="btn btn-ghost-muted" onclick="openLog('city-store')">
-                <span class="material-icons-round">receipt_long</span> View logs
-              </button>
-            </div>
-          </div>
-
-          <div class="card" id="card-nso">
-            <div class="card-hdr">
-              <div>
-                <div class="card-title">Update NSOs (New Store Openings)</div>
-                <div class="card-desc">Stores planned to open but not yet live. Each NSO needs a non-NSO sister store. Complete-only upload.</div>
-                <span class="health-badge checking" id="health-badge-nso"><span class="material-icons-round">hourglass_empty</span> Checking…</span>
-              </div>
-              <span class="type-chip chip-override">Override</span>
-            </div>
-            <div id="health-errors-nso"></div>
-            <div class="info-row"><span class="material-icons-round">table_view</span>datos_studios.dp_nso_patch</div>
-            <div class="card-divider"></div>
-            <div class="card-actions">
-              <button class="btn btn-primary" onclick="openModal('modal-nso')">
-                <span class="material-icons-round">upload</span> Upload NSOs
-              </button>
-            </div>
-            <div class="card-secondary-actions">
-              <button class="btn btn-ghost-muted" onclick="dlCurrentData('dp_nso_patch')">
-                <span class="material-icons-round">download</span> Download current NSO list
-              </button>
-              <button class="btn btn-ghost-muted" onclick="openLog('nso')">
-                <span class="material-icons-round">receipt_long</span> View logs
-              </button>
-            </div>
-          </div>
-
-          <div class="card" id="card-classStore">
-            <div class="card-hdr">
-              <div>
-                <div class="card-title">Run Store-level Classification</div>
-                <div class="card-desc">Classifies MPCs (A+/A/B/C/D) per store using cluster_id grouping with city fallback. On-demand script.</div>
-                <span class="health-badge checking" id="health-badge-classStore"><span class="material-icons-round">hourglass_empty</span> Checking…</span>
-              </div>
-              <span class="type-chip chip-script">Script</span>
-            </div>
-            <div id="health-errors-classStore"></div>
-            <div class="card-meta">
-              <span class="sdot dot-ok"></span>
-              <span id="classStore-meta-text">Last run: Yesterday 11:00 · 2m 04s · RUN-1902</span>
-            </div>
-            <div class="card-divider"></div>
-            <div class="card-actions">
-              <button class="btn btn-primary" id="btn-classStore" onclick="runClassStore(this)">
-                <span class="material-icons-round">play_arrow</span> Run Store-level
-              </button>
-            </div>
-            <div class="card-secondary-actions">
-              <button class="btn btn-ghost-muted" onclick="dlCurrentData('dp_class_store')">
-                <span class="material-icons-round">download</span> Download classification
-              </button>
-              <button class="btn btn-ghost-muted" onclick="openLog('class-store')">
-                <span class="material-icons-round">receipt_long</span> View logs
-              </button>
-            </div>
-          </div>
-
-          <div class="card" id="card-classNational">
-            <div class="card-hdr">
-              <div>
-                <div class="card-title">Run National-level Classification</div>
-                <div class="card-desc">Classifies MPCs at national level (store_id = 0) from aggregated sales. Used as fallback for unseen store × MPC.</div>
-                <span class="health-badge checking" id="health-badge-classNational"><span class="material-icons-round">hourglass_empty</span> Checking…</span>
-              </div>
-              <span class="type-chip chip-script">Script</span>
-            </div>
-            <div id="health-errors-classNational"></div>
-            <div class="card-meta">
-              <span class="sdot dot-ok"></span>
-              <span id="classNational-meta-text">Last run: Yesterday 11:30 · 1m 10s · RUN-1904</span>
-            </div>
-            <div class="card-divider"></div>
-            <div class="card-actions">
-              <button class="btn btn-primary" id="btn-classNational" onclick="runClassNational(this)">
-                <span class="material-icons-round">play_arrow</span> Run National-level
-              </button>
-            </div>
-            <div class="card-secondary-actions">
-              <button class="btn btn-ghost-muted" onclick="dlCurrentData('dp_class_national')">
-                <span class="material-icons-round">download</span> Download classification
-              </button>
-              <button class="btn btn-ghost-muted" onclick="openLog('class-national')">
-                <span class="material-icons-round">receipt_long</span> View logs
-              </button>
-            </div>
           </div>
 
           <div class="card" id="card-ros">
-            <div class="card-hdr">
-              <div>
-                <div class="card-title">Upload ROS Multiplier</div>
-                <div class="card-desc">Week-level multipliers at product × geo granularity. National-level rows require buying plan comparison download before submit.</div>
-                <span class="health-badge checking" id="health-badge-ros"><span class="material-icons-round">hourglass_empty</span> Checking…</span>
+            <div class="card-main-line">
+              <div class="card-title-line">
+                <span class="card-title">Upload ROS Multiplier</span>
+                <span class="card-info" tabindex="0"
+                      onmouseenter="showTooltip(this,'Week-level multipliers at product × geo granularity. National-level rows require buying plan comparison download before submit.')"
+                      onmouseleave="hideTooltip()" onfocus="showTooltip(this,'Week-level multipliers at product × geo granularity. National-level rows require buying plan comparison download before submit.')" onblur="hideTooltip()">
+                  <span class="material-icons-round">info</span>
+                </span>
               </div>
-              <span class="type-chip chip-override">Override</span>
+              <div class="card-actions">
+                <button class="btn btn-outlined btn-sm" onclick="dlTemplate('ros_multiplier_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
+                <button class="btn btn-primary btn-sm" onclick="openModal('modal-ros-multiplier')"><span class="material-icons-round">upload</span> Upload</button>
+              </div>
             </div>
             <div id="health-errors-ros"></div>
-            <div class="info-row"><span class="material-icons-round">table_view</span>product_gran · geo_gran · week · multiplier_value</div>
-            <div class="card-divider"></div>
-            <div class="card-actions">
-              <button class="btn btn-primary" onclick="openModal('modal-ros-multiplier')">
-                <span class="material-icons-round">upload</span> Upload Multipliers
-              </button>
-            </div>
-            <div class="card-secondary-actions">
-              <button class="btn btn-ghost-muted" onclick="dlCurrentData('ros_multipliers')">
-                <span class="material-icons-round">download</span> Download active multipliers
-              </button>
-              <button class="btn btn-ghost-muted" onclick="openLog('ros-multiplier')">
-                <span class="material-icons-round">receipt_long</span> View logs
-              </button>
-            </div>
           </div>
 
+        </div>
       </div>
+
+      <div class="subsec">
+        <div class="subsec-title">Store universe</div>
+        <div class="cards-row">
+
+          <div class="card" id="card-city">
+            <div class="card-main-line">
+              <div class="card-title-line">
+                <span class="card-title">Update City-Store Mappings</span>
+                <span class="card-info" tabindex="0"
+                      onmouseenter="showTooltip(this,'Cluster/geo attributes patched on top of warehouse master (Zone, State, cluster, sister store). Partial updates supported.')"
+                      onmouseleave="hideTooltip()" onfocus="showTooltip(this,'Cluster/geo attributes patched on top of warehouse master (Zone, State, cluster, sister store). Partial updates supported.')" onblur="hideTooltip()">
+                  <span class="material-icons-round">info</span>
+                </span>
+              </div>
+              <div class="card-actions">
+                <button class="btn btn-outlined btn-sm" onclick="dlTemplate('city_store_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
+                <button class="btn btn-primary btn-sm" onclick="openModal('modal-city-store')"><span class="material-icons-round">upload</span> Upload</button>
+              </div>
+            </div>
+            <div id="health-errors-city"></div>
+          </div>
+
+          <div class="card" id="card-nso">
+            <div class="card-main-line">
+              <div class="card-title-line">
+                <span class="card-title">Update NSOs (New Store Openings)</span>
+                <span class="card-info" tabindex="0"
+                      onmouseenter="showTooltip(this,'Stores planned to open but not yet live. Each NSO needs a non-NSO sister store. Complete-only upload.')"
+                      onmouseleave="hideTooltip()" onfocus="showTooltip(this,'Stores planned to open but not yet live. Each NSO needs a non-NSO sister store. Complete-only upload.')" onblur="hideTooltip()">
+                  <span class="material-icons-round">info</span>
+                </span>
+              </div>
+              <div class="card-actions">
+                <button class="btn btn-outlined btn-sm" onclick="dlTemplate('nso_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
+                <button class="btn btn-primary btn-sm" onclick="openModal('modal-nso')"><span class="material-icons-round">upload</span> Upload</button>
+              </div>
+            </div>
+            <div id="health-errors-nso"></div>
+          </div>
+
+        </div>
+      </div>
+
     </div>
   </div>
   <div class="section" id="section-b">
@@ -538,77 +495,45 @@ tr.row-warn td{background:#fffbeb}
           <div class="sec-desc">Base Forward ROS</div>
         </div>
       </div>
-      <span class="material-icons-round section-lock-icon">lock</span>
       <span class="material-icons-round col-icon">expand_more</span>
-    </div>
-    <div class="section-locked-body">
-      <div class="section-locked-banner">
-        <span class="material-icons-round">lock</span>
-        <div class="section-locked-banner-text">
-          <h4>Section B is locked — complete Section A first</h4>
-          <p>All Section A data sources must be healthy before Demand Planning can proceed. The following cards are currently unhealthy:</p>
-          <ul id="section-b-lock-reasons"></ul>
-        </div>
-      </div>
     </div>
     <div class="section-body">
       <div class="cards-row">
 
           <div class="card" id="card-forecast">
-            <div class="card-hdr">
-              <div>
-                <div class="card-title">Run Demand Forecasting Script</div>
-                <div class="card-desc">Auto DRR forecast for USM + Non-USM (Consumables/GWP). Each run opens in Run Log with rollup preview and inline approval.</div>
-                <span class="health-badge checking" id="health-badge-forecast"><span class="material-icons-round">hourglass_empty</span> Checking…</span>
+            <div class="card-main-line">
+              <div class="card-title-line">
+                <span class="card-title">Run Demand Forecasting Script</span>
+                <span class="card-info" tabindex="0"
+                      onmouseenter="showTooltip(this,'Auto DRR forecast for USM + Non-USM (Consumables/GWP). Each new run queues for approval; any older pending run is auto-rejected.')"
+                      onmouseleave="hideTooltip()" onfocus="showTooltip(this,'Auto DRR forecast for USM + Non-USM (Consumables/GWP). Each new run queues for approval; any older pending run is auto-rejected.')" onblur="hideTooltip()">
+                  <span class="material-icons-round">info</span>
+                </span>
               </div>
-              <span class="type-chip chip-script">Script</span>
+              <div class="card-actions">
+                <button class="btn btn-primary btn-sm" id="btn-forecast" onclick="runForecast(this)"><span class="material-icons-round">play_arrow</span> Run Forecasting</button>
+              </div>
             </div>
+            <div class="forecast-current-run" id="forecast-current-run"></div>
             <div id="health-errors-forecast"></div>
-            <div class="card-meta">
-              <span class="sdot dot-ok"></span>
-              <span id="forecast-meta-text">Last run: Yesterday 18:42 · 3m 12s · RUN-2023</span>
-            </div>
-            <div class="card-divider"></div>
-            <div class="card-actions">
-              <button class="btn btn-primary" id="btn-forecast" onclick="runForecast(this)">
-                <span class="material-icons-round">play_arrow</span> Run Forecasting
-              </button>
-            </div>
-            <div class="card-secondary-actions">
-              <button class="btn btn-ghost-muted" onclick="dlCurrentData('active_forecast')">
-                <span class="material-icons-round">download</span> Download current forecast
-              </button>
-              <button class="btn btn-ghost-muted" onclick="openLog('demand-forecast')">
-                <span class="material-icons-round">receipt_long</span> View logs
-              </button>
-            </div>
           </div>
 
           <div class="card" id="card-b2">
-            <div class="card-hdr">
-              <div>
-                <div class="card-title">Manual Demand Upload (Testers &amp; Others)</div>
-                <div class="card-desc">Demand for Non-USM rows tagged Testers / Others (no auto DRR). Required before B.1 approval if any such rows exist. Complete-only.</div>
-                <span class="health-badge checking" id="health-badge-b2"><span class="material-icons-round">hourglass_empty</span> Checking…</span>
+            <div class="card-main-line">
+              <div class="card-title-line">
+                <span class="card-title">Manual Demand Upload (Testers &amp; Others)</span>
+                <span class="card-info" tabindex="0"
+                      onmouseenter="showTooltip(this,'Demand for Non-USM rows tagged Testers / Others (no auto DRR). Required before B.1 approval if any such rows exist. Complete-only.')"
+                      onmouseleave="hideTooltip()" onfocus="showTooltip(this,'Demand for Non-USM rows tagged Testers / Others (no auto DRR). Required before B.1 approval if any such rows exist. Complete-only.')" onblur="hideTooltip()">
+                  <span class="material-icons-round">info</span>
+                </span>
               </div>
-              <span class="type-chip chip-override">Override</span>
+              <div class="card-actions">
+                <button class="btn btn-outlined btn-sm" onclick="dlTemplate('b2_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
+                <button class="btn btn-primary btn-sm" onclick="openModal('modal-b2')"><span class="material-icons-round">upload</span> Upload</button>
+              </div>
             </div>
             <div id="health-errors-b2"></div>
-            <div class="info-row"><span class="material-icons-round">table_view</span>datos_studios.dp_b2_manual_demand</div>
-            <div class="card-divider"></div>
-            <div class="card-actions">
-              <button class="btn btn-primary" onclick="openModal('modal-b2')">
-                <span class="material-icons-round">upload</span> Upload Manual Demand
-              </button>
-            </div>
-            <div class="card-secondary-actions">
-              <button class="btn btn-ghost-muted" onclick="dlCurrentData('dp_b2_manual_demand')">
-                <span class="material-icons-round">download</span> Download current B.2 upload
-              </button>
-              <button class="btn btn-ghost-muted" onclick="openLog('b2')">
-                <span class="material-icons-round">receipt_long</span> View logs
-              </button>
-            </div>
           </div>
 
       </div>
@@ -633,34 +558,20 @@ tr.row-warn td{background:#fffbeb}
       <button class="modal-close" onclick="closeModal('modal-usm')"><span class="material-icons-round">close</span></button>
     </div>
     <div class="modal-body">
-      <a href="#" class="fmt-link" onclick="return false"><span class="material-icons-round">open_in_new</span>View accepted input format →</a>
       <div class="upload-zone" onclick="simulateUpload('usm')">
         <div><span class="material-icons-round">cloud_upload</span></div>
         <p>Drag &amp; drop file here or <span class="uz-link">browse</span></p>
         <p class="uz-types">Accepts .csv and .xlsx · Max 10 MB</p>
       </div>
-      <div class="preview-sec" id="preview-usm">
-        <div class="preview-hdr">
-          <span>Row Preview (first 10 rows)</span>
-          <div class="val-summary"><span class="v-ok">✓ 5 valid</span></div>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>warehouse_id</th><th>mpc</th></tr></thead>
-            <tbody>
-              <tr><td>WH-001</td><td>MPC-4421</td></tr>
-              <tr><td>WH-002</td><td>MPC-4422</td></tr>
-              <tr><td>WH-003</td><td>MPC-4423</td></tr>
-              <tr><td>WH-004</td><td>MPC-4424</td></tr>
-              <tr><td>WH-005</td><td>MPC-4425</td></tr>
-            </tbody>
-          </table>
-        </div>
+      <div class="uz-demo"><a onclick="simulateUploadError('usm')">Demo: simulate validation error →</a></div>
+      <div class="upload-error-banner" id="error-usm" style="display:none">
+        <span class="material-icons-round ico">error</span>
+        <div class="upload-error-banner-text"><strong>3 rows failed validation.</strong> Download the annotated file, fix offline, and re-upload.</div>
+        <button class="btn btn-outlined btn-sm" onclick="dlAnnotatedErrorFile('usm')"><span class="material-icons-round">file_download</span> Download annotated</button>
       </div>
     </div>
     <div class="modal-ftr">
-      <button class="btn btn-ghost-muted btn-sm" onclick="dlTemplate('usm_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
-      <button class="btn btn-outlined" onclick="closeModal('modal-usm')">Cancel</button>
+<button class="btn btn-outlined" onclick="closeModal('modal-usm')">Cancel</button>
       <button class="btn btn-primary" id="submit-usm" disabled onclick="submitModal('modal-usm','5 rows pushed to warehouse_product_assortment_v2','usm',5)">
         <span class="material-icons-round">send</span> Submit
       </button>
@@ -680,34 +591,20 @@ tr.row-warn td{background:#fffbeb}
       <button class="modal-close" onclick="closeModal('modal-mdq')"><span class="material-icons-round">close</span></button>
     </div>
     <div class="modal-body">
-      <a href="#" class="fmt-link" onclick="return false"><span class="material-icons-round">open_in_new</span>View accepted input format →</a>
       <div class="upload-zone" onclick="simulateUpload('mdq')">
         <div><span class="material-icons-round">cloud_upload</span></div>
         <p>Drag &amp; drop file here or <span class="uz-link">browse</span></p>
         <p class="uz-types">Accepts .csv and .xlsx · Max 10 MB</p>
       </div>
-      <div class="preview-sec" id="preview-mdq">
-        <div class="preview-hdr">
-          <span>Row Preview (first 10 rows)</span>
-          <div class="val-summary"><span class="v-ok">✓ 5 valid</span></div>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>warehouse_id</th><th>mpc</th><th>mdq</th></tr></thead>
-            <tbody>
-              <tr><td>WH-001</td><td>MPC-4421</td><td>48</td></tr>
-              <tr><td>WH-002</td><td>MPC-4422</td><td>24</td></tr>
-              <tr><td>WH-003</td><td>MPC-4423</td><td>12</td></tr>
-              <tr><td>WH-004</td><td>MPC-4424</td><td>72</td></tr>
-              <tr><td>WH-005</td><td>MPC-4425</td><td>36</td></tr>
-            </tbody>
-          </table>
-        </div>
+      <div class="uz-demo"><a onclick="simulateUploadError('mdq')">Demo: simulate validation error →</a></div>
+      <div class="upload-error-banner" id="error-mdq" style="display:none">
+        <span class="material-icons-round ico">error</span>
+        <div class="upload-error-banner-text"><strong>2 rows failed validation.</strong> Download the annotated file, fix offline, and re-upload.</div>
+        <button class="btn btn-outlined btn-sm" onclick="dlAnnotatedErrorFile('mdq')"><span class="material-icons-round">file_download</span> Download annotated</button>
       </div>
     </div>
     <div class="modal-ftr">
-      <button class="btn btn-ghost-muted btn-sm" onclick="dlTemplate('mdq_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
-      <button class="btn btn-outlined" onclick="closeModal('modal-mdq')">Cancel</button>
+<button class="btn btn-outlined" onclick="closeModal('modal-mdq')">Cancel</button>
       <button class="btn btn-primary" id="submit-mdq" disabled onclick="submitModal('modal-mdq','5 rows pushed to dp_mdq','mdq',5)">
         <span class="material-icons-round">send</span> Submit
       </button>
@@ -727,33 +624,20 @@ tr.row-warn td{background:#fffbeb}
       <button class="modal-close" onclick="closeModal('modal-city-store')"><span class="material-icons-round">close</span></button>
     </div>
     <div class="modal-body">
-      <a href="#" class="fmt-link" onclick="return false"><span class="material-icons-round">open_in_new</span>View accepted input format →</a>
       <div class="upload-zone" onclick="simulateUpload('city')">
         <div><span class="material-icons-round">cloud_upload</span></div>
         <p>Drag &amp; drop file here or <span class="uz-link">browse</span></p>
         <p class="uz-types">Accepts .csv and .xlsx · Max 10 MB</p>
       </div>
-      <div class="preview-sec" id="preview-city">
-        <div class="preview-hdr">
-          <span>Row Preview (first 10 rows)</span>
-          <div class="val-summary"><span class="v-ok">✓ 4 valid</span></div>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>store_id</th><th>Zone</th><th>State</th><th>district</th><th>cluster_id</th><th>sister_store_code</th></tr></thead>
-            <tbody>
-              <tr><td>S-101</td><td>West</td><td>Maharashtra</td><td>Mumbai</td><td>CL-042</td><td>S-012</td></tr>
-              <tr><td>S-102</td><td>South</td><td>Karnataka</td><td>Bengaluru</td><td>CL-017</td><td>S-034</td></tr>
-              <tr><td>S-103</td><td>North</td><td>Delhi</td><td>New Delhi</td><td>CL-003</td><td>S-008</td></tr>
-              <tr><td>S-104</td><td>East</td><td>West Bengal</td><td>Kolkata</td><td>CL-021</td><td>S-027</td></tr>
-            </tbody>
-          </table>
-        </div>
+      <div class="uz-demo"><a onclick="simulateUploadError('city')">Demo: simulate validation error →</a></div>
+      <div class="upload-error-banner" id="error-city" style="display:none">
+        <span class="material-icons-round ico">error</span>
+        <div class="upload-error-banner-text"><strong>2 rows failed validation.</strong> Download the annotated file, fix offline, and re-upload.</div>
+        <button class="btn btn-outlined btn-sm" onclick="dlAnnotatedErrorFile('city')"><span class="material-icons-round">file_download</span> Download annotated</button>
       </div>
     </div>
     <div class="modal-ftr">
-      <button class="btn btn-ghost-muted btn-sm" onclick="dlTemplate('city_store_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
-      <button class="btn btn-outlined" onclick="closeModal('modal-city-store')">Cancel</button>
+<button class="btn btn-outlined" onclick="closeModal('modal-city-store')">Cancel</button>
       <button class="btn btn-primary" id="submit-city" disabled onclick="submitModal('modal-city-store','4 rows pushed to dp_city_store_patch','city-store',4)">
         <span class="material-icons-round">send</span> Submit
       </button>
@@ -774,34 +658,20 @@ tr.row-warn td{background:#fffbeb}
       <button class="modal-close" onclick="closeModal('modal-nonusm')"><span class="material-icons-round">close</span></button>
     </div>
     <div class="modal-body">
-      <a href="#" class="fmt-link" onclick="return false"><span class="material-icons-round">open_in_new</span>View accepted input format →</a>
       <div class="upload-zone" onclick="simulateUpload('nonusm')">
         <div><span class="material-icons-round">cloud_upload</span></div>
         <p>Drag &amp; drop file here or <span class="uz-link">browse</span></p>
         <p class="uz-types">Accepts .csv and .xlsx · Max 10 MB</p>
       </div>
-      <div class="preview-sec" id="preview-nonusm">
-        <div class="preview-hdr">
-          <span>Row Preview (first 10 rows)</span>
-          <div class="val-summary"><span class="v-ok">✓ 5 valid</span></div>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>store_id</th><th>mpc</th><th>non_usm_type</th></tr></thead>
-            <tbody>
-              <tr><td>S-101</td><td>MPC-5001</td><td>Consumables</td></tr>
-              <tr><td>S-102</td><td>MPC-5002</td><td>GWP</td></tr>
-              <tr><td>S-105</td><td>MPC-5110</td><td>Testers</td></tr>
-              <tr><td>S-108</td><td>MPC-5212</td><td>Others</td></tr>
-              <tr><td>S-112</td><td>MPC-5308</td><td>Consumables</td></tr>
-            </tbody>
-          </table>
-        </div>
+      <div class="uz-demo"><a onclick="simulateUploadError('nonusm')">Demo: simulate validation error →</a></div>
+      <div class="upload-error-banner" id="error-nonusm" style="display:none">
+        <span class="material-icons-round ico">error</span>
+        <div class="upload-error-banner-text"><strong>2 rows failed validation.</strong> Download the annotated file, fix offline, and re-upload.</div>
+        <button class="btn btn-outlined btn-sm" onclick="dlAnnotatedErrorFile('nonusm')"><span class="material-icons-round">file_download</span> Download annotated</button>
       </div>
     </div>
     <div class="modal-ftr">
-      <button class="btn btn-ghost-muted btn-sm" onclick="dlTemplate('nonusm_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
-      <button class="btn btn-outlined" onclick="closeModal('modal-nonusm')">Cancel</button>
+<button class="btn btn-outlined" onclick="closeModal('modal-nonusm')">Cancel</button>
       <button class="btn btn-primary" id="submit-nonusm" disabled onclick="submitModal('modal-nonusm','5 rows pushed to dp_non_usm','nonusm',5)">
         <span class="material-icons-round">send</span> Submit
       </button>
@@ -821,32 +691,20 @@ tr.row-warn td{background:#fffbeb}
       <button class="modal-close" onclick="closeModal('modal-nso')"><span class="material-icons-round">close</span></button>
     </div>
     <div class="modal-body">
-      <a href="#" class="fmt-link" onclick="return false"><span class="material-icons-round">open_in_new</span>View accepted input format →</a>
       <div class="upload-zone" onclick="simulateUpload('nso')">
         <div><span class="material-icons-round">cloud_upload</span></div>
         <p>Drag &amp; drop file here or <span class="uz-link">browse</span></p>
         <p class="uz-types">Accepts .csv and .xlsx · Max 10 MB</p>
       </div>
-      <div class="preview-sec" id="preview-nso">
-        <div class="preview-hdr">
-          <span>Row Preview (first 10 rows)</span>
-          <div class="val-summary"><span class="v-ok">✓ 3 valid</span></div>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>store_id</th><th>store_name</th><th>expected_opening_date</th><th>sister_store_code</th><th>cluster_id</th></tr></thead>
-            <tbody>
-              <tr><td>NSO-201</td><td>Pune Koregaon</td><td>2026-04-12</td><td>S-057</td><td>CL-042</td></tr>
-              <tr><td>NSO-202</td><td>Hyd Banjara</td><td>2026-05-03</td><td>S-031</td><td>CL-038</td></tr>
-              <tr><td>NSO-203</td><td>Jaipur Malviya</td><td>2026-06-01</td><td>S-019</td><td>CL-055</td></tr>
-            </tbody>
-          </table>
-        </div>
+      <div class="uz-demo"><a onclick="simulateUploadError('nso')">Demo: simulate validation error →</a></div>
+      <div class="upload-error-banner" id="error-nso" style="display:none">
+        <span class="material-icons-round ico">error</span>
+        <div class="upload-error-banner-text"><strong>2 rows failed validation.</strong> Download the annotated file, fix offline, and re-upload.</div>
+        <button class="btn btn-outlined btn-sm" onclick="dlAnnotatedErrorFile('nso')"><span class="material-icons-round">file_download</span> Download annotated</button>
       </div>
     </div>
     <div class="modal-ftr">
-      <button class="btn btn-ghost-muted btn-sm" onclick="dlTemplate('nso_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
-      <button class="btn btn-outlined" onclick="closeModal('modal-nso')">Cancel</button>
+<button class="btn btn-outlined" onclick="closeModal('modal-nso')">Cancel</button>
       <button class="btn btn-primary" id="submit-nso" disabled onclick="submitModal('modal-nso','3 NSOs pushed to dp_nso_patch','nso',3)">
         <span class="material-icons-round">send</span> Submit
       </button>
@@ -866,23 +724,21 @@ tr.row-warn td{background:#fffbeb}
       <button class="modal-close" onclick="closeModal('modal-ros-multiplier')"><span class="material-icons-round">close</span></button>
     </div>
     <div class="modal-body">
-      <a href="#" class="fmt-link" onclick="return false"><span class="material-icons-round">open_in_new</span>View accepted input format →</a>
       <div class="upload-zone" onclick="simulateUpload('ros')">
         <div><span class="material-icons-round">cloud_upload</span></div>
         <p>Drag &amp; drop file here or <span class="uz-link">browse</span></p>
         <p class="uz-types">Accepts .csv and .xlsx · Max 10 MB</p>
       </div>
+      <div class="uz-demo"><a onclick="simulateUploadError('ros')">Demo: simulate validation error →</a></div>
+      <div class="upload-error-banner" id="error-ros" style="display:none">
+        <span class="material-icons-round ico">error</span>
+        <div class="upload-error-banner-text"><strong>2 rows failed validation.</strong> Download the annotated file, fix offline, and re-upload.</div>
+        <button class="btn btn-outlined btn-sm" onclick="dlAnnotatedErrorFile('ros')"><span class="material-icons-round">file_download</span> Download annotated</button>
+      </div>
       <div class="preview-sec" id="preview-ros">
-        <div class="preview-hdr">
-          <span>Row Preview</span>
-          <div class="val-summary">
-            <span class="v-ok">✓ 4 valid</span>
-            <span class="v-warn">⚠ 1 national</span>
-          </div>
-        </div>
         <div class="nat-banner">
           <span class="material-icons-round">warning_amber</span>
-          <span>1 row has <strong>geo_granularity = national</strong>. You must download and review the national buying plan comparison before submit is enabled.</span>
+          <span>If the file contains <strong>geo_granularity = national</strong> rows, you must download and review the national buying plan comparison before submit is enabled.</span>
         </div>
         <div class="dl-gate" id="ros-dl-gate">
           <div>
@@ -892,22 +748,10 @@ tr.row-warn td{background:#fffbeb}
             <span class="material-icons-round">table_chart</span> Download
           </button>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>product_gran.</th><th>geo_gran.</th><th>week</th><th>multiplier</th><th>remarks</th></tr></thead>
-            <tbody>
-              <tr><td>brand</td><td>city</td><td>2026-W10</td><td>1.2</td><td>Promo boost</td></tr>
-              <tr><td>subcat</td><td>state</td><td>2026-W10</td><td>0.9</td><td>Seasonal adj.</td></tr>
-              <tr class="row-warn"><td>brand-subcat</td><td><strong style="color:var(--warn)">national</strong></td><td>2026-W11</td><td>1.5</td><td>Campaign launch</td></tr>
-              <tr><td>brand</td><td>city</td><td>2026-W11</td><td>1.1</td><td>—</td></tr>
-            </tbody>
-          </table>
-        </div>
       </div>
     </div>
     <div class="modal-ftr">
-      <button class="btn btn-ghost-muted btn-sm" onclick="dlTemplate('ros_multiplier_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
-      <button class="btn btn-outlined" onclick="closeModal('modal-ros-multiplier')">Cancel</button>
+<button class="btn btn-outlined" onclick="closeModal('modal-ros-multiplier')">Cancel</button>
       <button class="btn btn-primary" id="submit-ros" disabled onclick="submitModal('modal-ros-multiplier','4 rows pushed to ROS multipliers','ros-multiplier',4)">
         <span class="material-icons-round">send</span> Submit Multipliers
       </button>
@@ -929,33 +773,20 @@ tr.row-warn td{background:#fffbeb}
       <button class="modal-close" onclick="closeModal('modal-b2')"><span class="material-icons-round">close</span></button>
     </div>
     <div class="modal-body">
-      <a href="#" class="fmt-link" onclick="return false"><span class="material-icons-round">open_in_new</span>View accepted input format →</a>
       <div class="upload-zone" onclick="simulateUpload('b2')">
         <div><span class="material-icons-round">cloud_upload</span></div>
         <p>Drag &amp; drop file here or <span class="uz-link">browse</span></p>
         <p class="uz-types">Accepts .csv and .xlsx · Max 10 MB</p>
       </div>
-      <div class="preview-sec" id="preview-b2">
-        <div class="preview-hdr">
-          <span>Row Preview (first 10 rows)</span>
-          <div class="val-summary"><span class="v-ok">✓ 4 valid</span></div>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>product_gran.</th><th>geo_gran.</th><th>week</th><th>demand</th><th>remarks</th></tr></thead>
-            <tbody>
-              <tr><td>mpc</td><td>store</td><td>2026-W10</td><td>24</td><td>Testers rollout</td></tr>
-              <tr><td>mpc</td><td>store</td><td>2026-W11</td><td>18</td><td>Testers rollout</td></tr>
-              <tr><td>mpc</td><td>city</td><td>2026-W10</td><td>42</td><td>Others</td></tr>
-              <tr><td>mpc</td><td>city</td><td>2026-W11</td><td>36</td><td>Others</td></tr>
-            </tbody>
-          </table>
-        </div>
+      <div class="uz-demo"><a onclick="simulateUploadError('b2')">Demo: simulate validation error →</a></div>
+      <div class="upload-error-banner" id="error-b2" style="display:none">
+        <span class="material-icons-round ico">error</span>
+        <div class="upload-error-banner-text"><strong>1 row failed validation.</strong> Download the annotated file, fix offline, and re-upload.</div>
+        <button class="btn btn-outlined btn-sm" onclick="dlAnnotatedErrorFile('b2')"><span class="material-icons-round">file_download</span> Download annotated</button>
       </div>
     </div>
     <div class="modal-ftr">
-      <button class="btn btn-ghost-muted btn-sm" onclick="dlTemplate('b2_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
-      <button class="btn btn-outlined" onclick="closeModal('modal-b2')">Cancel</button>
+<button class="btn btn-outlined" onclick="closeModal('modal-b2')">Cancel</button>
       <button class="btn btn-primary" id="submit-b2" disabled onclick="submitModal('modal-b2','4 rows pushed to dp_b2_manual_demand','b2',4)">
         <span class="material-icons-round">send</span> Submit
       </button>
@@ -964,45 +795,29 @@ tr.row-warn td{background:#fffbeb}
 </div>
 <!-- /B.2 -->
 
-<!-- ═══════════════════════════════════════════════════════
-     RUN LOG PANEL
-══════════════════════════════════════════════════════════ -->
-<div class="log-backdrop" id="log-backdrop" onclick="closeLog()"></div>
-<div class="log-panel" id="log-panel">
-  <div class="log-panel-hdr">
-    <div class="log-panel-hdr-left">
-      <h3 id="log-panel-title">Run Logs</h3>
-      <p id="log-panel-sub">Chronological · stored by Run ID · 3-month retention</p>
-    </div>
-    <button class="modal-close" onclick="closeLog()"><span class="material-icons-round">close</span></button>
-  </div>
-  <div class="log-panel-body" id="log-panel-body"></div>
-</div>
-
 <!-- TOAST -->
 <div class="toast-c" id="toast-c"></div>
 
 <script>
 const MOCK_HEALTH = {
-  usm:          { healthy: true,  errors: [] },
-  nonusm:       { healthy: true,  errors: [] },
-  mdq:          { healthy: true,  errors: [] },
-  city:         { healthy: true,  errors: [] },
-  nso:          { healthy: true,  errors: [] },
-  classStore:   { healthy: true,  errors: [] },
-  classNational:{ healthy: true,  errors: [] },
-  ros:          { healthy: false, errors: ['Active multiplier rows expire in 2 days (week 2026-W12 not covered)', 'Missing coverage for 4 MPCs at city-level granularity'] },
-  forecast:     { healthy: true,  errors: [] },
-  b2:           { healthy: true,  errors: [] },
+  usm:          { healthy: true,  errors: [], warnings: ['Last USM upload was 35 days ago — approaching 45-day staleness threshold'] },
+  nonusm:       { healthy: true,  errors: [], warnings: [] },
+  mdq:          { healthy: true,  errors: [], warnings: [] },
+  city:         { healthy: true,  errors: [], warnings: [] },
+  nso:          { healthy: true,  errors: [], warnings: [] },
+  ros:          { healthy: false,
+                  errors: ['Active multiplier rows expire in 2 days (week 2026-W12 not covered)', 'Missing coverage for 4 MPCs at city-level granularity'],
+                  warnings: ['3 multipliers set above 1.5 — verify intent before submit', '12 rows at national granularity — high blast radius'] },
+  forecast:     { healthy: true,  errors: [], warnings: [] },
+  b2:           { healthy: true,  errors: [], warnings: [] },
 };
 
 const CARD_LABELS = {
   usm:'USM', nonusm:'Non-USM', mdq:'MDQ', city:'City-Store Mappings', nso:'NSOs',
-  classStore:'Store-level Classification', classNational:'National-level Classification',
   ros:'ROS Multipliers', forecast:'Demand Forecasting', b2:'Manual Demand Upload',
 };
 
-const SECTION_A_CARDS = ['usm','nonusm','mdq','city','nso','classStore','classNational','ros'];
+const SECTION_A_CARDS = ['usm','nonusm','mdq','city','nso','ros'];
 const SECTION_B_CARDS = ['forecast','b2'];
 
 let healthState = {};
@@ -1013,7 +828,7 @@ function fetchHealthStatus() {
     setTimeout(() => {
       const result = {};
       for (const [k, v] of Object.entries(MOCK_HEALTH)) {
-        result[k] = { ...v, errors: [...v.errors], lastChecked: new Date().toISOString() };
+        result[k] = { ...v, errors: [...v.errors], warnings: [...(v.warnings || [])], lastChecked: new Date().toISOString() };
       }
       resolve(result);
     }, 900);
@@ -1022,45 +837,111 @@ function fetchHealthStatus() {
 
 function applyHealthToCard(cardKey, status) {
   const card = document.getElementById('card-' + cardKey);
-  const badge = document.getElementById('health-badge-' + cardKey);
   const errBox = document.getElementById('health-errors-' + cardKey);
-  if (!card || !badge) return;
-  card.classList.remove('health-ok', 'health-err', 'health-checking');
-  badge.classList.remove('ok', 'err', 'checking');
-  if (status.healthy) {
-    card.classList.add('health-ok'); badge.classList.add('ok');
-    badge.innerHTML = '<span class="material-icons-round">check_circle</span> Healthy';
-  } else {
-    card.classList.add('health-err'); badge.classList.add('err');
-    badge.innerHTML = '<span class="material-icons-round">error</span> Unhealthy';
-  }
+  if (!card) return;
+  card.classList.remove('health-ok', 'health-err', 'health-warn', 'health-checking');
+  const hasErrors = status.errors && status.errors.length > 0;
+  const hasWarnings = status.warnings && status.warnings.length > 0;
+  if (hasErrors) card.classList.add('health-err');
+  else if (hasWarnings) card.classList.add('health-warn');
+  else card.classList.add('health-ok');
   if (errBox) {
-    if (!status.healthy && status.errors && status.errors.length) {
-      errBox.innerHTML = `<div class="health-errors"><ul>${status.errors.map(e => `<li>${e}</li>`).join('')}</ul></div>`;
-    } else { errBox.innerHTML = ''; }
+    let html = '';
+    if (hasErrors) {
+      const n = status.errors.length;
+      html += `
+        <div class="health-errors">
+          <div class="health-errors-summary" onclick="this.parentElement.classList.toggle('expanded')">
+            <span class="material-icons-round ico-warn">error</span>
+            <span><strong>${n} issue${n>1?'s':''}</strong></span>
+            <span class="spacer"></span>
+            <span class="label-view">View details</span>
+            <span class="material-icons-round expand-ico">expand_more</span>
+          </div>
+          <div class="health-errors-list">
+            <ul>${status.errors.map(e => `<li>${e}</li>`).join('')}</ul>
+          </div>
+        </div>`;
+    }
+    if (hasWarnings) {
+      const n = status.warnings.length;
+      html += `
+        <div class="health-warnings">
+          <div class="health-warnings-summary" onclick="this.parentElement.classList.toggle('expanded')">
+            <span class="material-icons-round ico-warn">warning_amber</span>
+            <span><strong>${n} warning${n>1?'s':''}</strong></span>
+            <span class="spacer"></span>
+            <span class="label-view">View details</span>
+            <span class="material-icons-round expand-ico">expand_more</span>
+          </div>
+          <div class="health-warnings-list">
+            <ul>${status.warnings.map(w => `<li>${w}</li>`).join('')}</ul>
+          </div>
+        </div>`;
+    }
+    errBox.innerHTML = html;
   }
 }
 
 function setCardChecking(cardKey) {
   const card = document.getElementById('card-' + cardKey);
-  const badge = document.getElementById('health-badge-' + cardKey);
-  if (!card || !badge) return;
+  if (!card) return;
   card.classList.remove('health-ok', 'health-err'); card.classList.add('health-checking');
-  badge.classList.remove('ok', 'err'); badge.classList.add('checking');
-  badge.innerHTML = '<span class="material-icons-round">hourglass_empty</span> Checking…';
+}
+
+function updateHealthSummary() {
+  const summary = document.getElementById('recheck-bar-summary');
+  if (!summary) return;
+  const all = [...SECTION_A_CARDS, ...SECTION_B_CARDS];
+  const unhealthy = all.filter(k => healthState[k] && (healthState[k].errors||[]).length > 0);
+  const warnOnly  = all.filter(k => healthState[k] && (healthState[k].errors||[]).length === 0 && (healthState[k].warnings||[]).length > 0);
+  if (unhealthy.length > 0) {
+    const names = unhealthy.map(k => CARD_LABELS[k] || k).join(', ');
+    summary.className = 'recheck-bar-left unhealthy';
+    summary.innerHTML = `<span class="material-icons-round">error</span><span><strong>${unhealthy.length} unhealthy</strong> — ${names}</span>`;
+  } else if (warnOnly.length > 0) {
+    const names = warnOnly.map(k => CARD_LABELS[k] || k).join(', ');
+    summary.className = 'recheck-bar-left warning';
+    summary.innerHTML = `<span class="material-icons-round">warning_amber</span><span><strong>${warnOnly.length} with warning${warnOnly.length>1?'s':''}</strong> — ${names}</span>`;
+  } else {
+    summary.className = 'recheck-bar-left healthy';
+    summary.innerHTML = `<span class="material-icons-round">check_circle</span><span>All healthy</span>`;
+  }
 }
 
 function evaluateSectionLocks() {
-  const allAHealthy = SECTION_A_CARDS.every(k => healthState[k] && healthState[k].healthy);
-  const sectionB = document.getElementById('section-b');
-  if (!allAHealthy) {
-    sectionB.classList.add('section-locked');
-    const reasons = document.getElementById('section-b-lock-reasons');
-    if (reasons) {
-      reasons.innerHTML = SECTION_A_CARDS.filter(k => !(healthState[k] && healthState[k].healthy))
-        .map(k => `<li><strong>${CARD_LABELS[k]}</strong> — ${(healthState[k] && healthState[k].errors && healthState[k].errors[0]) || 'unhealthy'}</li>`).join('');
-    }
-  } else { sectionB.classList.remove('section-locked'); }
+  // Section B is no longer locked at the section level. Only the Run Forecasting
+  // button is soft-locked when Section A has unhealthy cards.
+  updateForecastButtonState();
+}
+
+function isSectionAHealthy(){
+  return SECTION_A_CARDS.every(k => healthState[k] && healthState[k].healthy);
+}
+
+function updateForecastButtonState(){
+  const btn = document.getElementById('btn-forecast');
+  if (!btn) return;
+  btn.classList.toggle('btn-soft-locked', !isSectionAHealthy());
+}
+
+function triggerShakeUnhealthy() {
+  const unhealthy = SECTION_A_CARDS.filter(k => healthState[k] && !healthState[k].healthy);
+  if (!unhealthy.length) return;
+  unhealthy.forEach(k => {
+    const el = document.getElementById('card-' + k);
+    if (!el) return;
+    el.classList.remove('shake');
+    void el.offsetWidth; // force reflow to restart animation
+    el.classList.add('shake');
+  });
+  // Scroll the first unhealthy card into view (subtle nudge — header sits above)
+  const firstEl = document.getElementById('card-' + unhealthy[0]);
+  if (firstEl && firstEl.scrollIntoView) firstEl.scrollIntoView({ behavior:'smooth', block:'center' });
+  setTimeout(() => unhealthy.forEach(k => {
+    const el = document.getElementById('card-' + k);
+    if (el) el.classList.remove('shake');
+  }), 600);
 }
 
 async function recheckAllHealth(triggeredByUpload) {
@@ -1073,13 +954,14 @@ async function recheckAllHealth(triggeredByUpload) {
   const allCards = [...SECTION_A_CARDS, ...SECTION_B_CARDS];
   allCards.forEach(k => setCardChecking(k));
   if (!triggeredByUpload) {
-    MOCK_HEALTH.ros = { healthy: true, errors: [] };
+    MOCK_HEALTH.ros = { healthy: true, errors: [], warnings: [] };
   }
   try {
     const result = await fetchHealthStatus();
     healthState = result;
     allCards.forEach(k => { if (result[k]) applyHealthToCard(k, result[k]); });
     evaluateSectionLocks();
+    updateHealthSummary();
     const now = new Date();
     tsEl.textContent = `Last checked: ${now.toLocaleDateString([], {day:'2-digit', month:'short'})} ${now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
     if (!triggeredByUpload) showToast('Health check complete', 'success');
@@ -1093,7 +975,7 @@ async function recheckAllHealth(triggeredByUpload) {
 }
 
 function recheckAfterUpload(cardKey) {
-  if (MOCK_HEALTH[cardKey]) { MOCK_HEALTH[cardKey].healthy = true; MOCK_HEALTH[cardKey].errors = []; }
+  if (MOCK_HEALTH[cardKey]) { MOCK_HEALTH[cardKey].healthy = true; MOCK_HEALTH[cardKey].errors = []; MOCK_HEALTH[cardKey].warnings = []; }
   showToast('Re-checking data health…', 'info');
   setTimeout(() => recheckAllHealth(true), 600);
 }
@@ -1108,6 +990,8 @@ const runLogs = {
     { id:'UPL-0422', ts:'2026-02-20 09:45', user:'sneha.r', status:'success', type:'Manual Upload', file:'mdq_update_batch2.csv', rows:15, preview:[['WH-005','MPC-4425','36'],['WH-006','MPC-4426','72']] },
   ],
   'demand-forecast': [
+    { id:'RUN-2025', ts:'2026-05-12 09:15', user:'priya.k', status:'pending', type:'Script', duration:'3m 08s', params:{ 'In-stock window':'60 days', 'Bucket size':'15 days', 'Weights':'0.4 / 0.3 / 0.2 / 0.1', 'Fallback':'city → state', 'New MPC-store default':'0' }, rows:4222, hasExcel:false },
+    { id:'RUN-2024', ts:'2026-05-11 17:30', user:'arjun.m', status:'rejected', autoRejected:true, type:'Script', duration:'3m 14s', params:{ 'In-stock window':'60 days', 'Bucket size':'15 days', 'Weights':'0.4 / 0.3 / 0.2 / 0.1' }, rows:4215, hasExcel:false },
     { id:'RUN-2023', ts:'2026-02-26 18:42', user:'priya.k', status:'approved', type:'Script', duration:'3m 12s', params:{ 'In-stock window':'60 days', 'Bucket size':'15 days', 'Weights':'0.4 / 0.3 / 0.2 / 0.1', 'Fallback':'city → state', 'New MPC-store default':'0' }, rows:4210, hasExcel:true },
     { id:'RUN-2018', ts:'2026-02-25 18:30', user:'priya.k', status:'rejected', type:'Script', duration:'3m 05s', params:{ 'In-stock window':'60 days', 'Weights':'0.4 / 0.3 / 0.2 / 0.1' }, rows:4198, hasExcel:true },
     { id:'RUN-2011', ts:'2026-02-24 18:45', user:'arjun.m', status:'approved', type:'Script', duration:'3m 20s', params:{ 'In-stock window':'60 days', 'Weights':'0.4 / 0.3 / 0.2 / 0.1' }, rows:4205, hasExcel:true },
@@ -1150,13 +1034,24 @@ let runCounter = 2026;
 function nextId(pfx='RUN'){ return pfx+'-'+(runCounter++); }
 function nowTs(){ return new Date().toISOString().replace('T',' ').slice(0,16); }
 
-function toggleSection(id){
+function toggleSection(id, ev){
   const sec = document.getElementById(id);
-  if (sec.classList.contains('section-locked')) return;
+  if (sec.classList.contains('section-locked')) {
+    // Locked → shake the unhealthy cards above and bail (don't toggle collapse)
+    triggerShakeUnhealthy();
+    if (ev) ev.stopPropagation();
+    return;
+  }
   sec.classList.toggle('collapsed');
 }
 
-function openModal(id){ document.getElementById(id).classList.add('open'); }
+function openModal(id){
+  document.getElementById(id).classList.add('open');
+  // Reset error banner state on every open
+  document.querySelectorAll('#'+id+' .upload-error-banner').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('#'+id+' .preview-sec').forEach(el => el.classList.remove('visible'));
+  document.querySelectorAll('#'+id+' .btn-primary[id^="submit-"]').forEach(b => b.disabled = true);
+}
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.modal-overlay').forEach(o=>{
   o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); });
@@ -1173,9 +1068,26 @@ const uMap={
 };
 function simulateUpload(k){
   const m=uMap[k];
-  document.getElementById(m.preview).classList.add('visible');
-  if(!m.errs && !m.natGate) document.getElementById(m.submit).disabled=false;
-  showToast('File parsed — reviewing preview…','info');
+  // Reset any prior error banner from a previous bad upload in this modal
+  const errEl = document.getElementById('error-'+k);
+  if (errEl) errEl.style.display = 'none';
+  // Row preview removed across modals. ROS still surfaces the national-plan gate via #preview-ros.
+  const previewEl = m.preview && document.getElementById(m.preview);
+  if (previewEl) previewEl.classList.add('visible');
+  if(!m.natGate) document.getElementById(m.submit).disabled=false;
+  showToast('File ready — click Submit to upload','info');
+}
+
+function simulateUploadError(k){
+  const m = uMap[k];
+  // Show inline error banner; keep Submit disabled
+  const errEl = document.getElementById('error-'+k);
+  if (errEl) errEl.style.display = 'flex';
+  document.getElementById(m.submit).disabled = true;
+  // Hide any ROS preview/gate that might have been opened earlier
+  const previewEl = m.preview && document.getElementById(m.preview);
+  if (previewEl) previewEl.classList.remove('visible');
+  showToast('Validation failed — download annotated file to fix','error');
 }
 
 function downloadNationalPlan(){
@@ -1191,7 +1103,6 @@ function downloadNationalPlan(){
 const LOG_TO_CARD = {
   'usm':'usm', 'nonusm':'nonusm', 'mdq':'mdq', 'city-store':'city', 'nso':'nso',
   'ros-multiplier':'ros', 'b2':'b2',
-  'class-store':'classStore', 'class-national':'classNational',
 };
 
 function submitModal(modalId, msg, logKey, rowCount){
@@ -1207,22 +1118,28 @@ function submitModal(modalId, msg, logKey, rowCount){
 }
 
 function runForecast(btn){
+  // Gate: cannot run while Section A is unhealthy. Click greyed button → shake to guide attention.
+  if (btn.classList.contains('btn-soft-locked') || !isSectionAHealthy()) {
+    triggerShakeUnhealthy();
+    return;
+  }
   btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Running…';
   setTimeout(()=>{
     btn.disabled=false; btn.innerHTML='<span class="material-icons-round">play_arrow</span> Run Forecasting';
     const id=nextId();
+    // Auto-reject any existing pending forecast runs — only one pending run per cycle
+    let autoRejected = 0;
+    runLogs['demand-forecast'].forEach(r => {
+      if (r.status === 'pending') { r.status = 'rejected'; r.autoRejected = true; autoRejected++; }
+    });
     runLogs['demand-forecast'].unshift({
       id, ts:nowTs(), user:'priya.k', status:'pending', type:'Script', duration:'3m 10s',
       params:{'In-stock window':'60 days','Bucket size':'15 days','Weights':'0.4/0.3/0.2/0.1','Fallback':'city → state','New MPC-store default':'0'},
       rows:4215, hasExcel:false
     });
-    document.getElementById('forecast-meta-text').textContent=`Last run: Just now · 3m 10s · ${id}`;
-    showToast(`Forecast run complete · ${id} · review in Run Log`,'success');
-    openLog('demand-forecast');
-    setTimeout(()=>{
-      const el=document.getElementById('le-'+id);
-      if(el) el.classList.add('expanded');
-    },50);
+    if (autoRejected > 0) showToast(`Forecast complete · ${id} · ${autoRejected} older run${autoRejected>1?'s':''} auto-rejected`,'success');
+    else showToast(`Forecast complete · ${id} · awaiting approval`,'success');
+    renderForecastCurrentRun();
   },2200);
 }
 
@@ -1234,8 +1151,7 @@ function approveForecast(id){
     return;
   }
   e.status='approved'; e.hasExcel=true;
-  renderLog('demand-forecast');
-  const el=document.getElementById('le-'+id); if(el) el.classList.add('expanded');
+  renderForecastCurrentRun();
   showToast(`Forecast approved · ${id} · pushed to dp_fulcrum`,'success');
   setTimeout(()=>showToast(`Excel generated: forecast_${id}.xlsx`,'info'),700);
   recheckAfterUpload('forecast');
@@ -1245,8 +1161,7 @@ function rejectForecast(id){
   const e=runLogs['demand-forecast'].find(x=>x.id===id);
   if(!e) return;
   e.status='rejected';
-  renderLog('demand-forecast');
-  const el=document.getElementById('le-'+id); if(el) el.classList.add('expanded');
+  renderForecastCurrentRun();
   showToast(`Forecast rejected · ${id} · staged values discarded`,'info');
 }
 
@@ -1262,169 +1177,116 @@ function hasValidB2(){
   return arr.some(x=>x.status==='success');
 }
 
-function runClassStore(btn){
-  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Running…';
-  setTimeout(()=>{
-    btn.disabled=false; btn.innerHTML='<span class="material-icons-round">play_arrow</span> Run Store-level';
-    const id=nextId();
-    runLogs['class-store'].unshift({
-      id, ts:nowTs(), user:'priya.k', status:'success', type:'Script', duration:'2m 08s',
-      params:{'In-stock window':'60 days','Bucket size':'15 days','Grouping':'cluster_id → city fallback'}, rows:81402
-    });
-    document.getElementById('classStore-meta-text').textContent=`Last run: Just now · 2m 08s · ${id}`;
-    showToast(`Store-level classification complete · ${id}`,'success');
-    recheckAfterUpload('classStore');
-  },1800);
+// ── REAL EXCEL DOWNLOADS (SheetJS) ──
+function makeExcelFile(filename, sheetMap){
+  // sheetMap: { sheetName: [[row1col1, row1col2], ...] } — first row is treated as header by readers
+  if (typeof XLSX === 'undefined') { showToast('Excel library not loaded — try again in a moment','error'); return; }
+  const wb = XLSX.utils.book_new();
+  for (const [name, rows] of Object.entries(sheetMap)) {
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    XLSX.utils.book_append_sheet(wb, ws, name);
+  }
+  XLSX.writeFile(wb, filename);
 }
 
-function runClassNational(btn){
-  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Running…';
-  setTimeout(()=>{
-    btn.disabled=false; btn.innerHTML='<span class="material-icons-round">play_arrow</span> Run National-level';
-    const id=nextId();
-    runLogs['class-national'].unshift({
-      id, ts:nowTs(), user:'priya.k', status:'success', type:'Script', duration:'1m 12s',
-      params:{'In-stock window':'60 days','Bucket size':'15 days','Aggregation':'national'}, rows:4225
-    });
-    document.getElementById('classNational-meta-text').textContent=`Last run: Just now · 1m 12s · ${id}`;
-    showToast(`National-level classification complete · ${id}`,'success');
-    recheckAfterUpload('classNational');
-  },1200);
+const TEMPLATE_SCHEMA = {
+  'usm_template.csv':            { name:'USM',         cols:['store_id','mpc'], rows:[['S-101','MPC-4421'],['S-102','MPC-4422']] },
+  'mdq_template.csv':            { name:'MDQ',         cols:['store_id','mpc','mdq'], rows:[['S-101','MPC-4421',48],['S-102','MPC-4422',24]] },
+  'city_store_template.csv':     { name:'CityStore',   cols:['store_opening_date','store_code','store_name','Zone','State','district','postal_code','store_type','status','channel','cluster_id','sister_store_code','RM','CM','cluster_remark'],
+                                   rows:[['2024-05-12','S-101','Mumbai Juhu','West','Maharashtra','Mumbai','400049','High Street','Active','Stores','CL-042','','arjun.m','sneha.r','']] },
+  'nso_template.csv':            { name:'NSO',         cols:['store_id','store_name','expected_opening_date','is_nso','sister_store_code','Zone','State','district','postal_code','store_type','status','channel','RM','CM'],
+                                   rows:[['NSO-201','Pune Koregaon','2026-08-15',true,'S-057','West','Maharashtra','Pune','411001','High Street','Planned','Stores','arjun.m','sneha.r']] },
+  'nonusm_template.csv':         { name:'NonUSM',      cols:['geo_granularity','geo_value','mpc','non_usm_type'], rows:[['store_id','S-101','MPC-5001','Consumables'],['city','Mumbai','MPC-5110','Testers']] },
+  'ros_multiplier_template.csv': { name:'ROSMult',     cols:['geo_granularity','geo_value','product_granularity','product_value','week','multiplier_value','remarks'],
+                                   rows:[['city','Mumbai','brand','Lakmé','2026-W19',1.2,'Local promo']] },
+  'b2_template.csv':             { name:'ManualDemand',cols:['store_id','mpc','week','demand','source'], rows:[['S-105','MPC-5110','2026-W19',24,'Testers']] },
+};
+
+function dlTemplate(f){
+  const schema = TEMPLATE_SCHEMA[f] || { name:'Template', cols:['column_1','column_2'], rows:[] };
+  const filename = f.replace('.csv', '.xlsx');
+  makeExcelFile(filename, { [schema.name]: [schema.cols, ...schema.rows] });
+  showToast('Template downloaded: '+filename,'info');
 }
 
-function switchRollupTab(tab, paneId){
-  const rollup=tab.closest('.log-rollup');
-  rollup.querySelectorAll('.log-rollup-tab').forEach(t=>t.classList.remove('active'));
-  tab.classList.add('active');
-  rollup.querySelectorAll('.log-rollup-pane').forEach(p=>p.classList.remove('active'));
-  rollup.querySelector('#'+paneId).classList.add('active');
+// ── Forecast output Excel (single sheet) ──
+const FORECAST_COLS = ['Store Code','Store Name','City','State','Warehouse','MPC','Product Name','Dept','Cat','Sub Cat','Brand','Brand Type','MDQ','DRR','Final Demand','Final Demand Value','Multiplier','MPC Classification','Remarks (Forecast is at MDQ or ROS)'];
+
+function buildForecastSampleRows(){
+  return [
+    ['S-101','Mumbai Juhu','Mumbai','MH','WH-001','MPC-4421','Lakmé 9to5 Lipstick','Colour Cosmetics','Lip','Lipstick','Lakmé','USM',48,12.4,104,12480,1.20,'A+','Forecast is at ROS'],
+    ['S-102','Bengaluru Indira','Bengaluru','KA','WH-002','MPC-5001','Lakmé Salon Gloves','Operations','Consumables','Pouch','Lakmé','Non-USM',12,1.2,9,1080,1.00,'C','Forecast is at MDQ'],
+    ['S-103','Delhi CP','New Delhi','DL','WH-004','MPC-3318','Maybelline Fit Me Foundation','Colour Cosmetics','Face','Foundation','Maybelline','USM',24,6.1,73,21900,1.00,'A','Forecast is at ROS'],
+    ['S-104','Kolkata Park','Kolkata','WB','WH-003','MPC-2241','L\'Oréal Casting Crème','Haircare','Hair','Hair Colour','L\'Oréal Paris','USM',18,4.2,42,18900,1.10,'B','Forecast is at ROS'],
+    ['S-105','Hyderabad Hitech','Hyderabad','TS','WH-005','MPC-5110','Maybelline Lipstick Tester','Colour Cosmetics','Lip','Lipstick','Maybelline','Non-USM',6,0.0,24,1200,1.00,'—','Forecast is at MDQ'],
+    ['S-106','Pune Phoenix','Pune','MH','WH-001','MPC-7745','MyGlamm Liquid Lipstick','Colour Cosmetics','Lip','Lipstick','MyGlamm','USM',12,3.5,38,16720,1.05,'A','Forecast is at ROS'],
+    ['S-107','Chennai Express','Chennai','TN','WH-005','MPC-8821','Plum Niacinamide Serum','Skincare','Face','Serum','Plum','USM',9,2.1,22,11000,1.00,'B','Forecast is at ROS'],
+    ['S-108','Ahmedabad SG','Ahmedabad','GJ','WH-001','MPC-5212','Generic Tissue Roll','Operations','Consumables','Tissue','Generic','Non-USM',8,0.5,18,540,1.00,'D','Forecast is at MDQ'],
+  ];
 }
 
+function dlForecastOutput(id){
+  makeExcelFile(`forecast_${id}.xlsx`, { Forecast: [FORECAST_COLS, ...buildForecastSampleRows()] });
+  showToast(`Downloading forecast_${id}.xlsx…`,'info');
+}
+
+// ── Cycle snapshot Excel (one sheet per Section A input) ──
+function dlSnapshot(id){
+  const sheets = {
+    USM:        [['store_id','mpc'], ['S-101','MPC-4421'], ['S-102','MPC-4422'], ['S-103','MPC-3318']],
+    NonUSM:     [['store_id','mpc','non_usm_type'], ['S-101','MPC-5001','Consumables'], ['S-105','MPC-5110','Testers'], ['S-108','MPC-5212','Others']],
+    MDQ:        [['store_id','mpc','mdq'], ['S-101','MPC-4421',48], ['S-102','MPC-4422',24], ['S-103','MPC-3318',24]],
+    CityStore:  [['store_code','State','district','cluster_id','sister_store_code'], ['S-101','MH','Mumbai','CL-042',''], ['S-102','KA','Bengaluru','CL-017',''], ['S-103','DL','New Delhi','CL-003','']],
+    NSO:        [['store_id','expected_opening_date','sister_store_code'], ['NSO-201','2026-08-15','S-057']],
+    ROSMult:    [['geo_granularity','geo_value','product_granularity','product_value','week','multiplier_value'], ['city','Mumbai','brand','Lakmé','2026-W19',1.2], ['state','Maharashtra','subcat','Lipstick','2026-W19',1.1]],
+    ManualDemand:[['store_id','mpc','week','demand','source'], ['S-105','MPC-5110','2026-W19',24,'Testers']],
+    _Run:       [['Field','Value'], ['Run ID',id], ['Snapshot taken at', new Date().toISOString()]],
+  };
+  makeExcelFile(`snapshot_${id}.xlsx`, sheets);
+  showToast(`Downloading snapshot_${id}.xlsx…`,'info');
+}
+
+// ── Annotated error file (original cols + Error col, error rows only) ──
+const ERROR_SAMPLES = {
+  usm:    { cols:['store_id','mpc','Error'], rows:[['S-999','MPC-4421',`store_id 'S-999' not found in warehouse master`],['S-101','MPC-XXXX',`mpc 'MPC-XXXX' not found in product master`],['S-103','MPC-3318',`Duplicate store_id × mpc pair (row 14, 27)`]] },
+  nonusm: { cols:['geo_granularity','geo_value','mpc','non_usm_type','Error'], rows:[['city','UnknownCity','MPC-5001','Consumables',`geo_value 'UnknownCity' not found at city granularity`],['store_id','S-101','MPC-4421','Testers',`Overlap with USM — pair must exist in exactly one list`]] },
+  mdq:    { cols:['store_id','mpc','mdq','Error'], rows:[['S-101','MPC-4421',-5,`mdq must be a non-negative integer`],['S-102','MPC-4422',9999,`mdq exceeds high-MDQ threshold`]] },
+  city:   { cols:['store_code','state','district','sister_store_code','Error'], rows:[['S-201','MH','Pune','S-201',`sister_store_code cannot equal store_code`],['S-202','KA','Bengaluru','',`New store (<3 months) requires sister_store_code`]] },
+  nso:    { cols:['store_id','expected_opening_date','sister_store_code','Error'], rows:[['NSO-201','2025-01-01','S-057',`expected_opening_date must be in the future`],['NSO-202','2026-08-15','NSO-203',`sister_store_code must reference a non-NSO, non-new store`]] },
+  ros:    { cols:['geo_granularity','geo_value','product_granularity','product_value','week','multiplier_value','Error'], rows:[['city','Mumbai','brand','Lakmé','2026-W99',1.2,`week '2026-W99' is outside the active forecast horizon`],['national','','class','A',0,2.0,`product_value cannot be empty`]] },
+  b2:     { cols:['store_id','mpc','week','demand','Error'], rows:[['S-105','MPC-5110','2026-W19',-12,`demand must be a non-negative integer`]] },
+};
+
+function dlAnnotatedErrorFile(key){
+  const e = ERROR_SAMPLES[key] || ERROR_SAMPLES.usm;
+  makeExcelFile(`${key}_validation_errors.xlsx`, { Errors: [e.cols, ...e.rows] });
+  showToast('Annotated error file downloaded — fix offline & re-upload','info');
+}
+
+// Legacy stubs (kept for any in-flight callers; routed to real files where applicable)
 function dlCurrentData(t){ showToast('Fetching current data from '+t+'…','info'); }
-function dlTemplate(f){ showToast('Template downloaded: '+f,'info'); }
-function dlForecastExcel(id){ showToast('Downloading forecast_'+id+'.xlsx…','info'); }
+function dlForecastExcel(id){ dlForecastOutput(id); }
 function dlUploadedFile(f){ showToast('Downloading '+f+'…','info'); }
 
-function openLog(key){
-  document.getElementById('log-panel-title').textContent=LOG_LABELS[key]||'Run Logs';
-  document.getElementById('log-panel-sub').textContent='Chronological · stored by Run ID · 3-month retention';
-  renderLog(key);
-  document.getElementById('log-backdrop').classList.add('open');
-  document.getElementById('log-panel').classList.add('open');
+// ── ROLE ──
+let userRole = 'Planner'; // 'Planner' | 'Admin'
+function applyRoleDefaults(){
+  // Admins land on the cycle screen focused on approvals — Section A (master data
+  // maintenance) is not their daily surface, so it starts collapsed.
+  const secA = document.getElementById('section-a');
+  if (!secA) return;
+  if (userRole === 'Admin') secA.classList.add('collapsed');
+  else secA.classList.remove('collapsed');
 }
-function closeLog(){
-  document.getElementById('log-backdrop').classList.remove('open');
-  document.getElementById('log-panel').classList.remove('open');
-}
-
-function renderLog(key){
-  const entries=runLogs[key]||[];
-  const body=document.getElementById('log-panel-body');
-  if(!entries.length){ body.innerHTML=`<div class="log-empty"><span class="material-icons-round">receipt_long</span>No entries yet.</div>`; return; }
-  body.innerHTML=entries.map(e=>buildEntry(e)).join('');
-}
-
-function buildRollupHtml(id){
-  const byWh=[
-    ['WH-001 Bhiwandi','2,140','718.4','₹12,840','₹48,62,000'],
-    ['WH-002 Bengaluru','1,842','612.1','₹10,210','₹40,18,500'],
-    ['WH-003 Kolkata','1,518','498.7','₹8,640','₹33,72,100'],
-    ['WH-004 Gurugram','1,902','640.0','₹11,420','₹43,90,200'],
-  ];
-  const byBrand=[
-    ['Lakmé','1,210','402.3','₹7,120','₹28,90,000'],
-    ['Maybelline','980','326.8','₹5,840','₹22,50,100'],
-    ['L\'Oréal Paris','1,015','338.5','₹6,210','₹24,80,300'],
-    ['MyGlamm','612','198.7','₹3,920','₹14,10,200'],
-    ['Others','3,585','1,202.9','₹19,820','₹76,12,200'],
-  ];
-  const byDept=[
-    ['Colour Cosmetics','3,102','1,040.2','₹18,210','₹70,22,000'],
-    ['Skincare','2,418','808.4','₹14,020','₹54,80,300'],
-    ['Haircare','1,180','395.1','₹6,420','₹24,90,100'],
-    ['Fragrances','702','235.0','₹4,180','₹16,40,800'],
-  ];
-  const mk=(rows,firstCol)=>`<div class="table-wrap"><table><thead><tr><th>${firstCol}</th><th>MDQ</th><th>DRR</th><th>Final Demand</th><th>Final Demand Value</th></tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
-  return `<div class="log-rollup" id="rollup-${id}">
-    <div class="log-rollup-tabs">
-      <div class="log-rollup-tab active" onclick="switchRollupTab(this,'rp-wh-${id}')">By Warehouse</div>
-      <div class="log-rollup-tab" onclick="switchRollupTab(this,'rp-br-${id}')">By Brand</div>
-      <div class="log-rollup-tab" onclick="switchRollupTab(this,'rp-dp-${id}')">By Dept</div>
-    </div>
-    <div class="log-rollup-body">
-      <div class="log-rollup-pane active" id="rp-wh-${id}">${mk(byWh,'Warehouse')}</div>
-      <div class="log-rollup-pane" id="rp-br-${id}">${mk(byBrand,'Brand')}</div>
-      <div class="log-rollup-pane" id="rp-dp-${id}">${mk(byDept,'Dept')}</div>
-    </div>
-  </div>`;
-}
-
-function buildForecastExcelPreview(){
-  const rows=[
-    ['S-101','Mumbai Juhu','Mumbai','MH','WH-001','MPC-4421','Lakmé 9to5 Lipstick','Colour Cosmetics','Lip','Lipstick','Lakmé','USM','48','12.4','A+','Mar 2026','2026-W10','7','1.20','—','Auto','104'],
-    ['S-102','Bengaluru Indira','Bengaluru','KA','WH-002','MPC-5001','Lakmé Salon Gloves','Operations','Consumables','Pouch','Lakmé','Non-USM','12','1.2','C','Mar 2026','2026-W10','7','1.00','Consumables','Auto','9'],
-    ['S-105','Hyderabad Hitech','Hyderabad','TS','WH-005','MPC-5110','Maybelline Lipstick Tester','Colour Cosmetics','Lip','Lipstick','Maybelline','Non-USM','6','0.0','—','Mar 2026','2026-W10','7','1.00','Testers','Manual','24'],
-  ];
-  const cols=['Store Code','Store Name','City','State','Mother Warehouse','MPC','Product Name','Dept','Cat','Sub Cat','Brand','Brand Type','MDQ','DRR','MPC Classification','Month','Month-week','# days','Multiplier','Non-USM Type','Source','demand'];
-  return `<div style="font-size:11px;color:var(--on-m);margin:10px 0 4px">Forecast Excel preview (first 3 of ${/* fake */'4,215'} rows · 22 cols):</div>
-  <div class="log-file-preview" style="max-height:180px"><table>
-    <thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
-    <tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>
-  </table></div>`;
-}
-
-function buildEntry(e){
-  const scls={'success':'ls-ok','approved':'ls-ok','failed':'ls-fail','pending':'ls-pend','rejected':'ls-rej'}[e.status]||'ls-ok';
-  const slbl={'success':'Success','approved':'Approved','failed':'Failed','pending':'Pending Approval','rejected':'Rejected'}[e.status]||e.status;
-  const paramsHtml=e.params?Object.entries(e.params).map(([k,v])=>`<div class="log-dkey">${k}</div><div class="log-dval">${v}</div>`).join(''):'';
-  const fileHtml=e.file?`<div class="log-dkey">File</div><div class="log-dval">${e.file}</div>`:'';
-  const rowsHtml=e.rows!==undefined?`<div class="log-dkey">Rows</div><div class="log-dval">${e.rows.toLocaleString()}</div>`:'';
-  const errHtml=e.error?`<div class="log-dkey" style="color:var(--err)">Error</div><div class="log-dval" style="color:var(--err)">${e.error}</div>`:'';
-  const durHtml=e.duration?`<div class="log-dkey">Duration</div><div class="log-dval">${e.duration}</div>`:'';
-  let previewHtml='';
-  if(e.preview&&e.preview.length){
-    previewHtml=`<div style="font-size:11px;color:var(--on-m);margin:8px 0 4px">Submitted data preview:</div>
-    <div class="log-file-preview"><table><tbody>${e.preview.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
-  }
-  const isForecast=e.type==='Script'&&['pending','approved','rejected'].includes(e.status)&&(e.params&&(e.params['Weights']||e.params['In-stock window']))&&e.rows&&e.rows>1000;
-  let rollupHtml='', approvalHtml='', excelPreviewHtml='';
-  if(isForecast){
-    rollupHtml=buildRollupHtml(e.id);
-    if(e.status==='approved') excelPreviewHtml=buildForecastExcelPreview();
-    if(e.status==='pending'){
-      const b2Req=isB2Required();
-      const b2Ok=hasValidB2();
-      const blocked=b2Req&&!b2Ok;
-      const banner=blocked?`<div class="log-b2-banner"><span class="material-icons-round">error</span><div><strong>B.2 upload required before approval.</strong> Current Non-USM contains Testers/Others rows — upload B.2 demand (Section B) before approving.</div></div>`:'';
-      approvalHtml=`${banner}<div class="log-approval">
-        <div class="log-approval-left">Approving pushes the union of this B.1 run + latest B.2 upload to <code>dp_fulcrum</code>.</div>
-        <button class="btn btn-outlined btn-sm" onclick="rejectForecast('${e.id}')"><span class="material-icons-round">cancel</span> Reject</button>
-        <button class="btn btn-approve btn-sm" ${blocked?'disabled':''} onclick="approveForecast('${e.id}')"><span class="material-icons-round">check_circle</span> Approve &amp; Push</button>
-      </div>`;
-    }
-  }
-  let actions='';
-  if(e.hasExcel) actions+=`<button class="btn btn-outlined btn-sm" onclick="dlForecastExcel('${e.id}')"><span class="material-icons-round">table_chart</span> Download forecast Excel</button>`;
-  if(e.file) actions+=`<button class="btn btn-ghost-muted btn-sm" onclick="dlUploadedFile('${e.file}')"><span class="material-icons-round">file_download</span> Download submitted file</button>`;
-  return `<div class="log-entry" id="le-${e.id}">
-    <div class="log-entry-hdr" onclick="this.parentElement.classList.toggle('expanded')">
-      <span class="log-run-id">${e.id}</span>
-      <div class="log-entry-meta">
-        <div class="log-entry-title">${e.type==='Script'?'Script Run':(e.file||'Upload')}</div>
-        <div class="log-entry-sub">${e.ts} · ${e.user}${e.duration?' · '+e.duration:''}</div>
-      </div>
-      <span class="log-status ${scls}">${slbl}</span>
-      <span class="material-icons-round log-exp-ico">expand_more</span>
-    </div>
-    <div class="log-entry-detail">
-      <div class="log-detail-grid">${paramsHtml}${fileHtml}${rowsHtml}${durHtml}${errHtml}</div>
-      ${previewHtml}
-      ${rollupHtml}
-      ${excelPreviewHtml}
-      ${approvalHtml}
-      ${actions?`<div class="log-detail-actions">${actions}</div>`:''}
-    </div>
-  </div>`;
+function toggleRole(){
+  userRole = userRole === 'Planner' ? 'Admin' : 'Planner';
+  const chip = document.getElementById('role-chip');
+  chip.textContent = userRole;
+  chip.classList.toggle('admin', userRole === 'Admin');
+  applyRoleDefaults();
+  // Inline forecast row re-renders so Accept/Reject visibility flips with role
+  renderForecastCurrentRun();
+  showToast(`Role: ${userRole}`,'info');
 }
 
 function showToast(msg,type='info'){
@@ -1438,7 +1300,141 @@ function showToast(msg,type='info'){
   setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300);},3800);
 }
 
-document.addEventListener('DOMContentLoaded', () => { recheckAllHealth(true); });
+// ── APP TOOLTIP (singleton; position-fixed via getBoundingClientRect) ──
+let __tipEl = null;
+function ensureTooltipEl(){
+  if (__tipEl) return __tipEl;
+  __tipEl = document.createElement('div');
+  __tipEl.className = 'app-tooltip';
+  document.body.appendChild(__tipEl);
+  return __tipEl;
+}
+function showTooltip(trigger, text){
+  const tip = ensureTooltipEl();
+  tip.textContent = text;
+  tip.style.display = 'block';
+  tip.style.left = '0px'; tip.style.top = '0px';
+  requestAnimationFrame(() => {
+    const rect = trigger.getBoundingClientRect();
+    const tipRect = tip.getBoundingClientRect();
+    let left = rect.left;
+    if (left + tipRect.width > window.innerWidth - 8) left = window.innerWidth - tipRect.width - 8;
+    if (left < 8) left = 8;
+    let top = rect.bottom + 6;
+    if (top + tipRect.height > window.innerHeight - 8) top = rect.top - tipRect.height - 6;
+    tip.style.left = left + 'px';
+    tip.style.top = top + 'px';
+  });
+}
+function hideTooltip(){ if (__tipEl) __tipEl.style.display = 'none'; }
+
+// ── CYCLE PILL AUTO-CALC (per §4 week logic: Mon–Sun within calendar month) ──
+function computeCycleLabel(today){
+  today = today || new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  const day = today.getDate();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const weeks = [];
+  let idx = 1, cursor = 1;
+  while (cursor <= daysInMonth) {
+    const dow = new Date(year, month, cursor).getDay(); // 0=Sun..6=Sat
+    let weekEnd;
+    if (cursor === 1) {
+      // First week may be partial: ends on the first Sunday (or earlier if month is shorter)
+      weekEnd = (dow === 0) ? cursor : Math.min(cursor + (7 - dow), daysInMonth);
+    } else {
+      // Subsequent weeks start on Monday; end Sunday or last day of month
+      weekEnd = Math.min(cursor + 6, daysInMonth);
+    }
+    weeks.push({ idx, start: cursor, end: weekEnd });
+    idx++;
+    cursor = weekEnd + 1;
+  }
+  const w = weeks.find(x => day >= x.start && day <= x.end) || weeks[weeks.length - 1];
+  const monthName = today.toLocaleString('en-US', { month: 'short' });
+  return `Cycle: ${monthName} W${w.idx} · ${w.start}–${w.end}`;
+}
+function refreshCycleLabel(){
+  const el = document.getElementById('topnav-cycle-label');
+  if (el) el.textContent = computeCycleLabel();
+}
+
+// Compute current cycle's day range as Date objects (start-of-day → end-of-day)
+function getCycleRange(today){
+  today = today || new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  const day = today.getDate();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const weeks = [];
+  let idx = 1, cursor = 1;
+  while (cursor <= daysInMonth) {
+    const dow = new Date(year, month, cursor).getDay();
+    let weekEnd;
+    if (cursor === 1) weekEnd = (dow === 0) ? cursor : Math.min(cursor + (7 - dow), daysInMonth);
+    else weekEnd = Math.min(cursor + 6, daysInMonth);
+    weeks.push({ idx, start: cursor, end: weekEnd });
+    idx++; cursor = weekEnd + 1;
+  }
+  const w = weeks.find(x => day >= x.start && day <= x.end) || weeks[weeks.length - 1];
+  return {
+    start: new Date(year, month, w.start, 0, 0, 0, 0),
+    end:   new Date(year, month, w.end,   23, 59, 59, 999),
+  };
+}
+
+function isRunInCurrentCycle(run, today){
+  if (!run || !run.ts) return false;
+  const range = getCycleRange(today);
+  // run.ts looks like "2026-05-12 09:15" or ISO; parse loosely
+  const [datePart, timePart] = String(run.ts).split(/[ T]/);
+  if (!datePart) return false;
+  const [y, m, d] = datePart.split('-').map(Number);
+  const [hh, mm] = (timePart || '00:00').split(':').map(Number);
+  const t = new Date(y, (m || 1) - 1, d || 1, hh || 0, mm || 0).getTime();
+  return t >= range.start.getTime() && t <= range.end.getTime();
+}
+
+// ── FORECAST INLINE RUN STATE (Line 2 inside #card-forecast) ──
+function renderForecastCurrentRun(){
+  const container = document.getElementById('forecast-current-run');
+  if (!container) return;
+  const r = (runLogs['demand-forecast'] || [])[0];
+  if (!r || !isRunInCurrentCycle(r)) {
+    container.classList.remove('visible');
+    container.innerHTML = '';
+    return;
+  }
+  const statusMap = {
+    'pending':  { cls:'ls-pend', label:'Pending Approval' },
+    'approved': { cls:'ls-ok',   label:'Approved · Pushed to dp_fulcrum' },
+    'rejected': { cls:'ls-rej',  label: r.autoRejected ? 'Auto-rejected (newer run)' : 'Rejected' },
+    'failed':   { cls:'ls-fail', label: r.error ? `Failed — ${r.error}` : 'Failed' },
+  };
+  const s = statusMap[r.status] || { cls:'ls-pend', label: r.status };
+  const isPending = r.status === 'pending';
+  const adminCanAct = isPending && userRole === 'Admin';
+  // Output not produced on failed runs; snapshot always available (frozen at run time)
+  const showOutput = r.status !== 'failed';
+
+  let actions = `<button class="btn btn-outlined btn-sm" onclick="dlSnapshot('${r.id}')"><span class="material-icons-round">archive</span> Snapshot</button>`;
+  if (showOutput) actions += `<button class="btn btn-outlined btn-sm" onclick="dlForecastOutput('${r.id}')"><span class="material-icons-round">table_chart</span> Output</button>`;
+  if (adminCanAct) {
+    actions += `<button class="btn btn-approve btn-sm" onclick="approveForecast('${r.id}')"><span class="material-icons-round">check_circle</span> Accept</button>
+                <button class="btn btn-reject btn-sm" onclick="rejectForecast('${r.id}')"><span class="material-icons-round">cancel</span> Reject</button>`;
+  }
+
+  container.innerHTML = `
+    <span class="forecast-run-id">${r.id}</span>
+    <span class="log-status ${s.cls}">${s.label}</span>
+    <span class="forecast-run-meta">${r.user} · ${r.ts}${r.duration ? ' · ' + r.duration : ''}</span>
+    <span class="forecast-run-actions">${actions}</span>
+  `;
+  container.classList.add('visible');
+}
+
+document.addEventListener('DOMContentLoaded', () => { recheckAllHealth(true); refreshCycleLabel(); renderForecastCurrentRun(); applyRoleDefaults(); });
 </script>
 </body>
 </html>
