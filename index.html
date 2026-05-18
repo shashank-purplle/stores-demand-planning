@@ -1,1367 +1,839 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Horizon — Retail Stores</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Horizon — Stores Demand Planning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
-:root {
-  --lav-50:#f5f3ff; --lav-100:#ede9fe; --lav-200:#ddd6fe; --lav-300:#c4b5fd;
-  --lav-400:#a78bfa; --lav-500:#8b5cf6; --lav-600:#7c3aed;
-  --surface:#fff; --surface-var:#f8f7ff; --surface-dim:#f0eeff;
-  --on:#1c1b2e; --on-m:#6b6585; --border:#e5e1f5;
-  --ok:#16a34a; --err:#dc2626; --warn:#d97706;
-  --r:12px; --rs:8px;
-  --sh-sm:0 1px 3px rgba(109,92,198,.08),0 1px 2px rgba(109,92,198,.06);
-  --sh:0 4px 12px rgba(109,92,198,.10),0 2px 4px rgba(109,92,198,.06);
-  --sh-lg:0 8px 28px rgba(109,92,198,.18);
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'DM Sans',sans-serif;background:var(--lav-50);color:var(--on);font-size:14px;min-height:100vh}
+  :root{
+    --purple-primary:#9c00ad;
+    --purple-dark:#4a0052;
+    --purple-secondary:#FDF1FF;
+    --purple-tertiary:#FDF9FD;
+    --purple-border:#e9d5ff;
 
+    --green:#206E4D;
+    --green-bg:#F7FFFC;
+    --green-tint:#EAF7F1;
+    --green-border:#bbecd4;
+    --red:#B11D15;
+    --red-bg:#F5DEDD;
+    --red-tint:#FEF6F5;
+    --red-border:#F5C6C3;
+    --amber:#D97706;
+    --amber-bg:#FEF3C7;
+    --amber-border:#fde68a;
+    --blue:#1d4ed8;
 
-/* LAYOUT */
-.main{max-width:1120px;margin:0 auto;padding:24px 24px 60px}
+    --text-title:#111827;
+    --text-body:#374151;
+    --text-meta:#6b7280;
+    --grey-30:#C6C4CA;
+    --grey-40:#938F99;
+    --border:#e2e8f0;
+    --border-light:#f1f5f9;
+    --page-bg:#f8f9fa;
+  }
 
-/* ── TOPNAV ── */
-.topnav{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,.05);z-index:90}
-.topnav-inner{max-width:1120px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-.brand{display:flex;align-items:center;gap:10px;min-width:0}
-.brand-mark{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,var(--lav-500),var(--lav-600));flex-shrink:0;box-shadow:0 2px 6px rgba(124,58,237,.25)}
-.brand-text{display:flex;flex-direction:column;line-height:1.1}
-.brand-name{font-size:13px;font-weight:700;color:#111827}
-.brand-sub{font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
-.topnav-actions{display:flex;align-items:center;gap:10px}
-.topnav-cycle{display:inline-flex;align-items:center;gap:6px;background:var(--surface-var);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:500;color:var(--on);font-family:'DM Sans',sans-serif}
-.topnav-cycle .material-icons-round{font-size:14px;color:var(--lav-500)}
-.topnav-btn{display:inline-flex;align-items:center;gap:6px;background:transparent;border:1px solid var(--border);color:var(--on);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:6px 12px;border-radius:8px;cursor:pointer;position:relative}
-.topnav-btn:hover{background:var(--surface-var);border-color:var(--lav-300)}
-.topnav-btn .material-icons-round{font-size:16px;color:var(--on-m)}
-.topnav-btn-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;background:var(--lav-100);color:var(--lav-600);border-radius:10px;font-size:11px;font-weight:700;margin-left:2px}
-.topnav-btn-count.zero{display:none}
-.avatar-block{display:flex;align-items:center;gap:8px;padding-left:10px;border-left:1px solid var(--border);margin-left:4px}
-.role-chip{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:20px;background:var(--lav-100);color:var(--lav-600);cursor:pointer;user-select:none}
-.role-chip.admin{background:#dcfce7;color:var(--ok)}
-.role-chip:hover{filter:brightness(.95)}
-.avatar{width:32px;height:32px;border-radius:50%;background:var(--lav-500);color:#fff;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;border:none;font-family:'DM Sans',sans-serif}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+    font-size:12px;font-weight:500;color:var(--text-body);
+    background:var(--page-bg);
+    -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  }
+  button{font-family:inherit}
 
-/* ── APPROVALS PANE ── */
-/* ── INLINE BUTTONS reused by forecast Line 2 ── */
-.btn-reject{background:#fef2f2;color:var(--err);border:1px solid #fecaca}
-.btn-reject:hover{background:#fee2e2}
+  /* ──── Top Nav ───────────────────────────────────────────────────────── */
+  .topnav{
+    position:sticky;top:0;z-index:50;
+    background:#fff;border-bottom:1px solid var(--border);
+    box-shadow:0 1px 3px rgba(0,0,0,.04);
+    height:56px;display:flex;align-items:center;
+    padding:0 28px;
+  }
+  .topnav-left{display:flex;align-items:center;gap:10px;flex:1}
+  .brand-mark{
+    width:28px;height:28px;border-radius:8px;
+    background:linear-gradient(135deg,#9c00ad 0%,#4a0052 100%);
+    display:grid;place-items:center;color:#fff;font-weight:800;font-size:13px;
+    box-shadow:0 1px 2px rgba(74,0,82,.3);letter-spacing:-.02em;
+  }
+  .brand-text{display:flex;flex-direction:column;line-height:1.1}
+  .brand-name{font-size:14px;font-weight:800;color:var(--text-title);letter-spacing:-.01em}
+  .brand-sub{font-size:10px;font-weight:600;color:var(--text-meta);letter-spacing:.04em;text-transform:uppercase;margin-top:2px}
+  .topnav-right{display:flex;align-items:center;gap:10px}
 
-/* ── FORECAST CURRENT-RUN (Line 2 inside #card-forecast) ── */
-.forecast-current-run{display:none;align-items:center;gap:8px;padding:9px 14px;border-top:1px solid var(--border);flex-wrap:wrap;background:var(--surface-var)}
-.forecast-current-run.visible{display:flex}
-.forecast-run-id{font-family:'DM Mono',monospace;font-size:11px;background:var(--lav-100);color:var(--lav-600);padding:2px 7px;border-radius:5px;flex-shrink:0}
-.forecast-run-meta{flex:1;min-width:120px;font-size:11px;color:var(--on-m);font-family:'DM Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.forecast-run-actions{display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0;align-items:center}
+  .role-chip{
+    display:inline-flex;align-items:center;gap:6px;
+    background:#fff;border:1px solid var(--border);
+    padding:5px 11px;border-radius:8px;
+    font-family:inherit;font-size:11px;font-weight:700;letter-spacing:.02em;
+    white-space:nowrap;
+  }
+  .role-chip.planner{background:var(--purple-secondary);color:var(--purple-primary);border-color:var(--purple-border)}
+  .role-chip.admin{background:var(--green-bg);color:var(--green);border-color:var(--green-border)}
+  .role-chip i.lead{font-size:13px}
+  /* Role pill is a display-only indicator — set by the logged-in user in production.
+     Demo role switching lives in the Tweaks panel. */
+  .role-chip.static{cursor:default}
 
+  .chip{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:5px 10px;border-radius:8px;
+    font-size:12px;font-weight:600;
+    background:#fff;border:1px solid var(--border);
+    color:var(--text-body);white-space:nowrap;
+  }
+  .chip i{font-size:14px;color:var(--text-meta)}
+  .chip .chip-label{font-weight:700;color:var(--text-meta);margin-right:2px;font-size:11px;letter-spacing:.02em}
+  .chip.cycle{background:var(--purple-tertiary);border-color:var(--purple-border);color:var(--text-title)}
+  .chip.cycle i{color:var(--purple-primary)}
+  .chip.cycle .chip-label{color:var(--purple-primary)}
+  .chip.horizon{background:#fff;border-color:var(--border);color:var(--text-title)}
+  .chip.horizon i{color:var(--text-meta)}
+  .avatar{
+    width:30px;height:30px;border-radius:50%;
+    background:linear-gradient(135deg,#9c00ad 0%,#4a0052 100%);
+    display:grid;place-items:center;color:#fff;font-weight:700;font-size:11px;
+    letter-spacing:.02em;margin-left:4px;
+    border:0;padding:0;font-family:inherit;cursor:pointer;
+    transition:transform .15s,box-shadow .15s;
+  }
+  .avatar:hover{transform:scale(1.06);box-shadow:0 0 0 3px var(--purple-secondary)}
 
-/* SECTION */
-.section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:20px;overflow:hidden;box-shadow:var(--sh-sm)}
-.section-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;cursor:pointer;user-select:none;border-bottom:1px solid var(--border);background:var(--surface-var)}
-.section-hdr:hover{background:var(--lav-100)}
-.section-hdr-left{display:flex;align-items:center;gap:10px}
-.sec-badge{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:3px 10px;border-radius:20px}
-.badge-a{background:var(--lav-100);color:var(--lav-600)}
-.badge-b{background:#fef3c7;color:#92400e}
-.sec-title{font-size:15px;font-weight:600}
-.sec-desc{font-size:12px;color:var(--on-m);margin-top:2px}
-.col-icon{color:var(--on-m);transition:transform .2s}
-.section.collapsed .col-icon{transform:rotate(-90deg)}
-.section.collapsed .section-body{display:none}
-.section-body{padding:16px 18px}
+  /* ──── Buttons ───────────────────────────────────────────────────────── */
+  .btn{
+    display:inline-flex;align-items:center;gap:6px;
+    border-radius:8px;font-weight:700;cursor:pointer;
+    transition:background .18s,border-color .18s,color .18s,opacity .18s;
+    border:1px solid transparent;white-space:nowrap;
+  }
+  .btn-primary{background:var(--purple-primary);color:#fff;font-size:13px;padding:9px 18px}
+  .btn-primary:hover:not(:disabled){background:var(--purple-dark)}
+  .btn-primary:disabled{opacity:.55;cursor:not-allowed}
+  .btn-secondary{background:#fff;border-color:#cbd5e1;color:var(--text-body);font-size:13px;font-weight:600;padding:7px 14px}
+  .btn-secondary:hover:not(:disabled){background:#f8fafc;border-color:#94a3b8}
+  .btn-ghost{background:transparent;color:var(--purple-primary);font-size:12px;font-weight:600;padding:5px 10px;border-radius:6px}
+  .btn-ghost:hover:not(:disabled){background:var(--purple-secondary)}
+  .btn-destructive{background:#fff;border-color:#fecaca;color:var(--red);font-size:13px;font-weight:600;padding:7px 14px}
+  .btn-destructive:hover:not(:disabled){background:#fef2f2;border-color:#fca5a5}
+  .btn-soft-locked{background:#e5e7eb !important;color:#6b7280 !important;border-color:transparent !important}
+  .btn-soft-locked:hover{background:#d1d5db !important}
 
-/* SUBSECTION */
-.subsec{margin-bottom:16px}
-.subsec:last-child{margin-bottom:0}
-.subsec-title{font-size:11px;font-weight:600;color:var(--on-m);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.subsec-title::after{content:'';flex:1;height:1px;background:var(--border)}
-.cards-row{display:flex;flex-direction:column;gap:6px}
+  /* ──── Main ──────────────────────────────────────────────────────────── */
+  main{max-width:1180px;margin:0 auto;padding:20px 28px 100px}
 
-/* CARD — repurposed as a compact horizontal row */
-.card{border:1px solid var(--border);border-radius:var(--rs);background:var(--surface);transition:background .2s ease,border-color .2s ease;display:flex;flex-direction:column;overflow:visible}
-.card-main-line{display:flex;align-items:center;gap:12px;padding:10px 14px;min-height:46px}
-.card-title-line{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
-.card-title{font-size:13px;font-weight:600;color:var(--on);line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card-info{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;color:var(--on-m);cursor:help;flex-shrink:0;outline:none}
-.card-info:hover,.card-info:focus{color:var(--lav-600);background:var(--lav-50)}
-.card-info .material-icons-round{font-size:16px}
-.card-subtitle{font-size:11px;color:var(--on-m);font-family:'DM Mono',monospace;display:inline-flex;align-items:center;gap:5px;margin-left:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.card-subtitle .sdot{flex-shrink:0}
-.sdot{width:6px;height:6px;border-radius:50%;display:inline-block}
-.dot-ok{background:var(--ok)} .dot-idle{background:#d1d5db} .dot-err{background:var(--err)}
-.card-actions{display:flex;gap:6px;align-items:center;flex-shrink:0}
-/* Errors block sits below main line; tighter padding to keep the row compact */
-.card > [id^="health-errors-"]:not(:empty){padding:0 14px 12px}
-/* Retired card-hdr / divider / meta classes (compatibility) */
-.card-hdr,.card-desc,.card-divider,.card-meta,.card-secondary-actions{display:none !important}
+  /* ──── Templates popover ─────────────────────────────────────────────── */
+  .tools-btn{
+    display:inline-flex;align-items:center;gap:6px;
+    background:#fff;border:1px solid var(--border);
+    color:var(--text-body);font-family:inherit;
+    font-size:12px;font-weight:600;
+    padding:6px 12px;border-radius:8px;cursor:pointer;
+    transition:all .18s;
+  }
+  .tools-btn:hover{border-color:#94a3b8;color:var(--text-title)}
+  .tools-btn i{font-size:14px}
+  .tools-btn i.chev{font-size:14px;color:var(--text-meta);margin-left:1px}
 
-/* BUTTONS */
-.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border:none;white-space:nowrap}
-.btn .material-icons-round{font-size:15px}
-.btn-primary{background:var(--lav-500);color:#fff}
-.btn-primary:hover{background:var(--lav-600)}
-.btn-primary:disabled{background:var(--lav-200);color:var(--lav-400);cursor:not-allowed}
-.btn-outlined{background:transparent;border:1px solid var(--border);color:var(--on)}
-.btn-outlined:hover{background:var(--surface-dim)}
-.btn-ghost{background:transparent;color:var(--lav-600);padding:5px 8px}
-.btn-ghost:hover{background:var(--lav-100)}
-.btn-ghost-muted{background:transparent;color:var(--on-m);padding:5px 8px;font-size:12px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:4px;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-weight:400}
-.btn-ghost-muted:hover{background:var(--surface-dim);color:var(--on)}
-.btn-ghost-muted .material-icons-round{font-size:14px}
-.btn-destruct{background:#fef2f2;color:var(--err);border:1px solid #fecaca}
-.btn-destruct:hover{background:#fee2e2}
-.btn-sm{padding:5px 10px;font-size:12px}
-.btn-sm .material-icons-round{font-size:13px}
-.spinner{width:12px;height:12px;border:2px solid var(--lav-300);border-top-color:var(--lav-600);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
-@keyframes spin{to{transform:rotate(360deg)}}
+  .popover{
+    position:fixed;z-index:500;
+    background:#fff;border:1px solid var(--border);
+    border-radius:10px;
+    box-shadow:0 12px 32px rgba(0,0,0,.12);
+    width:300px;overflow:hidden;
+    animation:popIn .18s ease-out;
+  }
+  @keyframes popIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+  .popover-head{padding:14px 16px 8px}
+  .popover-title{font-size:13px;font-weight:700;color:var(--text-title);letter-spacing:-.01em}
+  .popover-sub{font-size:11px;color:var(--text-meta);margin-top:2px;line-height:1.4}
+  .popover-all{
+    display:flex;align-items:center;gap:8px;
+    margin:8px 12px 4px;padding:9px 12px;
+    background:var(--purple-tertiary);border:1px solid var(--purple-border);
+    border-radius:8px;cursor:pointer;transition:background .15s;
+  }
+  .popover-all:hover{background:var(--purple-secondary)}
+  .popover-all i.lead{font-size:14px;color:var(--purple-primary)}
+  .popover-all-text{flex:1}
+  .popover-all-text strong{font-size:12px;font-weight:700;color:var(--purple-primary);display:block;letter-spacing:-.01em}
+  .popover-all-text span{font-size:10px;color:var(--text-meta);font-weight:500}
+  .popover-divider{height:1px;background:var(--border-light);margin:6px 0 4px}
+  .popover-list{padding:4px 6px 8px;max-height:280px;overflow-y:auto}
+  .popover-item{
+    display:flex;align-items:center;gap:8px;
+    padding:7px 10px;border-radius:6px;cursor:pointer;transition:background .15s;
+  }
+  .popover-item:hover{background:var(--page-bg)}
+  .popover-item-text{flex:1;min-width:0}
+  .popover-item-title{font-size:12px;font-weight:600;color:var(--text-title);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .popover-item-meta{font-size:10px;color:var(--text-meta);font-weight:500;text-transform:uppercase;letter-spacing:.04em;margin-top:1px}
+  .popover-item i.dl{font-size:14px;color:var(--grey-40);flex-shrink:0}
+  .popover-item:hover i.dl{color:var(--purple-primary)}
 
-/* MODAL */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(28,27,46,.45);z-index:200;align-items:center;justify-content:center;padding:20px}
-.modal-overlay.open{display:flex}
-.modal{background:var(--surface);border-radius:var(--r);box-shadow:var(--sh-lg);width:100%;max-width:640px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
-.modal-hdr{padding:18px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
-.modal-hdr-left{flex:1}
-.modal-hdr-left h2{font-size:15px;font-weight:600}
-.modal-hdr-left p{font-size:12px;color:var(--on-m);margin-top:2px}
-.modal-run-id{font-family:'DM Mono',monospace;font-size:11px;background:var(--lav-100);color:var(--lav-600);padding:2px 8px;border-radius:5px;margin-top:6px;display:inline-block}
-.upload-mode{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:20px;margin-top:6px;margin-right:6px}
-.upload-mode.mode-partial{background:#dbeafe;color:#1d4ed8}
-.upload-mode.mode-complete{background:#fef3c7;color:#92400e}
-.upload-mode .material-icons-round{font-size:11px}
-.modal-close{background:none;border:none;cursor:pointer;color:var(--on-m);display:flex;align-items:center;border-radius:6px;padding:2px;flex-shrink:0}
-.modal-close:hover{background:var(--surface-dim)}
-.modal-close .material-icons-round{font-size:20px}
-.modal-body{padding:18px 20px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:14px}
-.modal-ftr{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;align-items:center;flex-wrap:wrap}
-.modal-ftr-left{flex:1;font-size:12px;color:var(--on-m)}
+  /* ──── Subsection ────────────────────────────────────────────────────── */
+  .subsection{margin-top:20px}
+  .subsection:first-child{margin-top:0}
+  .subsection-head{display:flex;align-items:center;gap:10px;padding:0 0 10px}
+  .subsection-label{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.09em;flex-shrink:0}
+  .subsection-divider{flex:1;height:1px;background:var(--border)}
 
-/* FORMAT LINK */
-.fmt-link{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--lav-600);text-decoration:none;font-weight:500}
-.fmt-link:hover{text-decoration:underline}
-.fmt-link .material-icons-round{font-size:13px}
+  /* ──── Card ──────────────────────────────────────────────────────────── */
+  .card{
+    background:#fff;border:1px solid var(--border);border-radius:10px;
+    box-shadow:0 1px 2px rgba(0,0,0,.02);overflow:hidden;
+    transition:background .2s,border-color .2s,transform .15s;margin-bottom:6px;
+  }
+  .card:hover{border-color:#cbd5e1}
+  .card.unhealthy{background:var(--red-tint);border-color:var(--red-border)}
+  .card.unhealthy:hover{border-color:#f0a8a3}
+  .card.shaking{animation:shake .55s ease-in-out}
+  @keyframes shake{
+    0%,100%{transform:translateX(0)}
+    15%{transform:translateX(-6px)}
+    30%{transform:translateX(6px)}
+    45%{transform:translateX(-5px)}
+    60%{transform:translateX(5px)}
+    75%{transform:translateX(-3px)}
+    90%{transform:translateX(3px)}
+  }
+  .card-row{display:flex;align-items:center;gap:14px;padding:10px 16px;min-height:44px}
+  .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .dot.healthy  {background:var(--green); box-shadow:0 0 0 3px var(--green-tint)}
+  .dot.warning  {background:var(--amber); box-shadow:0 0 0 3px var(--amber-bg)}
+  .dot.unhealthy{background:var(--red);   box-shadow:0 0 0 3px var(--red-bg)}
+  .card-title{font-size:13px;font-weight:700;color:var(--text-title);letter-spacing:-.01em;flex-shrink:0;white-space:nowrap}
 
-/* UPLOAD ZONE */
-.upload-zone{border:2px dashed var(--lav-300);border-radius:var(--rs);padding:22px 20px;text-align:center;background:var(--lav-50);cursor:pointer}
-.upload-zone:hover{border-color:var(--lav-500);background:var(--lav-100)}
-.upload-zone .material-icons-round{font-size:28px;color:var(--lav-400);margin-bottom:6px}
-.upload-zone p{font-size:13px;color:var(--on-m)}
-.uz-link{font-size:12px;color:var(--lav-500);font-weight:500;cursor:pointer}
-.uz-link:hover{text-decoration:underline}
-.uz-types{font-size:11px;color:var(--on-m);margin-top:3px}
-.uz-demo{text-align:center;margin-top:8px}
-.uz-demo a{font-size:11px;color:var(--on-m);text-decoration:none;cursor:pointer;font-family:'DM Sans',sans-serif}
-.uz-demo a:hover{color:var(--err);text-decoration:underline}
+  .count-chip{
+    display:inline-flex;align-items:stretch;
+    border-radius:10px;font-size:10px;font-weight:700;letter-spacing:.02em;
+    overflow:hidden;flex-shrink:0;white-space:nowrap;
+  }
+  .count-chip.issues  {background:var(--red-bg);  color:var(--red)}
+  .count-chip.warnings{background:var(--amber-bg);color:var(--amber)}
+  .count-chip > button{
+    background:transparent;border:0;cursor:pointer;
+    font-family:inherit;font-size:inherit;font-weight:inherit;
+    color:inherit;letter-spacing:inherit;
+    display:inline-flex;align-items:center;gap:5px;transition:background .15s;
+  }
+  .count-chip > button.body{padding:3px 6px 3px 9px}
+  .count-chip > button.dl{padding:3px 8px 3px 7px;border-left:1px solid rgba(0,0,0,.10)}
+  .count-chip.issues   > button:hover{background:rgba(177,29,21,.10)}
+  .count-chip.warnings > button:hover{background:rgba(217,119,6,.13)}
+  .count-chip i.lead{font-size:11px}
+  .count-chip i.chev{font-size:12px;opacity:.7;transition:transform .2s;margin-left:-1px}
+  .count-chip.open i.chev{transform:rotate(90deg)}
+  .count-chip i.dl-icon{font-size:12px}
+  .card-spacer{flex:1}
+  .card-ago{font-size:11px;font-weight:600;color:var(--text-meta);font-variant-numeric:tabular-nums;flex-shrink:0;min-width:54px;text-align:right}
+  .card.unhealthy .card-ago{color:var(--red)}
+  .card-row .btn-primary{padding:7px 14px;font-size:12px}
 
-/* UPLOAD ERROR BANNER (wrong-upload path) */
-.upload-error-banner{margin-top:10px;padding:11px 14px;background:#fef5f5;border:1px solid #fecaca;border-radius:var(--rs);display:flex;align-items:flex-start;gap:10px;color:var(--err);font-size:12px;line-height:1.5}
-.upload-error-banner .ico{font-size:18px;flex-shrink:0;margin-top:1px}
-.upload-error-banner-text{flex:1}
-.upload-error-banner-text strong{font-weight:600;display:block;margin-bottom:2px}
+  .issues-block{background:rgba(245,222,221,.5);border-top:1px solid var(--red-border);padding:8px 18px 10px 38px}
+  .warnings-block{background:rgba(254,243,199,.5);border-top:1px solid var(--amber-border);padding:8px 18px 10px 38px}
+  .alert-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+  .alert-list li{position:relative;padding-left:14px;font-size:12px;font-weight:500;color:var(--text-body);line-height:1.5}
+  .alert-list li::before{content:'';position:absolute;left:0;top:8px;width:5px;height:5px;border-radius:50%;background:var(--red)}
+  .alert-list.warnings-list li::before{background:var(--amber)}
 
-/* PREVIEW */
-.preview-sec{display:none}
-.preview-sec.visible{display:block}
-.preview-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px}
-.preview-hdr span{font-size:13px;font-weight:500}
-.val-summary{display:flex;gap:8px;font-size:12px}
-.v-ok{color:var(--ok);font-weight:600} .v-err{color:var(--err);font-weight:600} .v-warn{color:var(--warn);font-weight:600}
-.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--rs)}
-table{width:100%;border-collapse:collapse;font-size:12px}
-th{background:var(--surface-dim);padding:7px 10px;text-align:left;font-weight:600;color:var(--on-m);border-bottom:1px solid var(--border);white-space:nowrap}
-td{padding:6px 10px;border-bottom:1px solid var(--border);color:var(--on)}
-tr:last-child td{border-bottom:none}
-tr.row-err td{background:#fff5f5}
-tr.row-err td:first-child{border-left:3px solid var(--err)}
-tr.row-warn td{background:#fffbeb}
-.err-ico{color:var(--err);font-size:13px;vertical-align:middle}
+  /* ──── Action Bar ────────────────────────────────────────────────────── */
+  .action-bar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid var(--border);box-shadow:0 -2px 10px rgba(0,0,0,.05)}
+  .action-bar-inner{max-width:1180px;margin:0 auto;padding:12px 28px;display:flex;align-items:center;gap:14px;min-height:64px}
+  .action-icon{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:18px;flex-shrink:0}
+  .action-icon.healthy  {background:var(--green-tint); color:var(--green)}
+  .action-icon.warning  {background:var(--amber-bg);   color:var(--amber)}
+  .action-icon.unhealthy{background:var(--red-bg);     color:var(--red)}
+  .action-icon.running  {background:var(--purple-secondary); color:var(--purple-primary)}
+  .action-icon.complete {background:var(--purple-secondary); color:var(--purple-primary)}
+  .action-icon.approved {background:var(--green-tint); color:var(--green)}
+  .action-text{flex:1;min-width:0}
+  .action-headline{font-size:13px;font-weight:700;color:var(--text-title);letter-spacing:-.01em;line-height:1.3}
+  .action-sub{font-size:11px;color:var(--text-meta);font-weight:500;margin-top:2px}
+  .action-sub strong{color:var(--text-body);font-weight:600}
+  .action-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+  .recheck-pill{
+    display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;
+    background:#fff;border:1px solid var(--border);font-size:11px;font-weight:600;color:var(--text-meta);
+    cursor:pointer;transition:all .18s;
+  }
+  .recheck-pill:hover:not(:disabled){border-color:#94a3b8;color:var(--text-body)}
+  .recheck-pill:disabled{opacity:.5;cursor:not-allowed}
+  .recheck-pill i{font-size:13px}
+  .recheck-pill strong{color:var(--text-body);font-weight:700;font-variant-numeric:tabular-nums}
 
-/* NATIONAL BANNER */
-.nat-banner{background:#fffbeb;border:1px solid #fde68a;border-radius:var(--rs);padding:12px 14px;font-size:12px;color:#92400e;display:flex;gap:8px;align-items:flex-start}
-.nat-banner .material-icons-round{font-size:16px;color:var(--warn);flex-shrink:0;margin-top:1px}
+  /* ──── Modal ─────────────────────────────────────────────────────────── */
+  .modal-backdrop{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:grid;place-items:center;padding:24px;animation:fadeBg .2s ease-out}
+  @keyframes fadeBg{from{opacity:0}to{opacity:1}}
+  .modal{background:#fff;border-radius:12px;width:100%;max-width:560px;box-shadow:0 25px 50px -12px rgba(0,0,0,.25);display:flex;flex-direction:column;max-height:90vh;overflow:hidden;animation:fadeSlideUp .25s ease-out}
+  @keyframes fadeSlideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  .modal-head{padding:18px 24px;border-bottom:1px solid var(--border-light);display:flex;align-items:flex-start;gap:12px}
+  .modal-head-text{flex:1;min-width:0}
+  .modal-title{font-size:16px;font-weight:700;color:var(--text-title);letter-spacing:-.01em}
+  .modal-subtitle{font-size:11px;font-weight:500;color:var(--text-meta);margin-top:6px;font-family:ui-monospace,monospace;background:var(--page-bg);padding:4px 8px;border-radius:4px;display:inline-block;word-break:break-all}
+  .modal-mode{display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:3px 9px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:.02em}
+  .modal-mode.partial{background:#eff6ff;color:var(--blue)}
+  .modal-mode.complete{background:var(--amber-bg);color:var(--amber)}
+  .modal-close{background:transparent;border:0;cursor:pointer;width:28px;height:28px;border-radius:6px;display:grid;place-items:center;color:#94a3b8;font-size:18px}
+  .modal-close:hover{background:#f1f5f9;color:#ef4444}
+  .modal-body{padding:20px 24px;flex:1;overflow-y:auto}
+  .modal-foot{padding:14px 24px;border-top:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .modal-foot-left{display:flex;align-items:center;gap:10px}
+  .modal-foot-right{display:flex;align-items:center;gap:10px}
 
-/* DOWNLOAD GATE */
-.dl-gate{background:var(--surface-dim);border:1px solid var(--lav-200);border-radius:var(--rs);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.dl-gate p{font-size:12px;color:var(--on-m);flex:1}
-.dl-gate p strong{color:var(--on)}
+  .dropzone{display:flex;flex-direction:column;align-items:center;border:1.5px dashed var(--grey-30);border-radius:10px;padding:32px 20px;text-align:center;background:var(--page-bg);transition:border-color .2s,background .2s;cursor:pointer}
+  .dropzone.dragging{border-color:var(--purple-primary);background:var(--purple-tertiary)}
+  .dropzone.has-file{display:block;border-style:solid;border-color:var(--green);background:var(--green-bg);text-align:left;padding:16px 20px;cursor:default}
+  .dropzone.has-file.invalid{border-color:var(--red);background:var(--red-tint)}
+  .dropzone-icon{font-size:32px;color:var(--grey-40)}
+  .dropzone.has-file .dropzone-icon{color:var(--green);font-size:24px}
+  .dropzone.has-file.invalid .dropzone-icon{color:var(--red)}
+  .dropzone-msg{font-size:13px;font-weight:700;color:var(--text-title);margin-top:8px}
+  .dropzone-sub{font-size:11px;color:var(--text-meta);margin-top:4px}
+  .template-link{display:inline-flex;align-items:center;gap:5px;margin-top:14px;font-size:11px;font-weight:600;color:var(--purple-primary);cursor:pointer}
+  .template-link:hover{text-decoration:underline}
+  .file-pill{display:flex;align-items:center;gap:12px}
+  .file-pill-text{flex:1;min-width:0}
+  .file-pill-name{font-size:13px;font-weight:700;color:var(--text-title);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .file-pill-meta{font-size:11px;color:var(--text-body);font-weight:500;margin-top:2px}
+  .file-pill-remove{background:transparent;border:0;cursor:pointer;color:var(--grey-40);width:28px;height:28px;border-radius:6px;display:grid;place-items:center;font-size:16px}
+  .file-pill-remove:hover{background:#fff;color:var(--red)}
+  .error-banner{margin-top:14px;background:var(--red-tint);border:1px solid var(--red-border);border-radius:8px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px}
+  .error-banner i.lead{color:var(--red);font-size:16px;margin-top:1px}
+  .error-banner-text{flex:1}
+  .error-banner-text strong{font-size:12px;font-weight:700;color:var(--red)}
+  .error-banner-text p{margin:2px 0 0;font-size:11px;color:var(--text-body);font-weight:500;line-height:1.5}
+  .error-banner button{background:#fff;border:1px solid #fca5a5;color:var(--red);font-size:11px;font-weight:700;padding:5px 10px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin-top:6px}
+  .error-banner button:hover{background:#fef2f2}
+  .pre-submit{margin-top:14px;background:var(--purple-tertiary);border:1px solid var(--purple-border);border-radius:8px;padding:12px 14px}
+  .pre-submit-title{font-size:12px;font-weight:700;color:var(--purple-primary)}
+  .pre-submit-text{font-size:11px;color:var(--text-body);font-weight:500;margin-top:4px;line-height:1.5}
+  .pre-submit-confirm{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px;font-weight:600;color:var(--text-title);cursor:pointer}
+  .pre-submit-confirm input{accent-color:var(--purple-primary);width:14px;height:14px;cursor:pointer}
 
-/* CONFIRM DIALOG */
-.confirm-overlay{display:none;position:fixed;inset:0;background:rgba(28,27,46,.55);z-index:300;align-items:center;justify-content:center;padding:20px}
-.confirm-overlay.open{display:flex}
-.confirm-box{background:var(--surface);border-radius:var(--r);box-shadow:var(--sh-lg);padding:24px;max-width:420px;width:100%}
-.confirm-box h3{font-size:15px;font-weight:600;margin-bottom:8px}
-.confirm-box p{font-size:13px;color:var(--on-m);line-height:1.6;margin-bottom:18px}
-.confirm-actions{display:flex;justify-content:flex-end;gap:8px}
+  /* ──── Drawer ────────────────────────────────────────────────────────── */
+  .drawer-backdrop{position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .3s ease}
+  .drawer-backdrop.open{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;right:0;top:0;bottom:0;width:480px;z-index:901;background:#fff;box-shadow:-8px 0 32px rgba(0,0,0,.12);transform:translateX(100%);transition:transform .3s ease;display:flex;flex-direction:column}
+  .drawer.open{transform:translateX(0)}
+  .drawer-head{padding:18px 24px 16px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;gap:10px;flex-shrink:0}
+  .drawer-title{font-size:15px;font-weight:800;color:var(--text-title);letter-spacing:-.01em;flex:1}
+  .drawer-status{display:inline-flex;align-items:center;padding:3px 9px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:.02em}
+  .drawer-status.pending{background:var(--purple-secondary);color:var(--purple-primary)}
+  .drawer-status.approved{background:var(--green-bg);color:var(--green)}
+  .drawer-close{background:transparent;border:0;cursor:pointer;width:28px;height:28px;border-radius:6px;display:grid;place-items:center;color:#94a3b8;font-size:18px}
+  .drawer-close:hover{background:#f1f5f9;color:var(--text-title)}
+  .drawer-body{flex:1;overflow-y:auto;padding:18px 24px 24px}
+  .drawer-section{margin-bottom:22px}
+  .drawer-section:last-child{margin-bottom:0}
+  .drawer-section-label{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-meta);letter-spacing:.07em;margin-bottom:10px}
+  .drawer-fields{display:flex;flex-direction:column;gap:8px}
+  .drawer-field{display:flex;align-items:baseline;gap:14px;font-size:12px}
+  .drawer-field-label{color:var(--text-meta);width:96px;flex-shrink:0;font-weight:500}
+  .drawer-field-value{color:var(--text-title);font-weight:600;flex:1;line-height:1.5}
+  .drawer-field-value strong{font-weight:700}
+  .snapshot-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border-light);font-size:12px}
+  .snapshot-row:last-child{border-bottom:0}
+  .snapshot-row .dot{width:7px;height:7px}
+  .snapshot-row-title{font-weight:700;color:var(--text-title);min-width:90px;flex-shrink:0}
+  .snapshot-row-meta{color:var(--text-body);font-weight:500;flex:1}
+  .snapshot-row-time{color:var(--text-meta);font-weight:500;font-size:11px}
+  .download-card{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;cursor:pointer;transition:all .15s;background:#fff;font-family:inherit;width:100%;text-align:left;position:relative}
+  .download-card:hover{background:var(--purple-tertiary);border-color:var(--purple-border)}
+  .download-card:last-child{margin-bottom:0}
+  .download-card.primary{background:var(--purple-tertiary);border-color:var(--purple-primary);border-width:1.5px;padding:14px 16px;margin-bottom:14px}
+  .download-card.primary:hover{background:var(--purple-secondary)}
+  .download-card.primary .download-card-icon{background:var(--purple-primary);color:#fff}
+  .download-card.primary .download-card-arrow{color:var(--purple-primary)}
+  .primary-badge{
+    position:absolute;top:-8px;left:14px;
+    background:var(--purple-primary);color:#fff;
+    font-size:10px;font-weight:700;letter-spacing:.04em;
+    padding:2px 9px;border-radius:10px;
+    line-height:1.4;
+  }
+  .download-card-icon{width:36px;height:36px;border-radius:8px;display:grid;place-items:center;background:var(--purple-secondary);color:var(--purple-primary);font-size:18px;flex-shrink:0}
+  .download-card-text{flex:1;min-width:0}
+  .download-card-title{font-size:13px;font-weight:700;color:var(--text-title);letter-spacing:-.01em}
+  .download-card-meta{font-size:11px;color:var(--text-meta);font-weight:500;margin-top:2px}
+  .download-card-arrow{color:var(--text-meta);font-size:18px;flex-shrink:0;transition:color .15s,transform .15s}
+  .download-card:hover .download-card-arrow{color:var(--purple-primary);transform:translateX(2px)}
+  .drawer-foot{padding:14px 24px;border-top:1px solid var(--border-light);display:flex;justify-content:flex-end;gap:10px;flex-shrink:0;background:#fff}
 
-/* ── STATUS PILL + INLINE APPROVE/REJECT (reused on the forecast row) ── */
-.log-status{font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;flex-shrink:0}
-.ls-pend{background:#fef3c7;color:#92400e}
-.ls-ok{background:#dcfce7;color:var(--ok)}
-.ls-fail{background:#fef2f2;color:var(--err)}
-.ls-rej{background:var(--surface-dim);color:var(--on-m)}
-.btn-approve{background:var(--ok);color:#fff}
-.btn-approve:hover{background:#15803d}
-.btn-approve:disabled{background:#d1d5db;color:#fff;cursor:not-allowed}
+  /* ──── Toasts ────────────────────────────────────────────────────────── */
+  .toasts{position:fixed;top:24px;left:50%;transform:translateX(-50%);z-index:2000;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+  .toast{background:#1f2937;color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:600;box-shadow:0 10px 25px rgba(0,0,0,.3);animation:toastIn .25s ease-out;pointer-events:auto;display:flex;align-items:center;gap:10px;border-left:4px solid var(--text-meta)}
+  .toast.success{border-left-color:var(--green)}
+  .toast.error{border-left-color:var(--red)}
+  .toast.info{border-left-color:var(--blue)}
+  @keyframes toastIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+  .spinner{width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  button:focus-visible{outline:2px solid var(--purple-primary);outline-offset:2px}
 
-/* TOAST */
-.toast-c{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:500}
+  /* ──── Info icon + tooltip ───────────────────────────────────────────── */
+  .card-info{
+    background:transparent;border:0;cursor:help;
+    display:inline-flex;align-items:center;justify-content:center;
+    width:20px;height:20px;border-radius:50%;
+    color:var(--text-meta);padding:0;flex-shrink:0;
+    transition:background .15s,color .15s;
+  }
+  .card-info:hover,.card-info:focus{color:var(--purple-primary);background:var(--purple-tertiary)}
+  .card-info i{font-size:14px}
+  .info-tooltip{
+    position:fixed;z-index:1500;
+    background:#1f2937;color:#fff;
+    padding:8px 12px;border-radius:6px;
+    font-size:11px;font-weight:500;line-height:1.5;
+    max-width:300px;box-shadow:0 6px 16px rgba(0,0,0,.2);
+    pointer-events:none;animation:tipIn .15s ease-out;
+  }
+  @keyframes tipIn{from{opacity:0;transform:translateY(-2px)}to{opacity:1;transform:translateY(0)}}
 
-/* APP TOOLTIP (position:fixed — avoids clipping inside .section{overflow:hidden}) */
-.app-tooltip{position:fixed;display:none;background:#1f2937;color:#fff;padding:8px 12px;border-radius:6px;font-size:11px;font-weight:500;line-height:1.5;max-width:320px;box-shadow:0 6px 16px rgba(0,0,0,.2);z-index:1000;pointer-events:none;font-family:'DM Sans',sans-serif}
+  /* ──── Demo error link in modal ──────────────────────────────────────── */
+  .demo-error-link{
+    display:block;text-align:center;margin-top:8px;
+    font-size:11px;color:var(--text-meta);font-weight:500;
+    text-decoration:none;cursor:pointer;
+  }
+  .demo-error-link:hover{color:var(--red);text-decoration:underline}
 
-/* ── HEALTH HUE (whole-card tint) ── */
-.card{position:relative;transition:background .2s ease,border-color .2s ease}
-.card.health-ok{background:#f4fbf6;border-color:#d1f0db}
-/* Warning-only cards keep the healthy green tint — only the inner warnings bar carries the amber signal */
-.card.health-warn{background:#f4fbf6;border-color:#d1f0db}
-.card.health-err{background:#fef5f5;border-color:#fecaca}
-.card.health-checking{background:var(--surface);border-color:var(--border)}
-/* health-badge fully retired in favour of card-wide hue; defensive hide */
-.health-badge{display:none !important}
+  /* ──── ROS national plan gate ────────────────────────────────────────── */
+  .nat-banner{
+    margin-top:14px;background:var(--amber-bg);border:1px solid var(--amber-border);
+    border-radius:8px;padding:12px 14px;
+    font-size:11px;color:#92400e;font-weight:500;line-height:1.5;
+    display:flex;gap:10px;align-items:flex-start;
+  }
+  .nat-banner i{color:var(--amber);font-size:16px;flex-shrink:0;margin-top:1px}
+  .nat-banner strong{font-weight:700}
+  .dl-gate{
+    margin-top:10px;background:var(--purple-tertiary);border:1px solid var(--purple-border);
+    border-radius:8px;padding:12px 14px;
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+  }
+  .dl-gate-text{flex:1;font-size:11px;color:var(--text-body);font-weight:500;line-height:1.5}
+  .dl-gate-text strong{color:var(--text-title);font-weight:700;display:block;margin-bottom:2px}
+  .dl-gate-done{display:flex;align-items:center;gap:8px;color:var(--green);font-size:12px;font-weight:600}
+  .dl-gate-done i{font-size:16px}
 
-/* ── HEALTH ERROR DETAIL (compact summary + expand-on-click) ── */
-.health-errors{margin-top:2px}
-.health-errors-summary{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--err);cursor:pointer;padding:7px 11px;background:#fef5f5;border:1px solid #fecaca;border-radius:var(--rs);user-select:none}
-.health-errors-summary:hover{background:#fee2e2}
-.health-errors-summary .ico-warn{font-size:14px}
-.health-errors-summary .spacer{flex:1}
-.health-errors-summary .label-view{font-size:11px;font-weight:500;color:var(--err);opacity:.85}
-.health-errors-summary .expand-ico{font-size:16px;transition:transform .2s}
-.health-errors.expanded .health-errors-summary{border-bottom-left-radius:0;border-bottom-right-radius:0}
-.health-errors.expanded .health-errors-summary .expand-ico{transform:rotate(180deg)}
-.health-errors-list{display:none;margin-top:-1px;padding:8px 12px;background:#fef5f5;border:1px solid #fecaca;border-top:none;border-bottom-left-radius:var(--rs);border-bottom-right-radius:var(--rs);font-size:11px;color:var(--err);line-height:1.6}
-.health-errors.expanded .health-errors-list{display:block}
-.health-errors-list ul{margin:0 0 0 14px}
-.health-errors-list ul li{margin-bottom:2px}
+  /* ──── Logs button (next to Submit ROS) ──────────────────────────────── */
+  .logs-btn{
+    position:relative;
+    width:34px;height:34px;border-radius:8px;
+    background:#fff;border:1px solid var(--border);
+    display:grid;place-items:center;cursor:pointer;
+    color:var(--text-body);transition:all .18s;flex-shrink:0;
+  }
+  .logs-btn:hover{border-color:#94a3b8;color:var(--text-title);background:var(--page-bg)}
+  .logs-btn i{font-size:16px}
+  .logs-btn .status-dot{
+    position:absolute;top:4px;right:4px;
+    width:8px;height:8px;border-radius:50%;
+    border:1.5px solid #fff;
+  }
+  .logs-btn .status-dot.approved{background:var(--green)}
+  .logs-btn .status-dot.rejected{background:var(--red)}
+  .logs-btn .status-dot.pending{background:var(--amber);animation:logsPulse 1.6s ease-in-out infinite}
+  @keyframes logsPulse{0%,100%{box-shadow:0 0 0 0 rgba(217,119,6,.5)}50%{box-shadow:0 0 0 4px rgba(217,119,6,0)}}
 
-/* ── HEALTH WARNINGS (amber; non-blocking; same expand-on-click pattern) ── */
-.health-warnings{margin-top:6px}
-.health-warnings-summary{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:#92400e;cursor:pointer;padding:7px 11px;background:#fef3c7;border:1px solid #fde68a;border-radius:var(--rs);user-select:none}
-.health-warnings-summary:hover{background:#fde68a}
-.health-warnings-summary .ico-warn{font-size:14px;color:#d97706}
-.health-warnings-summary .spacer{flex:1}
-.health-warnings-summary .label-view{font-size:11px;font-weight:500;opacity:.85}
-.health-warnings-summary .expand-ico{font-size:16px;transition:transform .2s}
-.health-warnings.expanded .health-warnings-summary{border-bottom-left-radius:0;border-bottom-right-radius:0}
-.health-warnings.expanded .health-warnings-summary .expand-ico{transform:rotate(180deg)}
-.health-warnings-list{display:none;margin-top:-1px;padding:8px 12px;background:#fef3c7;border:1px solid #fde68a;border-top:none;border-bottom-left-radius:var(--rs);border-bottom-right-radius:var(--rs);font-size:11px;color:#92400e;line-height:1.6}
-.health-warnings.expanded .health-warnings-list{display:block}
-.health-warnings-list ul{margin:0 0 0 14px}
-.health-warnings-list ul li{margin-bottom:2px}
-
-/* ── LOCKED SECTION ── */
-/* ── SECTION LOCKED (legacy; no longer applied to Section B — kept defensive) ── */
-.section-locked-body,.section-locked-banner{display:none !important}
-
-/* Soft-locked Run Forecasting button: greyed but still clickable (click = shake unhealthy above) */
-.btn-soft-locked{opacity:.45;filter:grayscale(.6);cursor:pointer !important;pointer-events:auto !important;background:var(--lav-200) !important;color:var(--lav-400) !important}
-.btn-soft-locked:hover{opacity:.55;background:var(--lav-200) !important;color:var(--lav-400) !important}
-
-/* Shake animation to draw attention to unhealthy cards */
-@keyframes shake-attn {
-  0%,100% { transform: translateX(0) }
-  15% { transform: translateX(-5px) }
-  30% { transform: translateX(5px) }
-  45% { transform: translateX(-4px) }
-  60% { transform: translateX(4px) }
-  75% { transform: translateX(-2px) }
-  90% { transform: translateX(2px) }
-}
-.card.shake{animation:shake-attn .55s ease-in-out}
-
-/* ── RECHECK BAR ── */
-.recheck-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;box-shadow:var(--sh-sm)}
-.recheck-bar-left{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;color:var(--on-m)}
-.recheck-bar-left .material-icons-round{font-size:16px}
-.recheck-bar-left.healthy{color:var(--ok)}
-.recheck-bar-left.healthy .material-icons-round{color:var(--ok)}
-.recheck-bar-left.unhealthy{color:var(--err)}
-.recheck-bar-left.unhealthy .material-icons-round{color:var(--err)}
-.recheck-bar-left.warning{color:var(--warn)}
-.recheck-bar-left.warning .material-icons-round{color:var(--warn)}
-.recheck-bar-left.checking{color:var(--warn)}
-.recheck-bar-left.checking .material-icons-round{color:var(--warn)}
-.recheck-bar-right{display:flex;align-items:center;gap:10px}
-.recheck-bar-status{font-size:11px;font-family:'DM Mono',monospace;color:var(--on-m)}
-.btn-recheck{background:var(--lav-100);color:var(--lav-600);border:1px solid var(--lav-200);padding:6px 14px;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
-.btn-recheck:hover{background:var(--lav-200)}
-.btn-recheck .material-icons-round{font-size:14px}
-.btn-recheck:disabled{opacity:.5;cursor:not-allowed}
-.toast{background:var(--on);color:#fff;padding:10px 16px;border-radius:var(--rs);font-size:13px;display:flex;align-items:center;gap:8px;box-shadow:var(--sh);opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s}
-.toast.show{opacity:1;transform:translateY(0)}
-.toast .material-icons-round{font-size:16px}
-.toast.success .material-icons-round{color:#86efac}
-.toast.error .material-icons-round{color:#fca5a5}
-.toast.info .material-icons-round{color:var(--lav-300)}
+  /* ──── Logs drawer / entries ─────────────────────────────────────────── */
+  .drawer-subtitle{font-size:11px;color:var(--text-meta);font-weight:500;margin-top:2px}
+  .log-list{display:flex;flex-direction:column;gap:8px}
+  .log-entry{
+    background:#fff;border:1px solid var(--border);border-radius:10px;
+    overflow:hidden;transition:border-color .18s,box-shadow .18s;
+  }
+  .log-entry:hover{border-color:#cbd5e1}
+  .log-entry.pending{border-color:var(--amber-border);background:#fffbeb}
+  .log-entry-head{
+    display:flex;align-items:center;gap:10px;
+    padding:11px 14px;cursor:pointer;
+    background:transparent;border:0;width:100%;text-align:left;font-family:inherit;
+  }
+  .log-entry-head:hover{background:rgba(0,0,0,.015)}
+  .log-entry .dot{width:8px;height:8px}
+  .log-entry-id{font-size:12px;font-weight:700;color:var(--text-title);letter-spacing:-.01em;font-variant-numeric:tabular-nums;flex-shrink:0}
+  .log-entry-cycle{font-size:11px;color:var(--text-meta);font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .log-entry-badge{
+    display:inline-flex;align-items:center;padding:2px 9px;border-radius:10px;
+    font-size:10px;font-weight:700;letter-spacing:.02em;flex-shrink:0;
+  }
+  .log-entry-badge.approved{background:var(--green-bg);color:var(--green)}
+  .log-entry-badge.rejected{background:var(--red-bg);color:var(--red)}
+  .log-entry-badge.pending{background:var(--amber-bg);color:var(--amber)}
+  .log-entry-chev{color:var(--text-meta);font-size:16px;transition:transform .2s;flex-shrink:0}
+  .log-entry.open .log-entry-chev{transform:rotate(90deg);color:var(--purple-primary)}
+  .log-entry-body{
+    border-top:1px solid var(--border-light);
+    padding:12px 14px 14px;background:var(--page-bg);
+  }
+  .log-entry.pending .log-entry-body{background:rgba(254,243,199,.35)}
+  .log-fields{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+  .log-field{display:flex;align-items:baseline;gap:10px;font-size:11px;line-height:1.4}
+  .log-field-label{color:var(--text-meta);width:72px;flex-shrink:0;font-weight:500}
+  .log-field-value{color:var(--text-title);font-weight:600;flex:1}
+  .log-remarks{
+    background:var(--red-tint);border:1px solid var(--red-border);border-radius:6px;
+    padding:8px 10px;margin-bottom:10px;
+    font-size:11px;color:var(--text-body);font-weight:500;line-height:1.5;
+  }
+  .log-remarks strong{color:var(--red);font-weight:700;display:block;margin-bottom:2px;letter-spacing:.02em;text-transform:uppercase;font-size:10px}
+  .log-dl{
+    display:flex;align-items:center;gap:10px;padding:9px 12px;
+    background:#fff;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;
+    cursor:pointer;transition:all .15s;font-family:inherit;width:100%;text-align:left;
+  }
+  .log-dl:last-child{margin-bottom:0}
+  .log-dl:hover{background:var(--purple-tertiary);border-color:var(--purple-border)}
+  .log-dl-icon{
+    width:28px;height:28px;border-radius:6px;display:grid;place-items:center;
+    background:var(--purple-secondary);color:var(--purple-primary);font-size:14px;flex-shrink:0;
+  }
+  .log-dl-text{flex:1;min-width:0}
+  .log-dl-title{font-size:12px;font-weight:700;color:var(--text-title);letter-spacing:-.01em}
+  .log-dl-meta{font-size:10px;color:var(--text-meta);font-weight:500;margin-top:1px}
+  .log-dl i.arr{color:var(--text-meta);font-size:14px;transition:transform .15s,color .15s}
+  .log-dl:hover i.arr{color:var(--purple-primary);transform:translateX(2px)}
+  .log-pending-note{
+    margin-top:8px;font-size:11px;color:var(--amber);font-weight:600;
+    display:flex;align-items:center;gap:6px;
+  }
+  .log-pending-note i{font-size:14px}
 </style>
 </head>
 <body>
+  <div id="root"></div>
 
-<!-- ═══════════════════ TOP NAV ═══════════════════ -->
-<nav class="topnav">
-  <div class="topnav-inner">
-    <div class="brand">
-      <div class="brand-mark"></div>
-      <div class="brand-text">
-        <div class="brand-name">Horizon</div>
-        <div class="brand-sub">Retail Stores</div>
-      </div>
-    </div>
-    <div class="topnav-actions">
-      <div class="topnav-cycle" id="topnav-cycle">
-        <span class="material-icons-round">event</span>
-        <span id="topnav-cycle-label">Cycle: May W3 · 11–17</span>
-      </div>
-      <div class="avatar-block">
-        <span class="role-chip" id="role-chip" onclick="toggleRole()" title="Click to switch role (demo)">Planner</span>
-        <div class="avatar">SR</div>
-      </div>
-    </div>
-  </div>
-</nav>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
 
-<div class="main">
+  <script type="text/babel">
+// ─── tweaks-panel (inlined) ──────────────────────────────────────────────────
 
-  <!-- ═══════════════════ RECHECK BAR ═══════════════════ -->
-  <div class="recheck-bar" id="recheck-bar">
-    <div class="recheck-bar-left" id="recheck-bar-summary">
-      <span class="material-icons-round">hourglass_empty</span>
-      <span>Checking data health…</span>
-    </div>
-    <div class="recheck-bar-right">
-      <span class="recheck-bar-status" id="recheck-last-ts">Last checked: —</span>
-      <button class="btn-recheck" id="btn-recheck" onclick="recheckAllHealth()">
-        <span class="material-icons-round">refresh</span> Recheck Health
-      </button>
-    </div>
-  </div>
+const __TWEAKS_STYLE = `
+  .twk-panel{position:fixed;right:16px;bottom:16px;z-index:2147483646;width:280px;
+    max-height:calc(100vh - 32px);display:flex;flex-direction:column;
+    transform:scale(var(--dc-inv-zoom,1));transform-origin:bottom right;
+    background:rgba(250,249,247,.78);color:#29261b;
+    -webkit-backdrop-filter:blur(24px) saturate(160%);backdrop-filter:blur(24px) saturate(160%);
+    border:.5px solid rgba(255,255,255,.6);border-radius:14px;
+    box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 12px 40px rgba(0,0,0,.18);
+    font:11.5px/1.4 ui-sans-serif,system-ui,-apple-system,sans-serif;overflow:hidden}
+  .twk-hd{display:flex;align-items:center;justify-content:space-between;padding:10px 8px 10px 14px;cursor:move;user-select:none}
+  .twk-hd b{font-size:12px;font-weight:600;letter-spacing:.01em}
+  .twk-x{appearance:none;border:0;background:transparent;color:rgba(41,38,27,.55);width:22px;height:22px;border-radius:6px;cursor:default;font-size:13px;line-height:1}
+  .twk-x:hover{background:rgba(0,0,0,.06);color:#29261b}
+  .twk-body{padding:2px 14px 14px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;overflow-x:hidden;min-height:0;scrollbar-width:thin;scrollbar-color:rgba(0,0,0,.15) transparent}
+  .twk-row{display:flex;flex-direction:column;gap:5px}
+  .twk-row-h{flex-direction:row;align-items:center;justify-content:space-between;gap:10px}
+  .twk-lbl{display:flex;justify-content:space-between;align-items:baseline;color:rgba(41,38,27,.72)}
+  .twk-lbl>span:first-child{font-weight:500}
+  .twk-val{color:rgba(41,38,27,.5);font-variant-numeric:tabular-nums}
+  .twk-sect{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(41,38,27,.45);padding:10px 0 0}
+  .twk-sect:first-child{padding-top:0}
+  .twk-field{appearance:none;box-sizing:border-box;width:100%;min-width:0;height:26px;padding:0 8px;border:.5px solid rgba(0,0,0,.1);border-radius:7px;background:rgba(255,255,255,.6);color:inherit;font:inherit;outline:none}
+  .twk-field:focus{border-color:rgba(0,0,0,.25);background:rgba(255,255,255,.85)}
+  select.twk-field{padding-right:22px;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='rgba(0,0,0,.5)' d='M0 0h10L5 6z'/></svg>");background-repeat:no-repeat;background-position:right 8px center}
+  .twk-seg{position:relative;display:flex;padding:2px;border-radius:8px;background:rgba(0,0,0,.06);user-select:none}
+  .twk-seg-thumb{position:absolute;top:2px;bottom:2px;border-radius:6px;background:rgba(255,255,255,.9);box-shadow:0 1px 2px rgba(0,0,0,.12);transition:left .15s cubic-bezier(.3,.7,.4,1),width .15s}
+  .twk-seg.dragging .twk-seg-thumb{transition:none}
+  .twk-seg button{appearance:none;position:relative;z-index:1;flex:1;border:0;background:transparent;color:inherit;font:inherit;font-weight:500;min-height:22px;border-radius:6px;cursor:default;padding:4px 6px;line-height:1.2;overflow-wrap:anywhere}
+  .twk-toggle{position:relative;width:32px;height:18px;border:0;border-radius:999px;background:rgba(0,0,0,.15);transition:background .15s;cursor:default;padding:0}
+  .twk-toggle[data-on="1"]{background:#34c759}
+  .twk-toggle i{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+  .twk-toggle[data-on="1"] i{transform:translateX(14px)}
+`;
 
-  <!-- ═══════════════════ SECTION A ═══════════════════ -->
-  <div class="section" id="section-a">
-    <div class="section-hdr" onclick="toggleSection('section-a')">
-      <div class="section-hdr-left">
-        <span class="sec-badge badge-a">Section A</span>
-        <div>
-          <div class="sec-title">Pre Demand Planning</div>
-          <div class="sec-desc">Assortment · MDQ · Store universe (City-Store &amp; NSO) · Classification · ROS Multipliers</div>
+function useTweaks(defaults) {
+  const [values, setValues] = React.useState(defaults);
+  const setTweak = React.useCallback((keyOrEdits, val) => {
+    const edits = typeof keyOrEdits === 'object' && keyOrEdits !== null ? keyOrEdits : { [keyOrEdits]: val };
+    setValues((prev) => ({ ...prev, ...edits }));
+    window.parent.postMessage({ type: '__edit_mode_set_keys', edits }, '*');
+    window.dispatchEvent(new CustomEvent('tweakchange', { detail: edits }));
+  }, []);
+  return [values, setTweak];
+}
+
+function TweaksPanel({ title = 'Tweaks', children }) {
+  const [open, setOpen] = React.useState(false);
+  const dragRef = React.useRef(null);
+  const offsetRef = React.useRef({ x: 16, y: 16 });
+  const PAD = 16;
+
+  const clampToViewport = React.useCallback(() => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const w = panel.offsetWidth, h = panel.offsetHeight;
+    const maxRight = Math.max(PAD, window.innerWidth - w - PAD);
+    const maxBottom = Math.max(PAD, window.innerHeight - h - PAD);
+    offsetRef.current = {
+      x: Math.min(maxRight, Math.max(PAD, offsetRef.current.x)),
+      y: Math.min(maxBottom, Math.max(PAD, offsetRef.current.y)),
+    };
+    panel.style.right = offsetRef.current.x + 'px';
+    panel.style.bottom = offsetRef.current.y + 'px';
+  }, []);
+
+  React.useEffect(() => {
+    if (!open) return;
+    clampToViewport();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(clampToViewport) : null;
+    if (ro) { ro.observe(document.documentElement); return () => ro.disconnect(); }
+    window.addEventListener('resize', clampToViewport);
+    return () => window.removeEventListener('resize', clampToViewport);
+  }, [open, clampToViewport]);
+
+  React.useEffect(() => {
+    const onMsg = (e) => {
+      const t = e?.data?.type;
+      if (t === '__activate_edit_mode') setOpen(true);
+      else if (t === '__deactivate_edit_mode') setOpen(false);
+    };
+    window.addEventListener('message', onMsg);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
+  const dismiss = () => { setOpen(false); window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*'); };
+
+  const onDragStart = (e) => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const r = panel.getBoundingClientRect();
+    const sx = e.clientX, sy = e.clientY;
+    const startRight = window.innerWidth - r.right;
+    const startBottom = window.innerHeight - r.bottom;
+    const move = (ev) => {
+      offsetRef.current = { x: startRight - (ev.clientX - sx), y: startBottom - (ev.clientY - sy) };
+      clampToViewport();
+    };
+    const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  };
+
+  if (!open) return null;
+  return (
+    <React.Fragment>
+      <style>{__TWEAKS_STYLE}</style>
+      <div ref={dragRef} className="twk-panel" style={{ right: offsetRef.current.x, bottom: offsetRef.current.y }}>
+        <div className="twk-hd" onMouseDown={onDragStart}>
+          <b>{title}</b>
+          <button className="twk-x" onMouseDown={(e) => e.stopPropagation()} onClick={dismiss}>✕</button>
         </div>
+        <div className="twk-body">{children}</div>
       </div>
-      <span class="material-icons-round col-icon">expand_more</span>
+    </React.Fragment>
+  );
+}
+
+function TweakSection({ label, children }) {
+  return <React.Fragment><div className="twk-sect">{label}</div>{children}</React.Fragment>;
+}
+
+function TweakRow({ label, value, children, inline = false }) {
+  return (
+    <div className={inline ? 'twk-row twk-row-h' : 'twk-row'}>
+      <div className="twk-lbl"><span>{label}</span>{value != null && <span className="twk-val">{value}</span>}</div>
+      {children}
     </div>
-    <div class="section-body">
+  );
+}
 
-      <div class="subsec">
-        <div class="subsec-title">Assortment</div>
-        <div class="cards-row">
+function TweakSelect({ label, value, options, onChange }) {
+  return (
+    <TweakRow label={label}>
+      <select className="twk-field" value={value} onChange={(e) => onChange(e.target.value)}>
+        {options.map((o) => {
+          const v = typeof o === 'object' ? o.value : o;
+          const l = typeof o === 'object' ? o.label : o;
+          return <option key={v} value={v}>{l}</option>;
+        })}
+      </select>
+    </TweakRow>
+  );
+}
 
-          <div class="card" id="card-usm">
-            <div class="card-main-line">
-              <div class="card-title-line">
-                <span class="card-title">Update USM</span>
-                <span class="card-info" tabindex="0"
-                      onmouseenter="showTooltip(this,'Upload Universal SKU Master data at store × MPC. Complete-only — file replaces the full USM list.')"
-                      onmouseleave="hideTooltip()" onfocus="showTooltip(this,'Upload Universal SKU Master data at store × MPC. Complete-only — file replaces the full USM list.')" onblur="hideTooltip()">
-                  <span class="material-icons-round">info</span>
-                </span>
-              </div>
-              <div class="card-actions">
-                <button class="btn btn-outlined btn-sm" onclick="dlTemplate('usm_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
-                <button class="btn btn-primary btn-sm" onclick="openModal('modal-usm')"><span class="material-icons-round">upload</span> Upload</button>
-              </div>
-            </div>
-            <div id="health-errors-usm"></div>
-          </div>
-
-          <div class="card" id="card-nonusm">
-            <div class="card-main-line">
-              <div class="card-title-line">
-                <span class="card-title">Update Non-USM</span>
-                <span class="card-info" tabindex="0"
-                      onmouseenter="showTooltip(this,'Store × MPC rows not bought afresh (Consumables / GWP / Testers / Others). Partial or complete mode. Overlap with USM is rejected.')"
-                      onmouseleave="hideTooltip()" onfocus="showTooltip(this,'Store × MPC rows not bought afresh (Consumables / GWP / Testers / Others). Partial or complete mode. Overlap with USM is rejected.')" onblur="hideTooltip()">
-                  <span class="material-icons-round">info</span>
-                </span>
-              </div>
-              <div class="card-actions">
-                <button class="btn btn-outlined btn-sm" onclick="dlTemplate('nonusm_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
-                <button class="btn btn-primary btn-sm" onclick="openModal('modal-nonusm')"><span class="material-icons-round">upload</span> Upload</button>
-              </div>
-            </div>
-            <div id="health-errors-nonusm"></div>
-          </div>
-
-        </div>
+function TweakRadio({ label, value, options, onChange }) {
+  const trackRef = React.useRef(null);
+  const [dragging, setDragging] = React.useState(false);
+  const valueRef = React.useRef(value);
+  valueRef.current = value;
+  const labelLen = (o) => String(typeof o === 'object' ? o.label : o).length;
+  const maxLen = options.reduce((m, o) => Math.max(m, labelLen(o)), 0);
+  const fitsAsSegments = maxLen <= ({ 2: 16, 3: 10 }[options.length] ?? 0);
+  if (!fitsAsSegments) {
+    const resolve = (s) => { const m = options.find((o) => String(typeof o === 'object' ? o.value : o) === s); return m === undefined ? s : typeof m === 'object' ? m.value : m; };
+    return <TweakSelect label={label} value={value} options={options} onChange={(s) => onChange(resolve(s))} />;
+  }
+  const opts = options.map((o) => (typeof o === 'object' ? o : { value: o, label: o }));
+  const idx = Math.max(0, opts.findIndex((o) => o.value === value));
+  const n = opts.length;
+  const segAt = (clientX) => {
+    const r = trackRef.current.getBoundingClientRect();
+    const i = Math.floor(((clientX - r.left - 2) / (r.width - 4)) * n);
+    return opts[Math.max(0, Math.min(n - 1, i))].value;
+  };
+  const onPointerDown = (e) => {
+    setDragging(true);
+    const v0 = segAt(e.clientX);
+    if (v0 !== valueRef.current) onChange(v0);
+    const move = (ev) => { if (!trackRef.current) return; const v = segAt(ev.clientX); if (v !== valueRef.current) onChange(v); };
+    const up = () => { setDragging(false); window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  };
+  return (
+    <TweakRow label={label}>
+      <div ref={trackRef} role="radiogroup" onPointerDown={onPointerDown} className={dragging ? 'twk-seg dragging' : 'twk-seg'}>
+        <div className="twk-seg-thumb" style={{ left: `calc(2px + ${idx} * (100% - 4px) / ${n})`, width: `calc((100% - 4px) / ${n})` }} />
+        {opts.map((o) => <button key={o.value} type="button" role="radio" aria-checked={o.value === value}>{o.label}</button>)}
       </div>
+    </TweakRow>
+  );
+}
 
-      <div class="subsec">
-        <div class="subsec-title">Product level inputs</div>
-        <div class="cards-row">
-
-          <div class="card" id="card-mdq">
-            <div class="card-main-line">
-              <div class="card-title-line">
-                <span class="card-title">Update MDQ</span>
-                <span class="card-info" tabindex="0"
-                      onmouseenter="showTooltip(this,'Upload Minimum Display Quantity data at MPC-store level. Partial updates are supported. Critical input for Step 4 (buying calculation).')"
-                      onmouseleave="hideTooltip()" onfocus="showTooltip(this,'Upload Minimum Display Quantity data at MPC-store level. Partial updates are supported. Critical input for Step 4 (buying calculation).')" onblur="hideTooltip()">
-                  <span class="material-icons-round">info</span>
-                </span>
-              </div>
-              <div class="card-actions">
-                <button class="btn btn-outlined btn-sm" onclick="dlTemplate('mdq_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
-                <button class="btn btn-primary btn-sm" onclick="openModal('modal-mdq')"><span class="material-icons-round">upload</span> Upload</button>
-              </div>
-            </div>
-            <div id="health-errors-mdq"></div>
-          </div>
-
-          <div class="card" id="card-ros">
-            <div class="card-main-line">
-              <div class="card-title-line">
-                <span class="card-title">Upload ROS Multiplier</span>
-                <span class="card-info" tabindex="0"
-                      onmouseenter="showTooltip(this,'Week-level multipliers at product × geo granularity. National-level rows require buying plan comparison download before submit.')"
-                      onmouseleave="hideTooltip()" onfocus="showTooltip(this,'Week-level multipliers at product × geo granularity. National-level rows require buying plan comparison download before submit.')" onblur="hideTooltip()">
-                  <span class="material-icons-round">info</span>
-                </span>
-              </div>
-              <div class="card-actions">
-                <button class="btn btn-outlined btn-sm" onclick="dlTemplate('ros_multiplier_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
-                <button class="btn btn-primary btn-sm" onclick="openModal('modal-ros-multiplier')"><span class="material-icons-round">upload</span> Upload</button>
-              </div>
-            </div>
-            <div id="health-errors-ros"></div>
-          </div>
-
-        </div>
-      </div>
-
-      <div class="subsec">
-        <div class="subsec-title">Store universe</div>
-        <div class="cards-row">
-
-          <div class="card" id="card-city">
-            <div class="card-main-line">
-              <div class="card-title-line">
-                <span class="card-title">Update City-Store Mappings</span>
-                <span class="card-info" tabindex="0"
-                      onmouseenter="showTooltip(this,'Cluster/geo attributes patched on top of warehouse master (Zone, State, cluster, sister store). Partial updates supported.')"
-                      onmouseleave="hideTooltip()" onfocus="showTooltip(this,'Cluster/geo attributes patched on top of warehouse master (Zone, State, cluster, sister store). Partial updates supported.')" onblur="hideTooltip()">
-                  <span class="material-icons-round">info</span>
-                </span>
-              </div>
-              <div class="card-actions">
-                <button class="btn btn-outlined btn-sm" onclick="dlTemplate('city_store_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
-                <button class="btn btn-primary btn-sm" onclick="openModal('modal-city-store')"><span class="material-icons-round">upload</span> Upload</button>
-              </div>
-            </div>
-            <div id="health-errors-city"></div>
-          </div>
-
-          <div class="card" id="card-nso">
-            <div class="card-main-line">
-              <div class="card-title-line">
-                <span class="card-title">Update NSOs (New Store Openings)</span>
-                <span class="card-info" tabindex="0"
-                      onmouseenter="showTooltip(this,'Stores planned to open but not yet live. Each NSO needs a non-NSO sister store. Complete-only upload.')"
-                      onmouseleave="hideTooltip()" onfocus="showTooltip(this,'Stores planned to open but not yet live. Each NSO needs a non-NSO sister store. Complete-only upload.')" onblur="hideTooltip()">
-                  <span class="material-icons-round">info</span>
-                </span>
-              </div>
-              <div class="card-actions">
-                <button class="btn btn-outlined btn-sm" onclick="dlTemplate('nso_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
-                <button class="btn btn-primary btn-sm" onclick="openModal('modal-nso')"><span class="material-icons-round">upload</span> Upload</button>
-              </div>
-            </div>
-            <div id="health-errors-nso"></div>
-          </div>
-
-        </div>
-      </div>
-
+function TweakToggle({ label, value, onChange }) {
+  return (
+    <div className="twk-row twk-row-h">
+      <div className="twk-lbl"><span>{label}</span></div>
+      <button type="button" className="twk-toggle" data-on={value ? '1' : '0'} role="switch" aria-checked={!!value} onClick={() => onChange(!value)}><i /></button>
     </div>
-  </div>
-  <div class="section" id="section-b">
-    <div class="section-hdr" onclick="toggleSection('section-b')">
-      <div class="section-hdr-left">
-        <span class="sec-badge badge-b">Section B</span>
-        <div>
-          <div class="sec-title">Demand Planning</div>
-          <div class="sec-desc">Base Forward ROS</div>
-        </div>
-      </div>
-      <span class="material-icons-round col-icon">expand_more</span>
-    </div>
-    <div class="section-body">
-      <div class="cards-row">
+  );
+}
 
-          <div class="card" id="card-forecast">
-            <div class="card-main-line">
-              <div class="card-title-line">
-                <span class="card-title">Run Demand Forecasting Script</span>
-                <span class="card-info" tabindex="0"
-                      onmouseenter="showTooltip(this,'Auto DRR forecast for USM + Non-USM (Consumables/GWP). Each new run queues for approval; any older pending run is auto-rejected.')"
-                      onmouseleave="hideTooltip()" onfocus="showTooltip(this,'Auto DRR forecast for USM + Non-USM (Consumables/GWP). Each new run queues for approval; any older pending run is auto-rejected.')" onblur="hideTooltip()">
-                  <span class="material-icons-round">info</span>
-                </span>
-              </div>
-              <div class="card-actions">
-                <button class="btn btn-primary btn-sm" id="btn-forecast" onclick="runForecast(this)"><span class="material-icons-round">play_arrow</span> Run Forecasting</button>
-              </div>
-            </div>
-            <div class="forecast-current-run" id="forecast-current-run"></div>
-            <div id="health-errors-forecast"></div>
-          </div>
+Object.assign(window, { useTweaks, TweaksPanel, TweakSection, TweakRow, TweakSelect, TweakRadio, TweakToggle });
+  </script>
 
-          <div class="card" id="card-b2">
-            <div class="card-main-line">
-              <div class="card-title-line">
-                <span class="card-title">Manual Demand Upload (Testers &amp; Others)</span>
-                <span class="card-info" tabindex="0"
-                      onmouseenter="showTooltip(this,'Demand for Non-USM rows tagged Testers / Others (no auto DRR). Required before B.1 approval if any such rows exist. Complete-only.')"
-                      onmouseleave="hideTooltip()" onfocus="showTooltip(this,'Demand for Non-USM rows tagged Testers / Others (no auto DRR). Required before B.1 approval if any such rows exist. Complete-only.')" onblur="hideTooltip()">
-                  <span class="material-icons-round">info</span>
-                </span>
-              </div>
-              <div class="card-actions">
-                <button class="btn btn-outlined btn-sm" onclick="dlTemplate('b2_template.csv')"><span class="material-icons-round">file_download</span> Template</button>
-                <button class="btn btn-primary btn-sm" onclick="openModal('modal-b2')"><span class="material-icons-round">upload</span> Upload</button>
-              </div>
-            </div>
-            <div id="health-errors-b2"></div>
-          </div>
+  <script type="text/babel">
+// ─── app.jsx (inlined) ───────────────────────────────────────────────────────
+// Horizon — Stores Demand Planning (v3)
 
-      </div>
-    </div>
-  </div>
+const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
-</div>
+const TWEAK_DEFAULTS = { "role": "Planner", "scenario": "Mixed", "runState": "Pre-run" };
 
-<!-- ═══════════════════════════════════════════════════════
-     MODALS
-══════════════════════════════════════════════════════════ -->
+const CARDS = [
+  { id:'usm',       subsection:'Assortment',           title:'USM',                            mode:'Complete-only', columns:'geo_granularity · geo_value · mpc',                                                                                                                                              info:'Upload Universal SKU Master data at store × MPC. Complete-only — file replaces the full USM list.',                                                                            template:'usm_template',           lastUpload:{ago:'14d ago'}, issuePool:['USM data older than the 7-day staleness threshold (last upload was 14 days ago).','USM missing for 32 active store_id × MPC pairs.'], warningPool:['Upload covers 41 fewer pairs than the previous USM list — verify intent.'] },
+  { id:'nonusm',    subsection:'Assortment',           title:'Non-USM',                        mode:'Partial',       columns:'geo_granularity · geo_value · mpc · non_usm_type',                                                                                                                              info:'Store × MPC rows not bought afresh (Consumables / GWP / Testers / Others). Partial or complete mode. Overlap with USM is rejected.',                                          template:'nonusm_template',        lastUpload:{ago:'3d ago'},  issuePool:['Pair overlap with USM detected for 4 store × MPC pairs.'],                                                                            warningPool:['17 Testers / Others rows pending manual demand upload — see Non-USM manual demand upload below.'] },
+  { id:'mdq',       subsection:'Product-level inputs', title:'MDQ',                            mode:'Partial',       columns:'geo_granularity · geo_value · mpc · mdq',                                                                                                                                       info:'Upload Minimum Display Quantity data at MPC-store level. Partial updates supported. Critical input for buying calculation.',                                                  template:'mdq_template',           lastUpload:{ago:'5h ago'},  issuePool:['Missing MDQ for 124 active store × MPC pairs.'],                                                                                        warningPool:['6 MDQs above the high-MDQ threshold of 10 — verify intent.','23 MDQs explicitly set to 0 — confirm intentional zero-out.'] },
+  { id:'ros',       subsection:'Product-level inputs', title:'ROS Multipliers',                mode:'Partial',       columns:'geo_granularity · geo_value · product_granularity · product_value · temporal_granularity · temporal_value · multiplier_value',                                                   info:'Week-level multipliers at product × geo granularity. National-level rows require buying plan comparison download before submit.',                                             template:'ros_multiplier_template',lastUpload:{ago:'4d ago'},  issuePool:['Active multiplier coverage expires in 2 days — dates from 25 May onward not covered.'],                                                       warningPool:['8 multipliers set above 1.5 — verify intent before submit.','3 rows at national granularity — high blast radius.'] },
+  { id:'nonusm_demand', subsection:'Product-level inputs', title:'Non-USM manual demand upload', mode:'Partial',  columns:'geo_granularity · geo_value · mpc · non_usm_type · week · demand_units',                                                                                                          info:'Manual weekly demand for Non-USM items that do not auto-compute (Testers / Others). Partial update — appends or overwrites by store × MPC × week. Source rows must already exist in Non-USM.',                                                                                                   template:'nonusm_demand_template', lastUpload:{ago:'2d ago'},  issuePool:['12 Testers / Others rows in Non-USM have no demand upload for the active cycle.'],                                                  warningPool:['4 manual rows reference MPCs not present in Non-USM master — will be skipped at calculation.'] },
+  { id:'citystore', subsection:'Store universe',       title:'City-Store Mappings',            mode:'Partial',       columns:'store_id · Zone · State · district · postal_code · store_type · channel · cluster_id · sister_store_code · RM · CM',                                                             info:'Cluster/geo attributes patched on top of warehouse master (Zone, State, cluster, sister store). Partial updates supported.',                                                  template:'city_store_template',    lastUpload:{ago:'22d ago'}, issuePool:['3 active stores without a cluster mapping (BLR-014, MUM-021, PUN-007).','2 new stores without a valid sister_store_code (NSO-104, NSO-112).'], warningPool:['Patch covers 4 fewer stores than the previous upload — verify intent.'] },
+  { id:'nso',       subsection:'Store universe',       title:'NSOs',                           mode:'Complete-only', columns:'nso_id · expected_opening_date · sister_store_code',                                                                                                                             info:'Stores planned to open but not yet live. Each NSO needs a non-NSO sister store. Complete-only upload.',                                                                       template:'nso_template',           lastUpload:{ago:'6d ago'},  issuePool:['2 NSOs whose sister store does not meet the minimum data-point threshold for demand planning.'],                                                   warningPool:['1 NSO with expected_opening_date within the next 7 days — confirm readiness.'] },
+];
 
-<!-- USM -->
-<div class="modal-overlay" id="modal-usm">
-  <div class="modal">
-    <div class="modal-hdr">
-      <div class="modal-hdr-left">
-        <h2>Update USM</h2>
-        <p>warehouse_id (or city_name / state_name) · mpc</p>
-        <span class="upload-mode mode-complete"><span class="material-icons-round">published_with_changes</span> Complete-only</span>
-      </div>
-      <button class="modal-close" onclick="closeModal('modal-usm')"><span class="material-icons-round">close</span></button>
-    </div>
-    <div class="modal-body">
-      <div class="upload-zone" onclick="simulateUpload('usm')">
-        <div><span class="material-icons-round">cloud_upload</span></div>
-        <p>Drag &amp; drop file here or <span class="uz-link">browse</span></p>
-        <p class="uz-types">Accepts .csv and .xlsx · Max 10 MB</p>
-      </div>
-      <div class="uz-demo"><a onclick="simulateUploadError('usm')">Demo: simulate validation error →</a></div>
-      <div class="upload-error-banner" id="error-usm" style="display:none">
-        <span class="material-icons-round ico">error</span>
-        <div class="upload-error-banner-text"><strong>3 rows failed validation.</strong> Download the annotated file, fix offline, and re-upload.</div>
-        <button class="btn btn-outlined btn-sm" onclick="dlAnnotatedErrorFile('usm')"><span class="material-icons-round">file_download</span> Download annotated</button>
-      </div>
-    </div>
-    <div class="modal-ftr">
-<button class="btn btn-outlined" onclick="closeModal('modal-usm')">Cancel</button>
-      <button class="btn btn-primary" id="submit-usm" disabled onclick="submitModal('modal-usm','5 rows pushed to warehouse_product_assortment_v2','usm',5)">
-        <span class="material-icons-round">send</span> Submit
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- MDQ -->
-<div class="modal-overlay" id="modal-mdq">
-  <div class="modal">
-    <div class="modal-hdr">
-      <div class="modal-hdr-left">
-        <h2>Update MDQ</h2>
-        <p>warehouse_id (or city_name / state_name) · mpc · mdq</p>
-        <span class="upload-mode mode-partial"><span class="material-icons-round">sync_alt</span> Partial</span>
-      </div>
-      <button class="modal-close" onclick="closeModal('modal-mdq')"><span class="material-icons-round">close</span></button>
-    </div>
-    <div class="modal-body">
-      <div class="upload-zone" onclick="simulateUpload('mdq')">
-        <div><span class="material-icons-round">cloud_upload</span></div>
-        <p>Drag &amp; drop file here or <span class="uz-link">browse</span></p>
-        <p class="uz-types">Accepts .csv and .xlsx · Max 10 MB</p>
-      </div>
-      <div class="uz-demo"><a onclick="simulateUploadError('mdq')">Demo: simulate validation error →</a></div>
-      <div class="upload-error-banner" id="error-mdq" style="display:none">
-        <span class="material-icons-round ico">error</span>
-        <div class="upload-error-banner-text"><strong>2 rows failed validation.</strong> Download the annotated file, fix offline, and re-upload.</div>
-        <button class="btn btn-outlined btn-sm" onclick="dlAnnotatedErrorFile('mdq')"><span class="material-icons-round">file_download</span> Download annotated</button>
-      </div>
-    </div>
-    <div class="modal-ftr">
-<button class="btn btn-outlined" onclick="closeModal('modal-mdq')">Cancel</button>
-      <button class="btn btn-primary" id="submit-mdq" disabled onclick="submitModal('modal-mdq','5 rows pushed to dp_mdq','mdq',5)">
-        <span class="material-icons-round">send</span> Submit
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- City-Store Mappings -->
-<div class="modal-overlay" id="modal-city-store">
-  <div class="modal">
-    <div class="modal-hdr">
-      <div class="modal-hdr-left">
-        <h2>Upload City-Store Mappings</h2>
-        <p>store_id · Zone · State · district · postal_code · store_type · channel · cluster_id · sister_store_code · RM · CM</p>
-        <span class="upload-mode mode-partial"><span class="material-icons-round">sync_alt</span> Partial</span>
-      </div>
-      <button class="modal-close" onclick="closeModal('modal-city-store')"><span class="material-icons-round">close</span></button>
-    </div>
-    <div class="modal-body">
-      <div class="upload-zone" onclick="simulateUpload('city')">
-        <div><span class="material-icons-round">cloud_upload</span></div>
-        <p>Drag &amp; drop file here or <span class="uz-link">browse</span></p>
-        <p class="uz-types">Accepts .csv and .xlsx · Max 10 MB</p>
-      </div>
-      <div class="uz-demo"><a onclick="simulateUploadError('city')">Demo: simulate validation error →</a></div>
-      <div class="upload-error-banner" id="error-city" style="display:none">
-        <span class="material-icons-round ico">error</span>
-        <div class="upload-error-banner-text"><strong>2 rows failed validation.</strong> Download the annotated file, fix offline, and re-upload.</div>
-        <button class="btn btn-outlined btn-sm" onclick="dlAnnotatedErrorFile('city')"><span class="material-icons-round">file_download</span> Download annotated</button>
-      </div>
-    </div>
-    <div class="modal-ftr">
-<button class="btn btn-outlined" onclick="closeModal('modal-city-store')">Cancel</button>
-      <button class="btn btn-primary" id="submit-city" disabled onclick="submitModal('modal-city-store','4 rows pushed to dp_city_store_patch','city-store',4)">
-        <span class="material-icons-round">send</span> Submit
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- Non-USM -->
-<div class="modal-overlay" id="modal-nonusm">
-  <div class="modal">
-    <div class="modal-hdr">
-      <div class="modal-hdr-left">
-        <h2>Update Non-USM</h2>
-        <p>store_id · mpc · non_usm_type (Consumables / GWP / Testers / Others)</p>
-        <span class="upload-mode mode-partial"><span class="material-icons-round">sync_alt</span> Partial</span>
-        <span class="upload-mode mode-complete"><span class="material-icons-round">published_with_changes</span> Complete (toggle)</span>
-      </div>
-      <button class="modal-close" onclick="closeModal('modal-nonusm')"><span class="material-icons-round">close</span></button>
-    </div>
-    <div class="modal-body">
-      <div class="upload-zone" onclick="simulateUpload('nonusm')">
-        <div><span class="material-icons-round">cloud_upload</span></div>
-        <p>Drag &amp; drop file here or <span class="uz-link">browse</span></p>
-        <p class="uz-types">Accepts .csv and .xlsx · Max 10 MB</p>
-      </div>
-      <div class="uz-demo"><a onclick="simulateUploadError('nonusm')">Demo: simulate validation error →</a></div>
-      <div class="upload-error-banner" id="error-nonusm" style="display:none">
-        <span class="material-icons-round ico">error</span>
-        <div class="upload-error-banner-text"><strong>2 rows failed validation.</strong> Download the annotated file, fix offline, and re-upload.</div>
-        <button class="btn btn-outlined btn-sm" onclick="dlAnnotatedErrorFile('nonusm')"><span class="material-icons-round">file_download</span> Download annotated</button>
-      </div>
-    </div>
-    <div class="modal-ftr">
-<button class="btn btn-outlined" onclick="closeModal('modal-nonusm')">Cancel</button>
-      <button class="btn btn-primary" id="submit-nonusm" disabled onclick="submitModal('modal-nonusm','5 rows pushed to dp_non_usm','nonusm',5)">
-        <span class="material-icons-round">send</span> Submit
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- NSO -->
-<div class="modal-overlay" id="modal-nso">
-  <div class="modal">
-    <div class="modal-hdr">
-      <div class="modal-hdr-left">
-        <h2>Upload NSOs (New Store Openings)</h2>
-        <p>store_id · store_name · expected_opening_date · is_nso · sister_store_code · Zone · State · district · cluster_id</p>
-        <span class="upload-mode mode-complete"><span class="material-icons-round">published_with_changes</span> Complete-only</span>
-      </div>
-      <button class="modal-close" onclick="closeModal('modal-nso')"><span class="material-icons-round">close</span></button>
-    </div>
-    <div class="modal-body">
-      <div class="upload-zone" onclick="simulateUpload('nso')">
-        <div><span class="material-icons-round">cloud_upload</span></div>
-        <p>Drag &amp; drop file here or <span class="uz-link">browse</span></p>
-        <p class="uz-types">Accepts .csv and .xlsx · Max 10 MB</p>
-      </div>
-      <div class="uz-demo"><a onclick="simulateUploadError('nso')">Demo: simulate validation error →</a></div>
-      <div class="upload-error-banner" id="error-nso" style="display:none">
-        <span class="material-icons-round ico">error</span>
-        <div class="upload-error-banner-text"><strong>2 rows failed validation.</strong> Download the annotated file, fix offline, and re-upload.</div>
-        <button class="btn btn-outlined btn-sm" onclick="dlAnnotatedErrorFile('nso')"><span class="material-icons-round">file_download</span> Download annotated</button>
-      </div>
-    </div>
-    <div class="modal-ftr">
-<button class="btn btn-outlined" onclick="closeModal('modal-nso')">Cancel</button>
-      <button class="btn btn-primary" id="submit-nso" disabled onclick="submitModal('modal-nso','3 NSOs pushed to dp_nso_patch','nso',3)">
-        <span class="material-icons-round">send</span> Submit
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- ROS Multiplier -->
-<div class="modal-overlay" id="modal-ros-multiplier">
-  <div class="modal">
-    <div class="modal-hdr">
-      <div class="modal-hdr-left">
-        <h2>Upload ROS Multiplier</h2>
-        <p>product_granularity · geo_granularity · week · multiplier_value · remarks</p>
-        <span class="upload-mode mode-partial"><span class="material-icons-round">sync_alt</span> Partial</span>
-      </div>
-      <button class="modal-close" onclick="closeModal('modal-ros-multiplier')"><span class="material-icons-round">close</span></button>
-    </div>
-    <div class="modal-body">
-      <div class="upload-zone" onclick="simulateUpload('ros')">
-        <div><span class="material-icons-round">cloud_upload</span></div>
-        <p>Drag &amp; drop file here or <span class="uz-link">browse</span></p>
-        <p class="uz-types">Accepts .csv and .xlsx · Max 10 MB</p>
-      </div>
-      <div class="uz-demo"><a onclick="simulateUploadError('ros')">Demo: simulate validation error →</a></div>
-      <div class="upload-error-banner" id="error-ros" style="display:none">
-        <span class="material-icons-round ico">error</span>
-        <div class="upload-error-banner-text"><strong>2 rows failed validation.</strong> Download the annotated file, fix offline, and re-upload.</div>
-        <button class="btn btn-outlined btn-sm" onclick="dlAnnotatedErrorFile('ros')"><span class="material-icons-round">file_download</span> Download annotated</button>
-      </div>
-      <div class="preview-sec" id="preview-ros">
-        <div class="nat-banner">
-          <span class="material-icons-round">warning_amber</span>
-          <span>If the file contains <strong>geo_granularity = national</strong> rows, you must download and review the national buying plan comparison before submit is enabled.</span>
-        </div>
-        <div class="dl-gate" id="ros-dl-gate">
-          <div>
-            <p><strong>Download National Buying Plan Comparison</strong><br>Sheet 1: current buying plan (from Horizon). Sheet 2: future buying plan = max(MDQ, ROS × DOI) at MPC × Store × Month. Required before submitting.</p>
-          </div>
-          <button class="btn btn-outlined btn-sm" onclick="downloadNationalPlan()">
-            <span class="material-icons-round">table_chart</span> Download
-          </button>
-        </div>
-      </div>
-    </div>
-    <div class="modal-ftr">
-<button class="btn btn-outlined" onclick="closeModal('modal-ros-multiplier')">Cancel</button>
-      <button class="btn btn-primary" id="submit-ros" disabled onclick="submitModal('modal-ros-multiplier','4 rows pushed to ROS multipliers','ros-multiplier',4)">
-        <span class="material-icons-round">send</span> Submit Multipliers
-      </button>
-    </div>
-  </div>
-</div>
-
-
-
-<!-- B.2 Manual Demand Upload -->
-<div class="modal-overlay" id="modal-b2">
-  <div class="modal">
-    <div class="modal-hdr">
-      <div class="modal-hdr-left">
-        <h2>Manual Demand Upload (Testers &amp; Others)</h2>
-        <p>product_granularity · geo_granularity · week · demand · remarks — covers every in-scope store × mpc × week</p>
-        <span class="upload-mode mode-complete"><span class="material-icons-round">published_with_changes</span> Complete-only</span>
-      </div>
-      <button class="modal-close" onclick="closeModal('modal-b2')"><span class="material-icons-round">close</span></button>
-    </div>
-    <div class="modal-body">
-      <div class="upload-zone" onclick="simulateUpload('b2')">
-        <div><span class="material-icons-round">cloud_upload</span></div>
-        <p>Drag &amp; drop file here or <span class="uz-link">browse</span></p>
-        <p class="uz-types">Accepts .csv and .xlsx · Max 10 MB</p>
-      </div>
-      <div class="uz-demo"><a onclick="simulateUploadError('b2')">Demo: simulate validation error →</a></div>
-      <div class="upload-error-banner" id="error-b2" style="display:none">
-        <span class="material-icons-round ico">error</span>
-        <div class="upload-error-banner-text"><strong>1 row failed validation.</strong> Download the annotated file, fix offline, and re-upload.</div>
-        <button class="btn btn-outlined btn-sm" onclick="dlAnnotatedErrorFile('b2')"><span class="material-icons-round">file_download</span> Download annotated</button>
-      </div>
-    </div>
-    <div class="modal-ftr">
-<button class="btn btn-outlined" onclick="closeModal('modal-b2')">Cancel</button>
-      <button class="btn btn-primary" id="submit-b2" disabled onclick="submitModal('modal-b2','4 rows pushed to dp_b2_manual_demand','b2',4)">
-        <span class="material-icons-round">send</span> Submit
-      </button>
-    </div>
-  </div>
-</div>
-<!-- /B.2 -->
-
-<!-- TOAST -->
-<div class="toast-c" id="toast-c"></div>
-
-<script>
-const MOCK_HEALTH = {
-  usm:          { healthy: true,  errors: [], warnings: ['Last USM upload was 35 days ago — approaching 45-day staleness threshold'] },
-  nonusm:       { healthy: true,  errors: [], warnings: [] },
-  mdq:          { healthy: true,  errors: [], warnings: [] },
-  city:         { healthy: true,  errors: [], warnings: [] },
-  nso:          { healthy: true,  errors: [], warnings: [] },
-  ros:          { healthy: false,
-                  errors: ['Active multiplier rows expire in 2 days (week 2026-W12 not covered)', 'Missing coverage for 4 MPCs at city-level granularity'],
-                  warnings: ['3 multipliers set above 1.5 — verify intent before submit', '12 rows at national granularity — high blast radius'] },
-  forecast:     { healthy: true,  errors: [], warnings: [] },
-  b2:           { healthy: true,  errors: [], warnings: [] },
+const SCENARIOS = {
+  'Mixed':       { usm:{health:'Unhealthy',issues:2,warnings:1}, nonusm:{health:'Warning',issues:0,warnings:1}, mdq:{health:'Warning',issues:0,warnings:2}, ros:{health:'Warning',issues:0,warnings:2}, nonusm_demand:{health:'Warning',issues:0,warnings:1}, citystore:{health:'Healthy',issues:0,warnings:0}, nso:{health:'Healthy',issues:0,warnings:0} },
+  'All healthy': { usm:{health:'Healthy',issues:0,warnings:0},   nonusm:{health:'Healthy',issues:0,warnings:0},   mdq:{health:'Healthy',issues:0,warnings:0}, ros:{health:'Healthy',issues:0,warnings:0},   nonusm_demand:{health:'Healthy',issues:0,warnings:0},  citystore:{health:'Healthy',issues:0,warnings:0}, nso:{health:'Healthy',issues:0,warnings:0} },
+  'Critical':    { usm:{health:'Unhealthy',issues:2,warnings:1}, nonusm:{health:'Unhealthy',issues:1,warnings:1}, mdq:{health:'Warning',issues:0,warnings:2}, ros:{health:'Unhealthy',issues:1,warnings:2}, nonusm_demand:{health:'Unhealthy',issues:1,warnings:1}, citystore:{health:'Unhealthy',issues:2,warnings:1}, nso:{health:'Healthy',issues:0,warnings:0} },
 };
 
-const CARD_LABELS = {
-  usm:'USM', nonusm:'Non-USM', mdq:'MDQ', city:'City-Store Mappings', nso:'NSOs',
-  ros:'ROS Multipliers', forecast:'Demand Forecasting', b2:'Manual Demand Upload',
+const SUBSECTIONS = [
+  { id:'Assortment',           label:'Assortment' },
+  { id:'Product-level inputs', label:'Demand Inputs' },
+  { id:'Store universe',       label:'Store universe' },
+];
+
+// ─── Run history (logs) ──────────────────────────────────────────────────────
+// Past runs displayed in the Logs drawer. The current cycle's run (if it exists)
+// is prepended at render time based on runState.
+const PAST_LOGS = [
+  { runId:'2026-05-W3-v2', cycle:'2026-05-W3 · 11–17 May', status:'Approved', generatedAt:'12 May 2026, 14:08', generatedBy:'Priya Shah',  actionedBy:'Rohan Verma', actionedAt:'12 May 2026, 16:21', rows:32612, stores:165, mpcs:1241 },
+  { runId:'2026-05-W3-v1', cycle:'2026-05-W3 · 11–17 May', status:'Rejected', generatedAt:'12 May 2026, 09:14', generatedBy:'Priya Shah',  actionedBy:'Rohan Verma', actionedAt:'12 May 2026, 11:42', rows:31204, stores:165, mpcs:1238, remarks:'ROS multipliers for Lakmé looked inflated — revisit national rows before re-running.' },
+  { runId:'2026-05-W2-v1', cycle:'2026-05-W2 · 04–10 May', status:'Approved', generatedAt:'05 May 2026, 10:32', generatedBy:'Priya Shah',  actionedBy:'Rohan Verma', actionedAt:'05 May 2026, 12:11', rows:30894, stores:163, mpcs:1224 },
+  { runId:'2026-05-W1-v1', cycle:'2026-05-W1 · 01–03 May', status:'Approved', generatedAt:'02 May 2026, 09:50', generatedBy:'Priya Shah',  actionedBy:'Rohan Verma', actionedAt:'02 May 2026, 11:35', rows:12407, stores:162, mpcs:1219 },
+  { runId:'2026-04-W4-v2', cycle:'2026-04-W4 · 20–26 Apr', status:'Approved', generatedAt:'21 Apr 2026, 11:18', generatedBy:'Priya Shah',  actionedBy:'Rohan Verma', actionedAt:'21 Apr 2026, 13:42', rows:29754, stores:161, mpcs:1207 },
+];
+
+// ─── Excel schemas (ported from working file) ────────────────────────────────
+const TEMPLATE_SCHEMA = {
+  'usm_template':            { name:'USM',         cols:['store_id','mpc'], rows:[['S-101','MPC-4421'],['S-102','MPC-4422']] },
+  'mdq_template':            { name:'MDQ',         cols:['store_id','mpc','mdq'], rows:[['S-101','MPC-4421',48],['S-102','MPC-4422',24]] },
+  'city_store_template':     { name:'CityStore',   cols:['store_opening_date','store_code','store_name','Zone','State','district','postal_code','store_type','status','channel','cluster_id','sister_store_code','RM','CM','cluster_remark'],
+                                rows:[['2024-05-12','S-101','Mumbai Juhu','West','Maharashtra','Mumbai','400049','High Street','Active','Stores','CL-042','','arjun.m','sneha.r','']] },
+  'nso_template':            { name:'NSO',         cols:['store_id','store_name','expected_opening_date','is_nso','sister_store_code','Zone','State','district','postal_code','store_type','status','channel','RM','CM'],
+                                rows:[['NSO-201','Pune Koregaon','2026-08-15',true,'S-057','West','Maharashtra','Pune','411001','High Street','Planned','Stores','arjun.m','sneha.r']] },
+  'nonusm_template':         { name:'NonUSM',      cols:['geo_granularity','geo_value','mpc','non_usm_type'], rows:[['store_id','S-101','MPC-5001','Consumables'],['city','Mumbai','MPC-5110','Testers']] },
+  'ros_multiplier_template': { name:'ROSMult',     cols:['geo_granularity','geo_value','product_granularity','product_value','week','multiplier_value','remarks'],
+                                rows:[['city','Mumbai','brand','Lakmé','2026-05-W3',1.2,'Local promo']] },
+  'nonusm_demand_template':  { name:'NonUSMDemand', cols:['geo_granularity','geo_value','mpc','non_usm_type','week','demand_units','remarks'],
+                                rows:[['store_id','S-101','MPC-5110','Testers','2026-05-W3',6,'Counter sampling'],['city','Mumbai','MPC-5212','Others','2026-05-W3',24,'']] },
 };
 
-const SECTION_A_CARDS = ['usm','nonusm','mdq','city','nso','ros'];
-const SECTION_B_CARDS = ['forecast','b2'];
+const FORECAST_COLS = ['Store Code','Store Name','City','State','Warehouse','MPC','Product Name','Dept','Cat','Sub Cat','Brand','Brand Type','MDQ','DRR','Final Demand','Final Demand Value','Multiplier','MPC Classification','Remarks (Forecast is at MDQ or ROS)'];
+const FORECAST_SAMPLE_ROWS = [
+  ['S-101','Mumbai Juhu','Mumbai','MH','WH-001','MPC-4421','Lakmé 9to5 Lipstick','Colour Cosmetics','Lip','Lipstick','Lakmé','USM',48,12.4,104,12480,1.20,'A+','Forecast is at ROS'],
+  ['S-102','Bengaluru Indira','Bengaluru','KA','WH-002','MPC-5001','Lakmé Salon Gloves','Operations','Consumables','Pouch','Lakmé','Non-USM',12,1.2,9,1080,1.00,'C','Forecast is at MDQ'],
+  ['S-103','Delhi CP','New Delhi','DL','WH-004','MPC-3318','Maybelline Fit Me Foundation','Colour Cosmetics','Face','Foundation','Maybelline','USM',24,6.1,73,21900,1.00,'A','Forecast is at ROS'],
+  ['S-104','Kolkata Park','Kolkata','WB','WH-003','MPC-2241','L\'Oréal Casting Crème','Haircare','Hair','Hair Colour','L\'Oréal Paris','USM',18,4.2,42,18900,1.10,'B','Forecast is at ROS'],
+  ['S-105','Hyderabad Hitech','Hyderabad','TS','WH-005','MPC-5110','Maybelline Lipstick Tester','Colour Cosmetics','Lip','Lipstick','Maybelline','Non-USM',6,0.0,24,1200,1.00,'—','Forecast is at MDQ'],
+  ['S-106','Pune Phoenix','Pune','MH','WH-001','MPC-7745','MyGlamm Liquid Lipstick','Colour Cosmetics','Lip','Lipstick','MyGlamm','USM',12,3.5,38,16720,1.05,'A','Forecast is at ROS'],
+  ['S-107','Chennai Express','Chennai','TN','WH-005','MPC-8821','Plum Niacinamide Serum','Skincare','Face','Serum','Plum','USM',9,2.1,22,11000,1.00,'B','Forecast is at ROS'],
+  ['S-108','Ahmedabad SG','Ahmedabad','GJ','WH-001','MPC-5212','Generic Tissue Roll','Operations','Consumables','Tissue','Generic','Non-USM',8,0.5,18,540,1.00,'D','Forecast is at MDQ'],
+];
 
-let healthState = {};
-let isRechecking = false;
-
-function fetchHealthStatus() {
-  return new Promise(resolve => {
-    setTimeout(() => {
-      const result = {};
-      for (const [k, v] of Object.entries(MOCK_HEALTH)) {
-        result[k] = { ...v, errors: [...v.errors], warnings: [...(v.warnings || [])], lastChecked: new Date().toISOString() };
-      }
-      resolve(result);
-    }, 900);
-  });
-}
-
-function applyHealthToCard(cardKey, status) {
-  const card = document.getElementById('card-' + cardKey);
-  const errBox = document.getElementById('health-errors-' + cardKey);
-  if (!card) return;
-  card.classList.remove('health-ok', 'health-err', 'health-warn', 'health-checking');
-  const hasErrors = status.errors && status.errors.length > 0;
-  const hasWarnings = status.warnings && status.warnings.length > 0;
-  if (hasErrors) card.classList.add('health-err');
-  else if (hasWarnings) card.classList.add('health-warn');
-  else card.classList.add('health-ok');
-  if (errBox) {
-    let html = '';
-    if (hasErrors) {
-      const n = status.errors.length;
-      html += `
-        <div class="health-errors">
-          <div class="health-errors-summary" onclick="this.parentElement.classList.toggle('expanded')">
-            <span class="material-icons-round ico-warn">error</span>
-            <span><strong>${n} issue${n>1?'s':''}</strong></span>
-            <span class="spacer"></span>
-            <span class="label-view">View details</span>
-            <span class="material-icons-round expand-ico">expand_more</span>
-          </div>
-          <div class="health-errors-list">
-            <ul>${status.errors.map(e => `<li>${e}</li>`).join('')}</ul>
-          </div>
-        </div>`;
-    }
-    if (hasWarnings) {
-      const n = status.warnings.length;
-      html += `
-        <div class="health-warnings">
-          <div class="health-warnings-summary" onclick="this.parentElement.classList.toggle('expanded')">
-            <span class="material-icons-round ico-warn">warning_amber</span>
-            <span><strong>${n} warning${n>1?'s':''}</strong></span>
-            <span class="spacer"></span>
-            <span class="label-view">View details</span>
-            <span class="material-icons-round expand-ico">expand_more</span>
-          </div>
-          <div class="health-warnings-list">
-            <ul>${status.warnings.map(w => `<li>${w}</li>`).join('')}</ul>
-          </div>
-        </div>`;
-    }
-    errBox.innerHTML = html;
-  }
-}
-
-function setCardChecking(cardKey) {
-  const card = document.getElementById('card-' + cardKey);
-  if (!card) return;
-  card.classList.remove('health-ok', 'health-err'); card.classList.add('health-checking');
-}
-
-function updateHealthSummary() {
-  const summary = document.getElementById('recheck-bar-summary');
-  if (!summary) return;
-  const all = [...SECTION_A_CARDS, ...SECTION_B_CARDS];
-  const unhealthy = all.filter(k => healthState[k] && (healthState[k].errors||[]).length > 0);
-  const warnOnly  = all.filter(k => healthState[k] && (healthState[k].errors||[]).length === 0 && (healthState[k].warnings||[]).length > 0);
-  if (unhealthy.length > 0) {
-    const names = unhealthy.map(k => CARD_LABELS[k] || k).join(', ');
-    summary.className = 'recheck-bar-left unhealthy';
-    summary.innerHTML = `<span class="material-icons-round">error</span><span><strong>${unhealthy.length} unhealthy</strong> — ${names}</span>`;
-  } else if (warnOnly.length > 0) {
-    const names = warnOnly.map(k => CARD_LABELS[k] || k).join(', ');
-    summary.className = 'recheck-bar-left warning';
-    summary.innerHTML = `<span class="material-icons-round">warning_amber</span><span><strong>${warnOnly.length} with warning${warnOnly.length>1?'s':''}</strong> — ${names}</span>`;
-  } else {
-    summary.className = 'recheck-bar-left healthy';
-    summary.innerHTML = `<span class="material-icons-round">check_circle</span><span>All healthy</span>`;
-  }
-}
-
-function evaluateSectionLocks() {
-  // Section B is no longer locked at the section level. Only the Run Forecasting
-  // button is soft-locked when Section A has unhealthy cards.
-  updateForecastButtonState();
-}
-
-function isSectionAHealthy(){
-  return SECTION_A_CARDS.every(k => healthState[k] && healthState[k].healthy);
-}
-
-function updateForecastButtonState(){
-  const btn = document.getElementById('btn-forecast');
-  if (!btn) return;
-  btn.classList.toggle('btn-soft-locked', !isSectionAHealthy());
-}
-
-function triggerShakeUnhealthy() {
-  const unhealthy = SECTION_A_CARDS.filter(k => healthState[k] && !healthState[k].healthy);
-  if (!unhealthy.length) return;
-  unhealthy.forEach(k => {
-    const el = document.getElementById('card-' + k);
-    if (!el) return;
-    el.classList.remove('shake');
-    void el.offsetWidth; // force reflow to restart animation
-    el.classList.add('shake');
-  });
-  // Scroll the first unhealthy card into view (subtle nudge — header sits above)
-  const firstEl = document.getElementById('card-' + unhealthy[0]);
-  if (firstEl && firstEl.scrollIntoView) firstEl.scrollIntoView({ behavior:'smooth', block:'center' });
-  setTimeout(() => unhealthy.forEach(k => {
-    const el = document.getElementById('card-' + k);
-    if (el) el.classList.remove('shake');
-  }), 600);
-}
-
-async function recheckAllHealth(triggeredByUpload) {
-  if (isRechecking) return;
-  isRechecking = true;
-  const btn = document.getElementById('btn-recheck');
-  const tsEl = document.getElementById('recheck-last-ts');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Checking…';
-  const allCards = [...SECTION_A_CARDS, ...SECTION_B_CARDS];
-  allCards.forEach(k => setCardChecking(k));
-  if (!triggeredByUpload) {
-    MOCK_HEALTH.ros = { healthy: true, errors: [], warnings: [] };
-  }
-  try {
-    const result = await fetchHealthStatus();
-    healthState = result;
-    allCards.forEach(k => { if (result[k]) applyHealthToCard(k, result[k]); });
-    evaluateSectionLocks();
-    updateHealthSummary();
-    const now = new Date();
-    tsEl.textContent = `Last checked: ${now.toLocaleDateString([], {day:'2-digit', month:'short'})} ${now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
-    if (!triggeredByUpload) showToast('Health check complete', 'success');
-  } catch (err) {
-    tsEl.textContent = 'Last checked: failed';
-    showToast('Health check failed — could not reach backend', 'error');
-  }
-  btn.disabled = false;
-  btn.innerHTML = '<span class="material-icons-round">refresh</span> Recheck Health';
-  isRechecking = false;
-}
-
-function recheckAfterUpload(cardKey) {
-  if (MOCK_HEALTH[cardKey]) { MOCK_HEALTH[cardKey].healthy = true; MOCK_HEALTH[cardKey].errors = []; MOCK_HEALTH[cardKey].warnings = []; }
-  showToast('Re-checking data health…', 'info');
-  setTimeout(() => recheckAllHealth(true), 600);
-}
-
-const runLogs = {
-  'usm': [
-    { id:'UPL-0445', ts:'2026-02-26 16:00', user:'arjun.m', status:'success', type:'Manual Upload', file:'usm_update_feb26.csv', rows:52, preview:[['WH-001','MPC-4421'],['WH-002','MPC-4422'],['WH-003','MPC-4423']] },
-    { id:'UPL-0421', ts:'2026-02-20 09:30', user:'sneha.r', status:'success', type:'Manual Upload', file:'usm_update_batch2.csv', rows:18, preview:[['WH-005','MPC-4425'],['WH-006','MPC-4426']] },
-  ],
-  'mdq': [
-    { id:'UPL-0446', ts:'2026-02-26 16:10', user:'arjun.m', status:'success', type:'Manual Upload', file:'mdq_update_feb26.csv', rows:48, preview:[['WH-001','MPC-4421','48'],['WH-002','MPC-4422','24'],['WH-003','MPC-4423','12']] },
-    { id:'UPL-0422', ts:'2026-02-20 09:45', user:'sneha.r', status:'success', type:'Manual Upload', file:'mdq_update_batch2.csv', rows:15, preview:[['WH-005','MPC-4425','36'],['WH-006','MPC-4426','72']] },
-  ],
-  'demand-forecast': [
-    { id:'RUN-2025', ts:'2026-05-12 09:15', user:'priya.k', status:'pending', type:'Script', duration:'3m 08s', params:{ 'In-stock window':'60 days', 'Bucket size':'15 days', 'Weights':'0.4 / 0.3 / 0.2 / 0.1', 'Fallback':'city → state', 'New MPC-store default':'0' }, rows:4222, hasExcel:false },
-    { id:'RUN-2024', ts:'2026-05-11 17:30', user:'arjun.m', status:'rejected', autoRejected:true, type:'Script', duration:'3m 14s', params:{ 'In-stock window':'60 days', 'Bucket size':'15 days', 'Weights':'0.4 / 0.3 / 0.2 / 0.1' }, rows:4215, hasExcel:false },
-    { id:'RUN-2023', ts:'2026-02-26 18:42', user:'priya.k', status:'approved', type:'Script', duration:'3m 12s', params:{ 'In-stock window':'60 days', 'Bucket size':'15 days', 'Weights':'0.4 / 0.3 / 0.2 / 0.1', 'Fallback':'city → state', 'New MPC-store default':'0' }, rows:4210, hasExcel:true },
-    { id:'RUN-2018', ts:'2026-02-25 18:30', user:'priya.k', status:'rejected', type:'Script', duration:'3m 05s', params:{ 'In-stock window':'60 days', 'Weights':'0.4 / 0.3 / 0.2 / 0.1' }, rows:4198, hasExcel:true },
-    { id:'RUN-2011', ts:'2026-02-24 18:45', user:'arjun.m', status:'approved', type:'Script', duration:'3m 20s', params:{ 'In-stock window':'60 days', 'Weights':'0.4 / 0.3 / 0.2 / 0.1' }, rows:4205, hasExcel:true },
-    { id:'RUN-1999', ts:'2026-02-23 19:10', user:'priya.k', status:'failed', type:'Script', duration:'1m 02s', params:{ 'In-stock window':'60 days' }, error:'Query timeout on dp_class join', rows:0, hasExcel:false },
-  ],
-  'ros-multiplier': [
-    { id:'UPL-0448', ts:'2026-02-27 08:55', user:'priya.k', status:'success', type:'Manual Upload', file:'ros_multipliers_w10_w11.csv', rows:4, preview:[['brand','city','2026-W10','1.2','Promo boost'],['brand-subcat','national','2026-W11','1.5','Campaign launch']] },
-    { id:'UPL-0410', ts:'2026-02-19 10:00', user:'sneha.r', status:'success', type:'Manual Upload', file:'ros_multipliers_w09.csv', rows:2, preview:[['subcat','state','2026-W09','0.85','Winter adj.']] },
-  ],
-  'city-store': [
-    { id:'UPL-0430', ts:'2026-02-22 14:00', user:'arjun.m', status:'success', type:'Manual Upload', file:'city_store_patch_feb22.csv', rows:4, preview:[['S-101','West','Maharashtra','Mumbai','CL-042'],['S-102','South','Karnataka','Bengaluru','CL-017'],['S-103','North','Delhi','New Delhi','CL-003']] },
-  ],
-  'nonusm': [
-    { id:'UPL-0447', ts:'2026-02-26 17:05', user:'priya.k', status:'success', type:'Manual Upload', file:'nonusm_feb26.csv', rows:32, preview:[['S-101','MPC-5001','Consumables'],['S-102','MPC-5002','GWP'],['S-105','MPC-5110','Testers']] },
-  ],
-  'nso': [
-    { id:'UPL-0440', ts:'2026-02-24 11:20', user:'sneha.r', status:'success', type:'Manual Upload', file:'nso_mar_apr.csv', rows:6, preview:[['NSO-201','Pune Koregaon','2026-04-12','S-057'],['NSO-202','Hyd Banjara','2026-05-03','S-031']] },
-  ],
-  'class-store': [
-    { id:'RUN-1902', ts:'2026-02-25 11:00', user:'arjun.m', status:'success', type:'Script', duration:'2m 04s', params:{'In-stock window':'60 days','Bucket size':'15 days','Grouping':'cluster_id → city fallback'}, rows:81240 },
-    { id:'RUN-1880', ts:'2026-02-18 11:05', user:'arjun.m', status:'success', type:'Script', duration:'2m 01s', rows:80512 },
-  ],
-  'class-national': [
-    { id:'RUN-1904', ts:'2026-02-25 11:30', user:'arjun.m', status:'success', type:'Script', duration:'1m 10s', params:{'In-stock window':'60 days','Bucket size':'15 days','Aggregation':'national'}, rows:4218 },
-  ],
-  'b2': [
-    { id:'UPL-0450', ts:'2026-02-27 15:20', user:'priya.k', status:'success', type:'Manual Upload', file:'b2_manual_demand_feb27.csv', rows:145, preview:[['S-105','MPC-5110','2026-W10','24','Testers'],['S-108','MPC-5212','2026-W10','18','Others']] },
-  ],
-};
-
-const LOG_LABELS = {
-  'usm':'USM Updates','nonusm':'Non-USM Updates','mdq':'MDQ Updates',
-  'city-store':'City-Store Mappings','nso':'NSO Updates',
-  'class-store':'Store-level Classification','class-national':'National-level Classification',
-  'ros-multiplier':'ROS Multipliers',
-  'demand-forecast':'Demand Forecasting','b2':'Manual Demand Upload (B.2)',
-};
-
-let runCounter = 2026;
-function nextId(pfx='RUN'){ return pfx+'-'+(runCounter++); }
-function nowTs(){ return new Date().toISOString().replace('T',' ').slice(0,16); }
-
-function toggleSection(id, ev){
-  const sec = document.getElementById(id);
-  if (sec.classList.contains('section-locked')) {
-    // Locked → shake the unhealthy cards above and bail (don't toggle collapse)
-    triggerShakeUnhealthy();
-    if (ev) ev.stopPropagation();
-    return;
-  }
-  sec.classList.toggle('collapsed');
-}
-
-function openModal(id){
-  document.getElementById(id).classList.add('open');
-  // Reset error banner state on every open
-  document.querySelectorAll('#'+id+' .upload-error-banner').forEach(el => el.style.display = 'none');
-  document.querySelectorAll('#'+id+' .preview-sec').forEach(el => el.classList.remove('visible'));
-  document.querySelectorAll('#'+id+' .btn-primary[id^="submit-"]').forEach(b => b.disabled = true);
-}
-function closeModal(id){ document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.modal-overlay').forEach(o=>{
-  o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); });
+const SNAPSHOT_SHEETS = () => ({
+  USM:           [['store_id','mpc'], ['S-101','MPC-4421'], ['S-102','MPC-4422'], ['S-103','MPC-3318']],
+  NonUSM:        [['store_id','mpc','non_usm_type'], ['S-101','MPC-5001','Consumables'], ['S-105','MPC-5110','Testers'], ['S-108','MPC-5212','Others']],
+  MDQ:           [['store_id','mpc','mdq'], ['S-101','MPC-4421',48], ['S-102','MPC-4422',24], ['S-103','MPC-3318',24]],
+  CityStore:     [['store_code','State','district','cluster_id','sister_store_code'], ['S-101','MH','Mumbai','CL-042',''], ['S-102','KA','Bengaluru','CL-017',''], ['S-103','DL','New Delhi','CL-003','']],
+  NSO:           [['store_id','expected_opening_date','sister_store_code'], ['NSO-201','2026-08-15','S-057']],
+  ROSMult:       [['geo_granularity','geo_value','product_granularity','product_value','week','multiplier_value'], ['city','Mumbai','brand','Lakmé','2026-05-W3',1.2], ['state','Maharashtra','subcat','Lipstick','2026-05-W3',1.1]],
+  NonUSMDemand:  [['geo_granularity','geo_value','mpc','non_usm_type','week','demand_units'], ['store_id','S-105','MPC-5110','Testers','2026-05-W4',6], ['city','Mumbai','MPC-5212','Others','2026-05-W4',24]],
 });
 
-const uMap={
-  usm:{preview:'preview-usm',submit:'submit-usm',errs:false},
-  nonusm:{preview:'preview-nonusm',submit:'submit-nonusm',errs:false},
-  mdq:{preview:'preview-mdq',submit:'submit-mdq',errs:false},
-  city:{preview:'preview-city',submit:'submit-city',errs:false},
-  nso:{preview:'preview-nso',submit:'submit-nso',errs:false},
-  ros:{preview:'preview-ros',submit:'submit-ros',errs:false,natGate:true},
-  b2:{preview:'preview-b2',submit:'submit-b2',errs:false},
-};
-function simulateUpload(k){
-  const m=uMap[k];
-  // Reset any prior error banner from a previous bad upload in this modal
-  const errEl = document.getElementById('error-'+k);
-  if (errEl) errEl.style.display = 'none';
-  // Row preview removed across modals. ROS still surfaces the national-plan gate via #preview-ros.
-  const previewEl = m.preview && document.getElementById(m.preview);
-  if (previewEl) previewEl.classList.add('visible');
-  if(!m.natGate) document.getElementById(m.submit).disabled=false;
-  showToast('File ready — click Submit to upload','info');
-}
-
-function simulateUploadError(k){
-  const m = uMap[k];
-  // Show inline error banner; keep Submit disabled
-  const errEl = document.getElementById('error-'+k);
-  if (errEl) errEl.style.display = 'flex';
-  document.getElementById(m.submit).disabled = true;
-  // Hide any ROS preview/gate that might have been opened earlier
-  const previewEl = m.preview && document.getElementById(m.preview);
-  if (previewEl) previewEl.classList.remove('visible');
-  showToast('Validation failed — download annotated file to fix','error');
-}
-
-function downloadNationalPlan(){
-  document.getElementById('ros-dl-gate').innerHTML=
-    `<div style="display:flex;align-items:center;gap:8px;color:var(--ok);font-size:12px;font-weight:500">
-      <span class="material-icons-round" style="font-size:16px">check_circle</span>
-      National buying plan comparison downloaded. Submit is now enabled.
-    </div>`;
-  document.getElementById('submit-ros').disabled=false;
-  showToast('Comparison file downloaded — submit enabled','success');
-}
-
-const LOG_TO_CARD = {
-  'usm':'usm', 'nonusm':'nonusm', 'mdq':'mdq', 'city-store':'city', 'nso':'nso',
-  'ros-multiplier':'ros', 'b2':'b2',
+const ERROR_SAMPLES = {
+  usm:       { cols:['store_id','mpc','Error'], rows:[['S-999','MPC-4421',`store_id 'S-999' not found in warehouse master`],['S-101','MPC-XXXX',`mpc 'MPC-XXXX' not found in product master`],['S-103','MPC-3318',`Duplicate store_id × mpc pair (row 14, 27)`]] },
+  nonusm:    { cols:['geo_granularity','geo_value','mpc','non_usm_type','Error'], rows:[['city','UnknownCity','MPC-5001','Consumables',`geo_value 'UnknownCity' not found at city granularity`],['store_id','S-101','MPC-4421','Testers',`Overlap with USM — pair must exist in exactly one list`]] },
+  mdq:       { cols:['store_id','mpc','mdq','Error'], rows:[['S-101','MPC-4421',-5,`mdq must be a non-negative integer`],['S-102','MPC-4422',9999,`mdq exceeds high-MDQ threshold`]] },
+  citystore: { cols:['store_code','state','district','sister_store_code','Error'], rows:[['S-201','MH','Pune','S-201',`sister_store_code cannot equal store_code`],['S-202','KA','Bengaluru','',`New store (<3 months) requires sister_store_code`]] },
+  nso:       { cols:['store_id','expected_opening_date','sister_store_code','Error'], rows:[['NSO-201','2025-01-01','S-057',`expected_opening_date must be in the future`],['NSO-202','2026-08-15','NSO-203',`sister_store_code must reference a non-NSO, non-new store`]] },
+  ros:       { cols:['geo_granularity','geo_value','product_granularity','product_value','week','multiplier_value','Error'], rows:[['city','Mumbai','brand','Lakmé','2027-12-W9',1.2,`week '2027-12-W9' is outside the active planning horizon`],['national','','class','A',0,2.0,`product_value cannot be empty`]] },
+  nonusm_demand: { cols:['geo_granularity','geo_value','mpc','non_usm_type','week','demand_units','Error'], rows:[['store_id','S-101','MPC-4421','Testers','2026-05-W4',6,`mpc 'MPC-4421' is USM — manual demand only applies to Non-USM rows`],['store_id','S-105','MPC-5110','Testers','2027-12-W9',6,`week '2027-12-W9' is outside the active planning horizon`],['city','Mumbai','MPC-5212','Others','2026-05-W4',-3,`demand_units must be a non-negative integer`]] },
 };
 
-function submitModal(modalId, msg, logKey, rowCount){
-  closeModal(modalId);
-  const id = nextId('UPL');
-  if(runLogs[logKey]) runLogs[logKey].unshift({
-    id, ts:nowTs(), user:'priya.k', status:'success', type:'Manual Upload',
-    file:'uploaded_file_'+id+'.csv', rows:rowCount, preview:[['—','(file stored server-side)']]
-  });
-  showToast(msg+' · '+id, 'success');
-  const cardKey = LOG_TO_CARD[logKey];
-  if (cardKey) recheckAfterUpload(cardKey);
-}
-
-function runForecast(btn){
-  // Gate: cannot run while Section A is unhealthy. Click greyed button → shake to guide attention.
-  if (btn.classList.contains('btn-soft-locked') || !isSectionAHealthy()) {
-    triggerShakeUnhealthy();
-    return;
-  }
-  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Running…';
-  setTimeout(()=>{
-    btn.disabled=false; btn.innerHTML='<span class="material-icons-round">play_arrow</span> Run Forecasting';
-    const id=nextId();
-    // Auto-reject any existing pending forecast runs — only one pending run per cycle
-    let autoRejected = 0;
-    runLogs['demand-forecast'].forEach(r => {
-      if (r.status === 'pending') { r.status = 'rejected'; r.autoRejected = true; autoRejected++; }
-    });
-    runLogs['demand-forecast'].unshift({
-      id, ts:nowTs(), user:'priya.k', status:'pending', type:'Script', duration:'3m 10s',
-      params:{'In-stock window':'60 days','Bucket size':'15 days','Weights':'0.4/0.3/0.2/0.1','Fallback':'city → state','New MPC-store default':'0'},
-      rows:4215, hasExcel:false
-    });
-    if (autoRejected > 0) showToast(`Forecast complete · ${id} · ${autoRejected} older run${autoRejected>1?'s':''} auto-rejected`,'success');
-    else showToast(`Forecast complete · ${id} · awaiting approval`,'success');
-    renderForecastCurrentRun();
-  },2200);
-}
-
-function approveForecast(id){
-  const e=runLogs['demand-forecast'].find(x=>x.id===id);
-  if(!e) return;
-  if(isB2Required() && !hasValidB2()){
-    showToast('Approval blocked — B.2 upload required for current Testers/Others rows','error');
-    return;
-  }
-  e.status='approved'; e.hasExcel=true;
-  renderForecastCurrentRun();
-  showToast(`Forecast approved · ${id} · pushed to dp_fulcrum`,'success');
-  setTimeout(()=>showToast(`Excel generated: forecast_${id}.xlsx`,'info'),700);
-  recheckAfterUpload('forecast');
-}
-
-function rejectForecast(id){
-  const e=runLogs['demand-forecast'].find(x=>x.id===id);
-  if(!e) return;
-  e.status='rejected';
-  renderForecastCurrentRun();
-  showToast(`Forecast rejected · ${id} · staged values discarded`,'info');
-}
-
-function isB2Required(){
-  const nu=runLogs['nonusm']||[];
-  if(!nu.length) return false;
-  const latest=nu[0];
-  if(!latest.preview) return false;
-  return latest.preview.some(r=>['Testers','Others'].includes(r[2]));
-}
-function hasValidB2(){
-  const arr=runLogs['b2']||[];
-  return arr.some(x=>x.status==='success');
-}
-
-// ── REAL EXCEL DOWNLOADS (SheetJS) ──
+// ─── Excel writer ────────────────────────────────────────────────────────────
 function makeExcelFile(filename, sheetMap){
-  // sheetMap: { sheetName: [[row1col1, row1col2], ...] } — first row is treated as header by readers
-  if (typeof XLSX === 'undefined') { showToast('Excel library not loaded — try again in a moment','error'); return; }
+  if (typeof XLSX === 'undefined') return false;
   const wb = XLSX.utils.book_new();
   for (const [name, rows] of Object.entries(sheetMap)) {
     const ws = XLSX.utils.aoa_to_sheet(rows);
     XLSX.utils.book_append_sheet(wb, ws, name);
   }
   XLSX.writeFile(wb, filename);
+  return true;
 }
-
-const TEMPLATE_SCHEMA = {
-  'usm_template.csv':            { name:'USM',         cols:['store_id','mpc'], rows:[['S-101','MPC-4421'],['S-102','MPC-4422']] },
-  'mdq_template.csv':            { name:'MDQ',         cols:['store_id','mpc','mdq'], rows:[['S-101','MPC-4421',48],['S-102','MPC-4422',24]] },
-  'city_store_template.csv':     { name:'CityStore',   cols:['store_opening_date','store_code','store_name','Zone','State','district','postal_code','store_type','status','channel','cluster_id','sister_store_code','RM','CM','cluster_remark'],
-                                   rows:[['2024-05-12','S-101','Mumbai Juhu','West','Maharashtra','Mumbai','400049','High Street','Active','Stores','CL-042','','arjun.m','sneha.r','']] },
-  'nso_template.csv':            { name:'NSO',         cols:['store_id','store_name','expected_opening_date','is_nso','sister_store_code','Zone','State','district','postal_code','store_type','status','channel','RM','CM'],
-                                   rows:[['NSO-201','Pune Koregaon','2026-08-15',true,'S-057','West','Maharashtra','Pune','411001','High Street','Planned','Stores','arjun.m','sneha.r']] },
-  'nonusm_template.csv':         { name:'NonUSM',      cols:['geo_granularity','geo_value','mpc','non_usm_type'], rows:[['store_id','S-101','MPC-5001','Consumables'],['city','Mumbai','MPC-5110','Testers']] },
-  'ros_multiplier_template.csv': { name:'ROSMult',     cols:['geo_granularity','geo_value','product_granularity','product_value','week','multiplier_value','remarks'],
-                                   rows:[['city','Mumbai','brand','Lakmé','2026-W19',1.2,'Local promo']] },
-  'b2_template.csv':             { name:'ManualDemand',cols:['store_id','mpc','week','demand','source'], rows:[['S-105','MPC-5110','2026-W19',24,'Testers']] },
-};
-
-function dlTemplate(f){
-  const schema = TEMPLATE_SCHEMA[f] || { name:'Template', cols:['column_1','column_2'], rows:[] };
-  const filename = f.replace('.csv', '.xlsx');
-  makeExcelFile(filename, { [schema.name]: [schema.cols, ...schema.rows] });
-  showToast('Template downloaded: '+filename,'info');
+function makeJsonFile(filename, obj){
+  const blob = new Blob([JSON.stringify(obj, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 0);
+  return true;
 }
-
-// ── Forecast output Excel (single sheet) ──
-const FORECAST_COLS = ['Store Code','Store Name','City','State','Warehouse','MPC','Product Name','Dept','Cat','Sub Cat','Brand','Brand Type','MDQ','DRR','Final Demand','Final Demand Value','Multiplier','MPC Classification','Remarks (Forecast is at MDQ or ROS)'];
-
-function buildForecastSampleRows(){
-  return [
-    ['S-101','Mumbai Juhu','Mumbai','MH','WH-001','MPC-4421','Lakmé 9to5 Lipstick','Colour Cosmetics','Lip','Lipstick','Lakmé','USM',48,12.4,104,12480,1.20,'A+','Forecast is at ROS'],
-    ['S-102','Bengaluru Indira','Bengaluru','KA','WH-002','MPC-5001','Lakmé Salon Gloves','Operations','Consumables','Pouch','Lakmé','Non-USM',12,1.2,9,1080,1.00,'C','Forecast is at MDQ'],
-    ['S-103','Delhi CP','New Delhi','DL','WH-004','MPC-3318','Maybelline Fit Me Foundation','Colour Cosmetics','Face','Foundation','Maybelline','USM',24,6.1,73,21900,1.00,'A','Forecast is at ROS'],
-    ['S-104','Kolkata Park','Kolkata','WB','WH-003','MPC-2241','L\'Oréal Casting Crème','Haircare','Hair','Hair Colour','L\'Oréal Paris','USM',18,4.2,42,18900,1.10,'B','Forecast is at ROS'],
-    ['S-105','Hyderabad Hitech','Hyderabad','TS','WH-005','MPC-5110','Maybelline Lipstick Tester','Colour Cosmetics','Lip','Lipstick','Maybelline','Non-USM',6,0.0,24,1200,1.00,'—','Forecast is at MDQ'],
-    ['S-106','Pune Phoenix','Pune','MH','WH-001','MPC-7745','MyGlamm Liquid Lipstick','Colour Cosmetics','Lip','Lipstick','MyGlamm','USM',12,3.5,38,16720,1.05,'A','Forecast is at ROS'],
-    ['S-107','Chennai Express','Chennai','TN','WH-005','MPC-8821','Plum Niacinamide Serum','Skincare','Face','Serum','Plum','USM',9,2.1,22,11000,1.00,'B','Forecast is at ROS'],
-    ['S-108','Ahmedabad SG','Ahmedabad','GJ','WH-001','MPC-5212','Generic Tissue Roll','Operations','Consumables','Tissue','Generic','Non-USM',8,0.5,18,540,1.00,'D','Forecast is at MDQ'],
-  ];
-}
-
-function dlForecastOutput(id){
-  makeExcelFile(`forecast_${id}.xlsx`, { Forecast: [FORECAST_COLS, ...buildForecastSampleRows()] });
-  showToast(`Downloading forecast_${id}.xlsx…`,'info');
-}
-
-// ── Cycle snapshot Excel (one sheet per Section A input) ──
-function dlSnapshot(id){
-  const sheets = {
-    USM:        [['store_id','mpc'], ['S-101','MPC-4421'], ['S-102','MPC-4422'], ['S-103','MPC-3318']],
-    NonUSM:     [['store_id','mpc','non_usm_type'], ['S-101','MPC-5001','Consumables'], ['S-105','MPC-5110','Testers'], ['S-108','MPC-5212','Others']],
-    MDQ:        [['store_id','mpc','mdq'], ['S-101','MPC-4421',48], ['S-102','MPC-4422',24], ['S-103','MPC-3318',24]],
-    CityStore:  [['store_code','State','district','cluster_id','sister_store_code'], ['S-101','MH','Mumbai','CL-042',''], ['S-102','KA','Bengaluru','CL-017',''], ['S-103','DL','New Delhi','CL-003','']],
-    NSO:        [['store_id','expected_opening_date','sister_store_code'], ['NSO-201','2026-08-15','S-057']],
-    ROSMult:    [['geo_granularity','geo_value','product_granularity','product_value','week','multiplier_value'], ['city','Mumbai','brand','Lakmé','2026-W19',1.2], ['state','Maharashtra','subcat','Lipstick','2026-W19',1.1]],
-    ManualDemand:[['store_id','mpc','week','demand','source'], ['S-105','MPC-5110','2026-W19',24,'Testers']],
-    _Run:       [['Field','Value'], ['Run ID',id], ['Snapshot taken at', new Date().toISOString()]],
-  };
-  makeExcelFile(`snapshot_${id}.xlsx`, sheets);
-  showToast(`Downloading snapshot_${id}.xlsx…`,'info');
-}
-
-// ── Annotated error file (original cols + Error col, error rows only) ──
-const ERROR_SAMPLES = {
-  usm:    { cols:['store_id','mpc','Error'], rows:[['S-999','MPC-4421',`store_id 'S-999' not found in warehouse master`],['S-101','MPC-XXXX',`mpc 'MPC-XXXX' not found in product master`],['S-103','MPC-3318',`Duplicate store_id × mpc pair (row 14, 27)`]] },
-  nonusm: { cols:['geo_granularity','geo_value','mpc','non_usm_type','Error'], rows:[['city','UnknownCity','MPC-5001','Consumables',`geo_value 'UnknownCity' not found at city granularity`],['store_id','S-101','MPC-4421','Testers',`Overlap with USM — pair must exist in exactly one list`]] },
-  mdq:    { cols:['store_id','mpc','mdq','Error'], rows:[['S-101','MPC-4421',-5,`mdq must be a non-negative integer`],['S-102','MPC-4422',9999,`mdq exceeds high-MDQ threshold`]] },
-  city:   { cols:['store_code','state','district','sister_store_code','Error'], rows:[['S-201','MH','Pune','S-201',`sister_store_code cannot equal store_code`],['S-202','KA','Bengaluru','',`New store (<3 months) requires sister_store_code`]] },
-  nso:    { cols:['store_id','expected_opening_date','sister_store_code','Error'], rows:[['NSO-201','2025-01-01','S-057',`expected_opening_date must be in the future`],['NSO-202','2026-08-15','NSO-203',`sister_store_code must reference a non-NSO, non-new store`]] },
-  ros:    { cols:['geo_granularity','geo_value','product_granularity','product_value','week','multiplier_value','Error'], rows:[['city','Mumbai','brand','Lakmé','2026-W99',1.2,`week '2026-W99' is outside the active forecast horizon`],['national','','class','A',0,2.0,`product_value cannot be empty`]] },
-  b2:     { cols:['store_id','mpc','week','demand','Error'], rows:[['S-105','MPC-5110','2026-W19',-12,`demand must be a non-negative integer`]] },
-};
-
-function dlAnnotatedErrorFile(key){
-  const e = ERROR_SAMPLES[key] || ERROR_SAMPLES.usm;
-  makeExcelFile(`${key}_validation_errors.xlsx`, { Errors: [e.cols, ...e.rows] });
-  showToast('Annotated error file downloaded — fix offline & re-upload','info');
-}
-
-// Legacy stubs (kept for any in-flight callers; routed to real files where applicable)
-function dlCurrentData(t){ showToast('Fetching current data from '+t+'…','info'); }
-function dlForecastExcel(id){ dlForecastOutput(id); }
-function dlUploadedFile(f){ showToast('Downloading '+f+'…','info'); }
-
-// ── ROLE ──
-let userRole = 'Planner'; // 'Planner' | 'Admin'
-function applyRoleDefaults(){
-  // Admins land on the cycle screen focused on approvals — Section A (master data
-  // maintenance) is not their daily surface, so it starts collapsed.
-  const secA = document.getElementById('section-a');
-  if (!secA) return;
-  if (userRole === 'Admin') secA.classList.add('collapsed');
-  else secA.classList.remove('collapsed');
-}
-function toggleRole(){
-  userRole = userRole === 'Planner' ? 'Admin' : 'Planner';
-  const chip = document.getElementById('role-chip');
-  chip.textContent = userRole;
-  chip.classList.toggle('admin', userRole === 'Admin');
-  applyRoleDefaults();
-  // Inline forecast row re-renders so Accept/Reject visibility flips with role
-  renderForecastCurrentRun();
-  showToast(`Role: ${userRole}`,'info');
-}
-
-function showToast(msg,type='info'){
-  const icons={success:'check_circle',error:'error',info:'info'};
-  const c=document.getElementById('toast-c');
-  const t=document.createElement('div');
-  t.className='toast '+type;
-  t.innerHTML=`<span class="material-icons-round">${icons[type]}</span>${msg}`;
-  c.appendChild(t);
-  requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
-  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300);},3800);
-}
-
-// ── APP TOOLTIP (singleton; position-fixed via getBoundingClientRect) ──
-let __tipEl = null;
-function ensureTooltipEl(){
-  if (__tipEl) return __tipEl;
-  __tipEl = document.createElement('div');
-  __tipEl.className = 'app-tooltip';
-  document.body.appendChild(__tipEl);
-  return __tipEl;
-}
-function showTooltip(trigger, text){
-  const tip = ensureTooltipEl();
-  tip.textContent = text;
-  tip.style.display = 'block';
-  tip.style.left = '0px'; tip.style.top = '0px';
-  requestAnimationFrame(() => {
-    const rect = trigger.getBoundingClientRect();
-    const tipRect = tip.getBoundingClientRect();
-    let left = rect.left;
-    if (left + tipRect.width > window.innerWidth - 8) left = window.innerWidth - tipRect.width - 8;
-    if (left < 8) left = 8;
-    let top = rect.bottom + 6;
-    if (top + tipRect.height > window.innerHeight - 8) top = rect.top - tipRect.height - 6;
-    tip.style.left = left + 'px';
-    tip.style.top = top + 'px';
+function makeZipPlaceholder(filename, summary){
+  // Browser-side zip would need JSZip; for the demo, emit a single-sheet xlsx that
+  // explains what would be in the real zip. Keeps the UX consistent (a file lands).
+  return makeExcelFile(filename.replace(/\.zip$/i, '.xlsx'), {
+    Contents: [['File', 'Description'], ...summary]
   });
 }
-function hideTooltip(){ if (__tipEl) __tipEl.style.display = 'none'; }
 
-// ── CYCLE PILL AUTO-CALC (per §4 week logic: Mon–Sun within calendar month) ──
+// ─── Cycle auto-compute (Mon–Sun within calendar month) ─────────────────────
 function computeCycleLabel(today){
-  today = today || new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
-  const day = today.getDate();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const weeks = [];
-  let idx = 1, cursor = 1;
-  while (cursor <= daysInMonth) {
-    const dow = new Date(year, month, cursor).getDay(); // 0=Sun..6=Sat
-    let weekEnd;
-    if (cursor === 1) {
-      // First week may be partial: ends on the first Sunday (or earlier if month is shorter)
-      weekEnd = (dow === 0) ? cursor : Math.min(cursor + (7 - dow), daysInMonth);
-    } else {
-      // Subsequent weeks start on Monday; end Sunday or last day of month
-      weekEnd = Math.min(cursor + 6, daysInMonth);
-    }
-    weeks.push({ idx, start: cursor, end: weekEnd });
-    idx++;
-    cursor = weekEnd + 1;
-  }
-  const w = weeks.find(x => day >= x.start && day <= x.end) || weeks[weeks.length - 1];
-  const monthName = today.toLocaleString('en-US', { month: 'short' });
-  return `Cycle: ${monthName} W${w.idx} · ${w.start}–${w.end}`;
-}
-function refreshCycleLabel(){
-  const el = document.getElementById('topnav-cycle-label');
-  if (el) el.textContent = computeCycleLabel();
-}
-
-// Compute current cycle's day range as Date objects (start-of-day → end-of-day)
-function getCycleRange(today){
   today = today || new Date();
   const year = today.getFullYear();
   const month = today.getMonth();
@@ -1378,63 +850,928 @@ function getCycleRange(today){
     idx++; cursor = weekEnd + 1;
   }
   const w = weeks.find(x => day >= x.start && day <= x.end) || weeks[weeks.length - 1];
-  return {
-    start: new Date(year, month, w.start, 0, 0, 0, 0),
-    end:   new Date(year, month, w.end,   23, 59, 59, 999),
+  const monthName = today.toLocaleString('en-US', { month: 'short' });
+  const monthNum = String(month + 1).padStart(2,'0');
+  const weekCode = `${year}-${monthNum}-W${w.idx}`;
+  const dateRange = `${w.start}–${w.end} ${monthName}`;
+  return { weekCode, dateRange, label:`${weekCode} · ${dateRange}`, weekIdx:w.idx, monthName, monthNum, year, weekStart:w.start, weekEnd:w.end };
+}
+
+// ─── Planning horizon (remaining weeks of this month + next 6 calendar months) ─
+function formatPlanningHorizon(today){
+  today = today || new Date();
+  const startDay = today.getDate();
+  const startMonShort = today.toLocaleString('en-US', { month: 'short' });
+  const startYear = today.getFullYear();
+  // Last day of (currentMonth + 6). Trick: day 0 of (m+7) === last day of (m+6).
+  const endDate = new Date(today.getFullYear(), today.getMonth() + 7, 0);
+  const endDay = endDate.getDate();
+  const endMonShort = endDate.toLocaleString('en-US', { month: 'short' });
+  const endYear = endDate.getFullYear();
+  if (startYear === endYear) return `${startDay} ${startMonShort} – ${endDay} ${endMonShort} ${startYear}`;
+  return `${startDay} ${startMonShort} ${startYear} – ${endDay} ${endMonShort} ${endYear}`;
+}
+
+// ─── Run id helper ──────────────────────────────────────────────────────────
+function currentRunId(){
+  const c = computeCycleLabel();
+  // Format: YYYY-MM-Wn-vN. Version stays at v1 in this demo; in production it
+  // increments on each re-run within the same cycle.
+  return `${c.weekCode}-v1`;
+}
+
+let toastIdSeq = 1;
+function useToasts() {
+  const [toasts, setToasts] = useState([]);
+  const push = useCallback((message, variant = 'info', ttl = 3500) => {
+    const id = toastIdSeq++;
+    setToasts(t => [...t, { id, message, variant }]);
+    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), ttl);
+  }, []);
+  return [toasts, push];
+}
+
+function ToastRack({ toasts }) {
+  return (
+    <div className="toasts">
+      {toasts.map(t => (
+        <div key={t.id} className={`toast ${t.variant}`}>
+          {t.variant === 'success' && <i className="ri-checkbox-circle-fill" style={{color:'var(--green)'}}/>}
+          {t.variant === 'error'   && <i className="ri-error-warning-fill"   style={{color:'var(--red)'}}/>}
+          {t.variant === 'info'    && <i className="ri-information-fill"      style={{color:'var(--blue)'}}/>}
+          <span>{t.message}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TopNav({ role, setRole, pushToast }) {
+  const initials = role === 'Admin' ? 'RV' : 'PS';
+  const name     = role === 'Admin' ? 'Rohan Verma' : 'Priya Shah';
+  const otherRole = role === 'Admin' ? 'Planner' : 'Admin';
+  const cycle    = computeCycleLabel();
+  const horizon  = formatPlanningHorizon();
+  return (
+    <header className="topnav">
+      <div className="topnav-left">
+        <div className="brand-mark">H</div>
+        <div className="brand-text">
+          <span className="brand-name">Horizon</span>
+          <span className="brand-sub">Retail Stores</span>
+        </div>
+      </div>
+      <div className="topnav-right">
+        <div className="chip cycle" title="Active planning cycle">
+          <i className="ri-calendar-line"/>
+          <span><span className="chip-label">Current week:</span> {cycle.monthName} {cycle.year} W{cycle.weekIdx}</span>
+        </div>
+        <div className="chip horizon" title="Rolling planning horizon — remaining weeks of this month plus next 6 calendar months">
+          <i className="ri-time-line"/>
+          <span><span className="chip-label">Planning Horizon:</span> {horizon}</span>
+        </div>
+        <div className={`role-chip ${role.toLowerCase()} static`} aria-label={`Logged in as ${role}`}>
+          <i className={`lead ${role === 'Admin' ? 'ri-shield-user-line' : 'ri-user-line'}`}/>{role}
+        </div>
+        <TemplatesPopover pushToast={pushToast}/>
+        <button
+          className="avatar"
+          onClick={() => setRole(otherRole)}
+          title={`${name} · click to switch to ${otherRole} (demo only — set by logged-in user in production)`}
+          aria-label={`Switch to ${otherRole}`}>
+          {initials}
+        </button>
+      </div>
+    </header>
+  );
+}
+
+function TemplatesPopover({ pushToast }) {
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState(null);
+  const btnRef = useRef(null);
+  const popRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const update = () => { if (!btnRef.current) return; const r = btnRef.current.getBoundingClientRect(); setPos({ top: r.bottom + 6, right: window.innerWidth - r.right }); };
+    update();
+    window.addEventListener('resize', update);
+    window.addEventListener('scroll', update, true);
+    return () => { window.removeEventListener('resize', update); window.removeEventListener('scroll', update, true); };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDocClick = (e) => { if (popRef.current?.contains(e.target) || btnRef.current?.contains(e.target)) return; setOpen(false); };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, [open]);
+
+  const dl = (card) => {
+    const schema = TEMPLATE_SCHEMA[card.template];
+    if (!schema) { pushToast(`Template missing for ${card.title}`, 'error'); return; }
+    const fname = `${card.template}.xlsx`;
+    const ok = makeExcelFile(fname, { [schema.name]: [schema.cols, ...schema.rows] });
+    pushToast(ok ? `Template downloaded — ${fname}` : 'Excel library not loaded — try again', ok ? 'success' : 'error');
+    setOpen(false);
   };
-}
-
-function isRunInCurrentCycle(run, today){
-  if (!run || !run.ts) return false;
-  const range = getCycleRange(today);
-  // run.ts looks like "2026-05-12 09:15" or ISO; parse loosely
-  const [datePart, timePart] = String(run.ts).split(/[ T]/);
-  if (!datePart) return false;
-  const [y, m, d] = datePart.split('-').map(Number);
-  const [hh, mm] = (timePart || '00:00').split(':').map(Number);
-  const t = new Date(y, (m || 1) - 1, d || 1, hh || 0, mm || 0).getTime();
-  return t >= range.start.getTime() && t <= range.end.getTime();
-}
-
-// ── FORECAST INLINE RUN STATE (Line 2 inside #card-forecast) ──
-function renderForecastCurrentRun(){
-  const container = document.getElementById('forecast-current-run');
-  if (!container) return;
-  const r = (runLogs['demand-forecast'] || [])[0];
-  if (!r || !isRunInCurrentCycle(r)) {
-    container.classList.remove('visible');
-    container.innerHTML = '';
-    return;
-  }
-  const statusMap = {
-    'pending':  { cls:'ls-pend', label:'Pending Approval' },
-    'approved': { cls:'ls-ok',   label:'Approved · Pushed to dp_fulcrum' },
-    'rejected': { cls:'ls-rej',  label: r.autoRejected ? 'Auto-rejected (newer run)' : 'Rejected' },
-    'failed':   { cls:'ls-fail', label: r.error ? `Failed — ${r.error}` : 'Failed' },
+  const dlAll = async () => {
+    // Build a real .zip containing one .xlsx per template using JSZip.
+    if (typeof JSZip === 'undefined' || typeof XLSX === 'undefined') {
+      pushToast('Zip library not loaded — try again', 'error');
+      return;
+    }
+    const zip = new JSZip();
+    let count = 0;
+    CARDS.forEach(c => {
+      const schema = TEMPLATE_SCHEMA[c.template];
+      if (!schema) return;
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet([schema.cols, ...schema.rows]);
+      XLSX.utils.book_append_sheet(wb, ws, schema.name);
+      const xlsxBinary = XLSX.write(wb, { bookType:'xlsx', type:'array' });
+      zip.file(`${c.template}.xlsx`, xlsxBinary);
+      count++;
+    });
+    const blob = await zip.generateAsync({ type:'blob' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'horizon_master_data_templates.zip';
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 0);
+    pushToast(`Downloaded horizon_master_data_templates.zip · ${count} templates`, 'success');
+    setOpen(false);
   };
-  const s = statusMap[r.status] || { cls:'ls-pend', label: r.status };
-  const isPending = r.status === 'pending';
-  const adminCanAct = isPending && userRole === 'Admin';
-  // Output not produced on failed runs; snapshot always available (frozen at run time)
-  const showOutput = r.status !== 'failed';
 
-  let actions = `<button class="btn btn-outlined btn-sm" onclick="dlSnapshot('${r.id}')"><span class="material-icons-round">archive</span> Snapshot</button>`;
-  if (showOutput) actions += `<button class="btn btn-outlined btn-sm" onclick="dlForecastOutput('${r.id}')"><span class="material-icons-round">table_chart</span> Output</button>`;
-  if (adminCanAct) {
-    actions += `<button class="btn btn-approve btn-sm" onclick="approveForecast('${r.id}')"><span class="material-icons-round">check_circle</span> Accept</button>
-                <button class="btn btn-reject btn-sm" onclick="rejectForecast('${r.id}')"><span class="material-icons-round">cancel</span> Reject</button>`;
-  }
-
-  container.innerHTML = `
-    <span class="forecast-run-id">${r.id}</span>
-    <span class="log-status ${s.cls}">${s.label}</span>
-    <span class="forecast-run-meta">${r.user} · ${r.ts}${r.duration ? ' · ' + r.duration : ''}</span>
-    <span class="forecast-run-actions">${actions}</span>
-  `;
-  container.classList.add('visible');
+  return (
+    <React.Fragment>
+      <button ref={btnRef} className="tools-btn" onClick={() => setOpen(o => !o)}>
+        <i className="ri-download-line"/><span>Templates</span>
+        <i className="ri-arrow-down-s-line chev" style={{transform: open ? 'rotate(180deg)' : 'none', transition:'transform .15s'}}/>
+      </button>
+      {open && pos && (
+        <div ref={popRef} className="popover" style={{ top: pos.top, right: pos.right }}>
+          <div className="popover-head">
+            <div className="popover-title">Master data templates</div>
+            <div className="popover-sub">Blank CSV with required columns for each input.</div>
+          </div>
+          <div className="popover-all" onClick={dlAll}>
+            <i className="ri-folder-download-line lead"/>
+            <div className="popover-all-text"><strong>Download all (.zip)</strong><span>7 templates · ~14 KB</span></div>
+            <i className="ri-arrow-right-line" style={{fontSize:14,color:'var(--purple-primary)'}}/>
+          </div>
+          <div className="popover-divider"/>
+          <div className="popover-list">
+            {CARDS.map(c => (
+              <div key={c.id} className="popover-item" onClick={() => dl(c)}>
+                <div className="popover-item-text">
+                  <div className="popover-item-title">{c.title}</div>
+                  <div className="popover-item-meta">{c.mode}</div>
+                </div>
+                <i className="ri-download-2-line dl"/>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </React.Fragment>
+  );
 }
 
-document.addEventListener('DOMContentLoaded', () => { recheckAllHealth(true); refreshCycleLabel(); renderForecastCurrentRun(); applyRoleDefaults(); });
-</script>
+function InfoTooltip({ text }) {
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState(null);
+  const btnRef = useRef(null);
+
+  const show = () => {
+    if (!btnRef.current) return;
+    const r = btnRef.current.getBoundingClientRect();
+    // Position tooltip below; flip above if it would clip viewport bottom
+    const top = (r.bottom + 6 + 80 > window.innerHeight) ? (r.top - 6 - 80) : (r.bottom + 6);
+    let left = r.left;
+    if (left + 300 > window.innerWidth - 8) left = window.innerWidth - 300 - 8;
+    if (left < 8) left = 8;
+    setPos({ top, left });
+    setOpen(true);
+  };
+  const hide = () => setOpen(false);
+
+  return (
+    <React.Fragment>
+      <button ref={btnRef} className="card-info"
+        onMouseEnter={show} onMouseLeave={hide} onFocus={show} onBlur={hide}
+        aria-label="Info">
+        <i className="ri-information-line"/>
+      </button>
+      {open && pos && (
+        <div className="info-tooltip" style={{ top: pos.top, left: pos.left }}>{text}</div>
+      )}
+    </React.Fragment>
+  );
+}
+
+function UploadCard({ card, shaking, onUpload, pushToast, uploadDisabledReason }) {
+  const { health, issues: issueCount, warnings: warningCount } = card.scenario;
+  const issues   = card.issuePool.slice(0, issueCount);
+  const warnings = card.warningPool.slice(0, warningCount);
+  const [issuesOpen,   setIssuesOpen]   = useState(true);
+  const [warningsOpen, setWarningsOpen] = useState(false);
+  useEffect(() => { if (issueCount === 0) setIssuesOpen(false); else setIssuesOpen(true); }, [issueCount]);
+  const uploadDisabled = !!uploadDisabledReason;
+
+  return (
+    <div id={`card-${card.id}`} className={`card ${health.toLowerCase()} ${shaking ? 'shaking' : ''}`}>
+      <div className="card-row">
+        <span className={`dot ${health.toLowerCase()}`} title={health}/>
+        <span className="card-title">{card.title}</span>
+        <InfoTooltip text={card.info}/>
+
+        {issues.length > 0 && (
+          <div className={`count-chip issues ${issuesOpen ? 'open' : ''}`}>
+            <button className="body" onClick={() => setIssuesOpen(o => !o)}>
+              <i className="ri-error-warning-fill lead"/>
+              <span>{issues.length} issue{issues.length === 1 ? '' : 's'}</span>
+              <i className="ri-arrow-right-s-line chev"/>
+            </button>
+            <button className="dl" title="Download issue details" onClick={() => pushToast(`Issue details for ${card.title} downloaded.`, 'success')}>
+              <i className="ri-download-2-line dl-icon"/>
+            </button>
+          </div>
+        )}
+
+        {warnings.length > 0 && (
+          <div className={`count-chip warnings ${warningsOpen ? 'open' : ''}`}>
+            <button className="body" onClick={() => setWarningsOpen(o => !o)}>
+              <i className="ri-alert-fill lead"/>
+              <span>{warnings.length} warning{warnings.length === 1 ? '' : 's'}</span>
+              <i className="ri-arrow-right-s-line chev"/>
+            </button>
+            <button className="dl" title="Download warning details" onClick={() => pushToast(`Warning details for ${card.title} downloaded.`, 'success')}>
+              <i className="ri-download-2-line dl-icon"/>
+            </button>
+          </div>
+        )}
+
+        <span className="card-spacer"/>
+        <span className="card-ago">{card.lastUpload.ago}</span>
+        <button
+          className={`btn btn-primary${uploadDisabled ? ' btn-soft-locked' : ''}`}
+          onClick={() => !uploadDisabled && onUpload(card)}
+          title={uploadDisabledReason || ''}
+          aria-disabled={uploadDisabled}>
+          <i className={uploadDisabled ? 'ri-lock-2-line' : 'ri-upload-2-line'} style={{fontSize:14}}/>Upload
+        </button>
+      </div>
+
+      {issues.length > 0 && issuesOpen && (
+        <div className="issues-block">
+          <ul className="alert-list">{issues.map((iss, i) => <li key={i}>{iss}</li>)}</ul>
+        </div>
+      )}
+      {warnings.length > 0 && warningsOpen && (
+        <div className="warnings-block">
+          <ul className="alert-list warnings-list">{warnings.map((w, i) => <li key={i}>{w}</li>)}</ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function InputsList({ cards, shakeIds, onUpload, pushToast, uploadDisabledReason }) {
+  return (
+    <React.Fragment>
+      {SUBSECTIONS.map(sub => {
+        const subCards = cards.filter(c => c.subsection === sub.id);
+        return (
+          <div className="subsection" key={sub.id}>
+            <div className="subsection-head">
+              <span className="subsection-label">{sub.label}</span>
+              <span className="subsection-divider"/>
+            </div>
+            {subCards.map(card => (
+              <UploadCard key={card.id} card={card} shaking={shakeIds.includes(card.id)} onUpload={onUpload} pushToast={pushToast} uploadDisabledReason={uploadDisabledReason}/>
+            ))}
+          </div>
+        );
+      })}
+    </React.Fragment>
+  );
+}
+
+function RunReviewDrawer({ open, onClose, role, runState, cards, pushToast, onApprove, onRequestReject }) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+
+  const isApproved = runState === 'Approved';
+  const runId = currentRunId();
+  const cycle = computeCycleLabel();
+  const dl = (kind) => {
+    if (kind === 'output') {
+      const ok = makeExcelFile(`run-${runId}-output.xlsx`, { Forecast: [FORECAST_COLS, ...FORECAST_SAMPLE_ROWS] });
+      pushToast(ok ? `Downloaded run-${runId}-output.xlsx` : 'Excel library not loaded', ok ? 'success' : 'error');
+    } else if (kind === 'by-store') {
+      const ok = makeZipPlaceholder(`run-${runId}-by-store.zip`, [
+        ['S-101.csv', 'Forecast rows for Mumbai Juhu'],
+        ['S-102.csv', 'Forecast rows for Bengaluru Indira'],
+        ['…', '164 more store files (one per store)'],
+      ]);
+      pushToast(ok ? `Downloaded run-${runId}-by-store (xlsx index)` : 'Excel library not loaded', ok ? 'success' : 'error');
+    } else if (kind === 'inputs-snapshot') {
+      const sheets = SNAPSHOT_SHEETS();
+      sheets._Run = [['Field','Value'], ['Run ID', runId], ['Cycle', cycle.label], ['Snapshot taken at', new Date().toISOString()]];
+      const ok = makeExcelFile(`run-${runId}-inputs-snapshot.xlsx`, sheets);
+      pushToast(ok ? `Downloaded run-${runId}-inputs-snapshot.xlsx` : 'Excel library not loaded', ok ? 'success' : 'error');
+    } else if (kind === 'metadata') {
+      makeJsonFile(`run-${runId}-metadata.json`, {
+        runId, cycle: cycle.label, generatedAt: new Date().toISOString(),
+        generatedBy: 'priya.shah', outputRows: 32847,
+        coverage: { stores: 166, mpcs: 1247, days: 7 },
+        inputVersions: cards.reduce((acc, c) => { acc[c.id] = { lastUpload: c.lastUpload.ago, health: c.scenario.health }; return acc; }, {}),
+        config: { inStockWindow: '60 days', bucketSize: '15 days', weights: [0.4, 0.3, 0.2, 0.1], fallback: 'city → state' },
+      });
+      pushToast(`Downloaded run-${runId}-metadata.json`, 'success');
+    }
+  };
+  const rowCount = { usm:'1,289', nonusm:'312', mdq:'8,432', ros:'2,148', nonusm_demand:'84', citystore:'162', nso:'14' };
+
+  return (
+    <React.Fragment>
+      <div className={`drawer-backdrop ${open ? 'open' : ''}`} onClick={onClose}/>
+      <div className={`drawer ${open ? 'open' : ''}`} role="dialog" aria-hidden={!open}>
+        <div className="drawer-head">
+          <div className="drawer-title">Run #{runId}</div>
+          <span className={`drawer-status ${isApproved ? 'approved' : 'pending'}`}>{isApproved ? 'Approved · pushed' : 'Pending approval'}</span>
+          <button className="drawer-close" onClick={onClose}><i className="ri-close-line"/></button>
+        </div>
+
+        <div className="drawer-body">
+          <div className="drawer-section">
+            <div className="drawer-section-label">Details</div>
+            <div className="drawer-fields">
+              <div className="drawer-field"><span className="drawer-field-label">Cycle</span><span className="drawer-field-value">{cycle.weekCode} · {cycle.dateRange} {cycle.year}</span></div>
+              <div className="drawer-field"><span className="drawer-field-label">Generated</span><span className="drawer-field-value"><strong>just now</strong> by Priya Shah</span></div>
+              <div className="drawer-field"><span className="drawer-field-label">Output rows</span><span className="drawer-field-value"><strong>32,847</strong> · store × MPC × week (calculated + manual)</span></div>
+              <div className="drawer-field"><span className="drawer-field-label">Coverage</span><span className="drawer-field-value">166 stores · 1,247 MPCs · 7 days</span></div>
+              {isApproved && <div className="drawer-field"><span className="drawer-field-label">Approved by</span><span className="drawer-field-value">Rohan Verma · just now · pushed to dp_fulcrum</span></div>}
+            </div>
+          </div>
+
+          <div className="drawer-section">
+            <div className="drawer-section-label">Download</div>
+            {[
+              { icon:'ri-file-text-line',    title:'Demand output (.xlsx)',       meta:'32,847 rows · ~2.4 MB · store × MPC × week · calculated + manual',  kind:'output' },
+              { icon:'ri-database-2-line',   title:'Inputs snapshot (.xlsx)',     meta:'7 master-data tables at run time · for audit / reproducibility',   kind:'inputs-snapshot' },
+            ].map(d => (
+              <button key={d.kind} className="download-card" onClick={() => dl(d.kind)}>
+                <div className="download-card-icon"><i className={d.icon}/></div>
+                <div className="download-card-text">
+                  <div className="download-card-title">{d.title}</div>
+                  <div className="download-card-meta">{d.meta}</div>
+                </div>
+                <i className="ri-download-2-line download-card-arrow"/>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {role === 'Admin' && runState === 'Run complete' && (
+          <div className="drawer-foot">
+            <button className="btn btn-destructive" onClick={() => { onRequestReject(); }}><i className="ri-close-line" style={{fontSize:14}}/>Reject</button>
+            <button className="btn btn-primary" onClick={() => { onApprove(); onClose(); }}><i className="ri-check-line" style={{fontSize:15}}/>Approve & push</button>
+          </div>
+        )}
+      </div>
+    </React.Fragment>
+  );
+}
+
+function LogsButton({ onClick, status }) {
+  const label = status === 'pending' ? 'Run history · 1 pending approval'
+              : status === 'rejected' ? 'Run history · last run rejected'
+              : 'Run history · last run approved';
+  return (
+    <button className="logs-btn" onClick={onClick} title={label} aria-label={label}>
+      <i className="ri-history-line"/>
+      <span className={`status-dot ${status}`}/>
+    </button>
+  );
+}
+
+function LogEntry({ entry, defaultOpen, pushToast }) {
+  const [open, setOpen] = useState(!!defaultOpen);
+  const dl = (kind) => {
+    if (kind === 'output') {
+      const ok = makeExcelFile(`run-${entry.runId}-output.xlsx`, { Forecast: [FORECAST_COLS, ...FORECAST_SAMPLE_ROWS] });
+      pushToast(ok ? `Downloaded run-${entry.runId}-output.xlsx` : 'Excel library not loaded', ok ? 'success' : 'error');
+    } else if (kind === 'inputs-snapshot') {
+      const sheets = SNAPSHOT_SHEETS();
+      sheets._Run = [['Field','Value'], ['Run ID', entry.runId], ['Cycle', entry.cycle], ['Status', entry.status], ['Generated', entry.generatedAt]];
+      const ok = makeExcelFile(`run-${entry.runId}-inputs-snapshot.xlsx`, sheets);
+      pushToast(ok ? `Downloaded run-${entry.runId}-inputs-snapshot.xlsx` : 'Excel library not loaded', ok ? 'success' : 'error');
+    }
+  };
+  const statusKey = entry.status.toLowerCase();
+  const dotHealth = statusKey === 'approved' ? 'healthy' : statusKey === 'rejected' ? 'unhealthy' : 'warning';
+  return (
+    <div className={`log-entry ${statusKey} ${open ? 'open' : ''}`}>
+      <button className="log-entry-head" onClick={() => setOpen(o => !o)} aria-expanded={open}>
+        <span className={`dot ${dotHealth}`}/>
+        <span className="log-entry-id">#{entry.runId}</span>
+        <span className="log-entry-cycle">{entry.cycle}</span>
+        <span className={`log-entry-badge ${statusKey}`}>
+          {statusKey === 'pending' ? 'Awaiting approval' : entry.status}
+        </span>
+        <i className="ri-arrow-right-s-line log-entry-chev"/>
+      </button>
+      {open && (
+        <div className="log-entry-body">
+          <div className="log-fields">
+            <div className="log-field"><span className="log-field-label">Generated</span><span className="log-field-value">{entry.generatedAt} · {entry.generatedBy}</span></div>
+            <div className="log-field"><span className="log-field-label">Output rows</span><span className="log-field-value">{entry.rows.toLocaleString()} · store × MPC × week</span></div>
+            <div className="log-field"><span className="log-field-label">Coverage</span><span className="log-field-value">{entry.stores} stores · {entry.mpcs.toLocaleString()} MPCs</span></div>
+            {entry.actionedBy && statusKey !== 'pending' && (
+              <div className="log-field">
+                <span className="log-field-label">{statusKey === 'approved' ? 'Approved by' : 'Rejected by'}</span>
+                <span className="log-field-value">{entry.actionedBy} · {entry.actionedAt}{statusKey === 'approved' ? ' · pushed to dp_fulcrum' : ''}</span>
+              </div>
+            )}
+          </div>
+          {entry.remarks && (
+            <div className="log-remarks">
+              <strong>Rejection remarks</strong>
+              {entry.remarks}
+            </div>
+          )}
+          <button className="log-dl" onClick={() => dl('output')}>
+            <div className="log-dl-icon"><i className="ri-file-text-line"/></div>
+            <div className="log-dl-text">
+              <div className="log-dl-title">Demand output (.xlsx)</div>
+              <div className="log-dl-meta">{entry.rows.toLocaleString()} rows · store × MPC × week</div>
+            </div>
+            <i className="ri-download-2-line arr"/>
+          </button>
+          <button className="log-dl" onClick={() => dl('inputs-snapshot')}>
+            <div className="log-dl-icon"><i className="ri-database-2-line"/></div>
+            <div className="log-dl-text">
+              <div className="log-dl-title">Inputs snapshot (.xlsx)</div>
+              <div className="log-dl-meta">7 master-data tables at run time · for audit</div>
+            </div>
+            <i className="ri-download-2-line arr"/>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LogsDrawer({ open, onClose, entries, pushToast }) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+
+  const pendingCount = entries.filter(e => e.status.toLowerCase() === 'pending').length;
+  return (
+    <React.Fragment>
+      <div className={`drawer-backdrop ${open ? 'open' : ''}`} onClick={onClose}/>
+      <div className={`drawer ${open ? 'open' : ''}`} role="dialog" aria-hidden={!open}>
+        <div className="drawer-head">
+          <div style={{flex:1,minWidth:0}}>
+            <div className="drawer-title">Run history</div>
+            <div className="drawer-subtitle">
+              {entries.length} run{entries.length===1?'':'s'} · {pendingCount > 0 ? `${pendingCount} pending · ` : ''}most recent first
+            </div>
+          </div>
+          <button className="drawer-close" onClick={onClose}><i className="ri-close-line"/></button>
+        </div>
+        <div className="drawer-body">
+          <div className="log-list">
+            {entries.map((entry, i) => (
+              <LogEntry key={entry.runId} entry={entry} defaultOpen={false} pushToast={pushToast}/>
+            ))}
+          </div>
+        </div>
+      </div>
+    </React.Fragment>
+  );
+}
+
+function ActionBar({ cards, role, runState, setRunState, checking, lastChecked, onRecheck, onSoftLockShake, pushToast, onReview, onRequestReject, onLogsOpen, logStatus }) {
+  const unhealthy  = cards.filter(c => c.scenario.health === 'Unhealthy');
+  const warnCards  = cards.filter(c => c.scenario.health === 'Warning');
+  const softLocked = unhealthy.length > 0;
+  const [running, setRunning] = useState(false);
+  const runId = currentRunId();
+  const cycle = computeCycleLabel();
+
+  const handleRun = () => {
+    if (softLocked) { onSoftLockShake(); pushToast(`Cannot calculate demand — ${unhealthy.length} card${unhealthy.length===1?'':'s'} unhealthy above`, 'error'); return; }
+    setRunning(true); pushToast('Demand calculation started…', 'info');
+    setTimeout(() => { setRunning(false); setRunState('Run complete'); pushToast(`Demand calculation complete — Run #${runId} ready for review`, 'success'); }, 1800);
+  };
+  const handleApprove = () => { setRunState('Approved'); pushToast(`Run #${runId} approved — push to dp_fulcrum queued`, 'success'); };
+
+  const RecheckPill = () => (
+    <button className="recheck-pill" onClick={onRecheck} disabled={checking} title="Re-run input health checks across all cards">
+      <i className={checking ? 'ri-loader-4-line' : 'ri-refresh-line'} style={checking ? {animation:'spin 1s linear infinite'} : {}}/>
+      {checking ? 'Rechecking health…' : <React.Fragment>Recheck health · last <strong>{lastChecked}</strong></React.Fragment>}
+    </button>
+  );
+
+  let tone, icon, headline, sub, actions;
+
+  if (running) {
+    tone='running'; icon='ri-loader-4-line';
+    headline=<React.Fragment>Calculating demand for <strong>{cycle.weekCode}</strong>…</React.Fragment>;
+    sub=<React.Fragment>Overlaying inputs onto base demand · usually 20–40s</React.Fragment>;
+    actions=<React.Fragment><LogsButton onClick={onLogsOpen} status={logStatus}/><button className="btn btn-primary" disabled><span className="spinner"/>Calculating…</button></React.Fragment>;
+  } else if (runState === 'Approved') {
+    tone='approved'; icon='ri-checkbox-circle-fill';
+    headline=<React.Fragment><strong>Cycle pushed to dp_fulcrum</strong> · 32,847 rows</React.Fragment>;
+    sub=<React.Fragment>Run #{runId} · approved <strong>just now</strong> by Rohan Verma</React.Fragment>;
+    actions=<React.Fragment><LogsButton onClick={onLogsOpen} status={logStatus}/><button className="btn btn-secondary" onClick={onReview}><i className="ri-eye-line" style={{fontSize:14}}/>View calculated demand</button></React.Fragment>;
+  } else if (runState === 'Run complete') {
+    tone='complete'; icon='ri-check-double-line';
+    if (role === 'Admin') {
+      headline=<React.Fragment><strong>Run #{runId}</strong> · 32,847 rows · pending your approval</React.Fragment>;
+      sub=<React.Fragment>Generated <strong>just now</strong> by Priya Shah · includes calculated + manually uploaded demand</React.Fragment>;
+      actions=<React.Fragment>
+        <LogsButton onClick={onLogsOpen} status={logStatus}/>
+        <button className="btn btn-secondary" onClick={onReview}><i className="ri-eye-line" style={{fontSize:14}}/>Review</button>
+        <button className="btn btn-destructive" onClick={onRequestReject}><i className="ri-close-line" style={{fontSize:14}}/>Reject</button>
+        <button className="btn btn-primary" onClick={handleApprove}><i className="ri-check-line" style={{fontSize:15}}/>Approve & push</button>
+      </React.Fragment>;
+    } else {
+      headline=<React.Fragment><strong>Run #{runId}</strong> · 32,847 rows · awaiting Admin approval</React.Fragment>;
+      sub=<React.Fragment>Generated <strong>just now</strong></React.Fragment>;
+      actions=<React.Fragment><LogsButton onClick={onLogsOpen} status={logStatus}/><button className="btn btn-secondary" onClick={onReview}><i className="ri-eye-line" style={{fontSize:14}}/>View calculated demand</button></React.Fragment>;
+    }
+  } else if (softLocked) {
+    tone='unhealthy'; icon='ri-error-warning-fill';
+    const names = unhealthy.map(c => c.title).join(', ');
+    headline=<React.Fragment><strong>{unhealthy.length} input{unhealthy.length===1?'':'s'} unhealthy</strong> — {names}</React.Fragment>;
+    sub=<React.Fragment>Fix the issue{unhealthy.length===1?'':'s'} above before triggering this week's cycle.</React.Fragment>;
+    actions=<React.Fragment><RecheckPill/><LogsButton onClick={onLogsOpen} status={logStatus}/><button className="btn btn-primary btn-soft-locked" onClick={handleRun}><i className="ri-lock-2-line" style={{fontSize:15}}/>Submit ROS</button></React.Fragment>;
+  } else if (warnCards.length > 0) {
+    tone='healthy'; icon='ri-checkbox-circle-fill';
+    headline=<React.Fragment><strong>Ready to submit ROS</strong></React.Fragment>;
+    sub=<React.Fragment>{warnCards.length} card{warnCards.length===1?'':'s'} with warnings — non-blocking. Review above if intent matters.</React.Fragment>;
+    actions=<React.Fragment><RecheckPill/><LogsButton onClick={onLogsOpen} status={logStatus}/><button className="btn btn-primary" onClick={handleRun}><i className="ri-play-fill" style={{fontSize:16}}/>Submit ROS</button></React.Fragment>;
+  } else {
+    tone='healthy'; icon='ri-checkbox-circle-fill';
+    headline=<React.Fragment><strong>All inputs ready</strong> · {cards.length} of {cards.length} healthy</React.Fragment>;
+    sub=<React.Fragment>{`Submits ROS for ${cycle.label} — combines forecast output with manually uploaded demand.`}</React.Fragment>;
+    actions=<React.Fragment><RecheckPill/><LogsButton onClick={onLogsOpen} status={logStatus}/><button className="btn btn-primary" onClick={handleRun}><i className="ri-play-fill" style={{fontSize:16}}/>Submit ROS</button></React.Fragment>;
+  }
+
+  return (
+    <div className="action-bar">
+      <div className="action-bar-inner">
+        <div className={`action-icon ${tone}`}><i className={icon} style={running ? {animation:'spin 1s linear infinite'} : {}}/></div>
+        <div className="action-text">
+          <div className="action-headline">{headline}</div>
+          <div className="action-sub">{sub}</div>
+        </div>
+        <div className="action-actions">{actions}</div>
+      </div>
+    </div>
+  );
+}
+
+function RejectionModal({ runId, onClose, onConfirm }) {
+  const [remarks, setRemarks] = useState('');
+  const trimmed = remarks.trim();
+  const tooShort = trimmed.length < 3;
+  const ref = useRef(null);
+  useEffect(() => { ref.current?.focus(); }, []);
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" style={{maxWidth:480}} onClick={e => e.stopPropagation()}>
+        <div className="modal-head">
+          <div className="modal-head-text">
+            <div className="modal-title">Reject Run #{runId}</div>
+            <div style={{fontSize:11,color:'var(--text-meta)',fontWeight:500,marginTop:6,lineHeight:1.5}}>
+              The run will move back to <strong>Pre-run</strong>. Add remarks so the planner knows what to fix before re-calculating.
+            </div>
+          </div>
+          <button className="modal-close" onClick={onClose}><i className="ri-close-line"/></button>
+        </div>
+
+        <div className="modal-body">
+          <label htmlFor="reject-remarks" style={{display:'block',fontSize:12,fontWeight:600,color:'var(--text-body)',marginBottom:6}}>
+            Rejection remarks <span style={{color:'var(--red)'}}>*</span>
+          </label>
+          <textarea
+            id="reject-remarks"
+            ref={ref}
+            value={remarks}
+            onChange={e => setRemarks(e.target.value)}
+            placeholder="e.g. ROS multipliers for Lakmé look inflated — check national rows before re-running."
+            rows={5}
+            style={{
+              width:'100%', resize:'vertical',
+              border:'1px solid #e4e7eb', borderRadius:6, padding:'8px 12px',
+              fontSize:12, color:'var(--text-body)', background:'#fff',
+              fontFamily:'inherit', boxSizing:'border-box', lineHeight:1.5,
+              outline:'none',
+            }}
+          />
+          <div style={{fontSize:11,color:'var(--text-meta)',marginTop:4,fontWeight:500}}>
+            Remarks are logged with the run and shown to the planner in the rejection toast.
+          </div>
+        </div>
+
+        <div className="modal-foot">
+          <div className="modal-foot-left"/>
+          <div className="modal-foot-right">
+            <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
+            <button
+              className="btn btn-destructive"
+              disabled={tooShort}
+              onClick={() => onConfirm(trimmed)}
+              title={tooShort ? 'Add remarks (min. 3 characters) to reject' : ''}
+              style={tooShort ? {opacity:.5, cursor:'not-allowed'} : {}}>
+              <i className="ri-close-line" style={{fontSize:14}}/>Reject run
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function UploadModal({ card, onClose, pushToast, onSuccess }) {
+  const [stage, setStage] = useState('idle');
+  const [fileName, setFileName] = useState(null);
+  const [dragging, setDragging] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
+  const [natPlanDone, setNatPlanDone] = useState(false);
+  const isRos = card.id === 'ros';
+
+  const acceptFile = (name) => { setFileName(name); setStage(name.toLowerCase().includes('bad') ? 'invalid' : 'valid'); };
+  const onDrop     = (e) => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files?.[0]; if (f) acceptFile(f.name); };
+  const onPickFile = (e) => { const f = e.target.files?.[0]; if (f) acceptFile(f.name); };
+
+  const simulateError = (e) => { e.preventDefault(); e.stopPropagation(); setFileName('demo_invalid_upload.xlsx'); setStage('invalid'); pushToast('Validation failed — download annotated file to fix', 'error'); };
+
+  const downloadAnnotated = () => {
+    const sample = ERROR_SAMPLES[card.id] || ERROR_SAMPLES.usm;
+    const fname = `${card.id}_validation_errors.xlsx`;
+    const ok = makeExcelFile(fname, { Errors: [sample.cols, ...sample.rows] });
+    pushToast(ok ? `Downloaded ${fname}` : 'Excel library not loaded', ok ? 'success' : 'error');
+  };
+
+  const downloadNatPlan = () => {
+    const fname = `national_buying_plan_comparison.xlsx`;
+    const ok = makeExcelFile(fname, {
+      CurrentPlan: [['MPC','Store','Month','Units (current)'], ['MPC-4421','S-101','2026-05',104], ['MPC-3318','S-103','2026-05',73]],
+      FuturePlan:  [['MPC','Store','Month','Units (future = max(MDQ, ROS×DOI))'], ['MPC-4421','S-101','2026-05',125], ['MPC-3318','S-103','2026-05',88]],
+    });
+    if (ok) { setNatPlanDone(true); pushToast('Comparison file downloaded — Submit enabled', 'success'); }
+    else pushToast('Excel library not loaded', 'error');
+  };
+
+  const submitDisabled =
+    stage !== 'valid' ||
+    (card.mode === 'Complete-only' && !confirmed) ||
+    (isRos && !natPlanDone);
+
+  const handleSubmit = () => {
+    if (submitDisabled) return;
+    setStage('submitting');
+    setTimeout(() => { onSuccess(card); pushToast(`${card.title} updated — 1,289 rows pushed.`, 'success'); onClose(); }, 1100);
+  };
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <div className="modal-head">
+          <div className="modal-head-text">
+            <div className="modal-title">Update {card.title}</div>
+            <div className="modal-subtitle">{card.columns}</div>
+            <div><span className={`modal-mode ${card.mode === 'Partial' ? 'partial' : 'complete'}`}>{card.mode}</span></div>
+          </div>
+          <button className="modal-close" onClick={onClose}><i className="ri-close-line"/></button>
+        </div>
+
+        <div className="modal-body">
+          {!fileName && (
+            <React.Fragment>
+              <label className={`dropzone ${dragging ? 'dragging' : ''}`}
+                onDragOver={e => { e.preventDefault(); setDragging(true); }}
+                onDragLeave={() => setDragging(false)} onDrop={onDrop}>
+                <i className="ri-upload-cloud-2-line dropzone-icon"/>
+                <div className="dropzone-msg">Drag &amp; drop file here or browse</div>
+                <div className="dropzone-sub">Accepts .csv and .xlsx · Max 10 MB</div>
+                <span className="template-link" onClick={(e) => {
+                  e.preventDefault(); e.stopPropagation();
+                  const schema = TEMPLATE_SCHEMA[card.template];
+                  if (!schema) { pushToast(`Template missing for ${card.title}`, 'error'); return; }
+                  const fname = `${card.template}.xlsx`;
+                  const ok = makeExcelFile(fname, { [schema.name]: [schema.cols, ...schema.rows] });
+                  pushToast(ok ? `Downloaded ${fname}` : 'Excel library not loaded', ok ? 'info' : 'error');
+                }}>
+                  <i className="ri-download-line"/>Don't have a file? Download the template
+                </span>
+                <input type="file" accept=".csv,.xlsx" style={{display:'none'}} onChange={onPickFile}/>
+              </label>
+              <a className="demo-error-link" onClick={simulateError}>Demo: simulate validation error →</a>
+            </React.Fragment>
+          )}
+
+          {fileName && (
+            <div className={`dropzone has-file ${stage === 'invalid' ? 'invalid' : ''}`}>
+              <div className="file-pill">
+                <i className={`${stage === 'invalid' ? 'ri-error-warning-line' : 'ri-file-excel-2-line'} dropzone-icon`}/>
+                <div className="file-pill-text">
+                  <div className="file-pill-name">{fileName}</div>
+                  <div className="file-pill-meta">{stage === 'invalid' ? 'Parsed · 3 validation errors' : stage === 'submitting' ? 'Submitting…' : 'Parsed · 1,289 rows · all validations passed'}</div>
+                </div>
+                <button className="file-pill-remove" onClick={() => { setFileName(null); setStage('idle'); setConfirmed(false); setNatPlanDone(false); }}><i className="ri-close-line"/></button>
+              </div>
+            </div>
+          )}
+
+          {stage === 'invalid' && (
+            <div className="error-banner">
+              <i className="ri-error-warning-fill lead"/>
+              <div className="error-banner-text">
+                <strong>{(ERROR_SAMPLES[card.id]?.rows.length ?? 3)} rows failed validation</strong>
+                <p>Download the annotated file, fix the highlighted rows offline, and re-upload. Nothing was written.</p>
+                <button onClick={downloadAnnotated}><i className="ri-download-line"/>Download annotated</button>
+              </div>
+            </div>
+          )}
+
+          {isRos && stage === 'valid' && (
+            <React.Fragment>
+              <div className="nat-banner">
+                <i className="ri-alert-fill"/>
+                <span>If the file contains <strong>geo_granularity = national</strong> rows, download and review the national buying plan comparison before submitting.</span>
+              </div>
+              {!natPlanDone ? (
+                <div className="dl-gate">
+                  <div className="dl-gate-text">
+                    <strong>National buying plan comparison</strong>
+                    Sheet 1: current plan. Sheet 2: future plan = max(MDQ, ROS × DOI) at MPC × Store × Month. Required before Submit.
+                  </div>
+                  <button className="btn btn-secondary" onClick={downloadNatPlan}><i className="ri-download-2-line" style={{fontSize:14}}/>Download</button>
+                </div>
+              ) : (
+                <div className="dl-gate">
+                  <div className="dl-gate-done"><i className="ri-checkbox-circle-fill"/>Comparison downloaded — Submit enabled</div>
+                </div>
+              )}
+            </React.Fragment>
+          )}
+
+          {stage === 'valid' && card.mode === 'Complete-only' && (
+            <div className="pre-submit">
+              <div className="pre-submit-title">Complete-update — review before submitting</div>
+              <div className="pre-submit-text">This upload will <strong>replace the entire {card.title} list</strong>. 1,289 pairs will be added or retained · 23 pairs currently present will be removed.</div>
+              <label className="pre-submit-confirm">
+                <input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)}/>
+                I understand this is a complete replacement, not a partial update.
+              </label>
+            </div>
+          )}
+        </div>
+
+        <div className="modal-foot">
+          <div className="modal-foot-left"/>
+          <div className="modal-foot-right">
+            <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
+            <button className="btn btn-primary" disabled={submitDisabled} onClick={handleSubmit}>
+              {stage === 'submitting' ? <React.Fragment><span className="spinner"/>Submitting…</React.Fragment> : <React.Fragment>Submit upload</React.Fragment>}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const [checking, setChecking]   = useState(false);
+  const [lastChecked, setLastChecked] = useState('14:32');
+  const [shakeIds, setShakeIds]   = useState([]);
+  const [modalCard, setModalCard] = useState(null);
+  const [toasts, pushToast]       = useToasts();
+  const [fixedCards, setFixedCards] = useState({});
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [logsOpen, setLogsOpen]   = useState(false);
+  const [rejecting, setRejecting] = useState(false);
+
+  const resolvedCards = useMemo(() => {
+    const scen = SCENARIOS[t.scenario] || SCENARIOS['Mixed'];
+    return CARDS.map(c => fixedCards[c.id]
+      ? { ...c, scenario: { health:'Healthy', issues:0, warnings:0 }, lastUpload:{ ago:'just now' } }
+      : { ...c, scenario: scen[c.id] }
+    );
+  }, [t.scenario, fixedCards]);
+
+  // ── Run history: prepend current cycle's run if it exists ───────────────
+  const runId = currentRunId();
+  const cycle = computeCycleLabel();
+  const cycleLabel = `${cycle.weekCode} · ${cycle.dateRange}`;
+  const logEntries = useMemo(() => {
+    const list = [...PAST_LOGS];
+    if (t.runState === 'Run complete') {
+      list.unshift({ runId, cycle:cycleLabel, status:'Pending', generatedAt:'just now', generatedBy:'Priya Shah', rows:32847, stores:166, mpcs:1247 });
+    } else if (t.runState === 'Approved') {
+      list.unshift({ runId, cycle:cycleLabel, status:'Approved', generatedAt:'just now', generatedBy:'Priya Shah', actionedBy:'Rohan Verma', actionedAt:'just now', rows:32847, stores:166, mpcs:1247 });
+    }
+    return list;
+  }, [t.runState, runId, cycleLabel]);
+  const logStatus = logEntries[0].status.toLowerCase(); // 'pending' | 'approved' | 'rejected'
+
+  // When a run is awaiting approval, lock further input uploads.
+  const uploadDisabledReason = t.runState === 'Run complete'
+    ? `Run #${runId} is awaiting Admin approval — approve or reject the open run before uploading new inputs.`
+    : null;
+
+  useEffect(() => { setFixedCards({}); }, [t.scenario]);
+
+  const triggerRecheck = useCallback(() => {
+    setChecking(true);
+    setTimeout(() => {
+      setChecking(false);
+      const allFixed = {};
+      CARDS.forEach(c => { allFixed[c.id] = true; });
+      setFixedCards(allFixed);
+      const now = new Date();
+      setLastChecked(`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`);
+      pushToast('Health check complete — all inputs healthy', 'success');
+    }, 1100);
+  }, [pushToast]);
+
+  const softLockShake = useCallback(() => {
+    const ids = resolvedCards.filter(c => c.scenario.health === 'Unhealthy').map(c => c.id);
+    setShakeIds(ids);
+    if (ids[0]) { const el = document.getElementById(`card-${ids[0]}`); if (el) window.scrollBy({ top: el.getBoundingClientRect().top - 160, behavior:'smooth' }); }
+    setTimeout(() => setShakeIds([]), 600);
+  }, [resolvedCards]);
+
+  const handleApprove = () => { const id = currentRunId(); setTweak('runState', 'Approved'); pushToast(`Run #${id} approved — push to dp_fulcrum queued`, 'success'); };
+  const requestReject = () => { setReviewOpen(false); setRejecting(true); };
+  const confirmReject = (remarks) => {
+    const id = currentRunId();
+    setTweak('runState', 'Pre-run');
+    setRejecting(false);
+    pushToast(`Run #${id} rejected · Remarks: "${remarks}"`, 'error', 6000);
+  };
+
+  return (
+    <React.Fragment>
+      <TopNav role={t.role} setRole={v => setTweak('role', v)} pushToast={pushToast}/>
+      <main>
+        <InputsList cards={resolvedCards} shakeIds={shakeIds} onUpload={setModalCard} pushToast={pushToast} uploadDisabledReason={uploadDisabledReason}/>
+      </main>
+      <ActionBar
+        cards={resolvedCards} role={t.role} runState={t.runState} setRunState={v => setTweak('runState', v)}
+        checking={checking} lastChecked={lastChecked} onRecheck={triggerRecheck}
+        onSoftLockShake={softLockShake} pushToast={pushToast}
+        onReview={() => setReviewOpen(true)} onRequestReject={requestReject}
+        onLogsOpen={() => setLogsOpen(true)} logStatus={logStatus}
+      />
+      <RunReviewDrawer
+        open={reviewOpen} onClose={() => setReviewOpen(false)}
+        role={t.role} runState={t.runState} cards={resolvedCards}
+        pushToast={pushToast} onApprove={handleApprove} onRequestReject={requestReject}
+      />
+      <LogsDrawer open={logsOpen} onClose={() => setLogsOpen(false)} entries={logEntries} pushToast={pushToast}/>
+      {rejecting && (
+        <RejectionModal runId={currentRunId()} onClose={() => setRejecting(false)} onConfirm={confirmReject}/>
+      )}
+      {modalCard && (
+        <UploadModal card={modalCard} onClose={() => setModalCard(null)} pushToast={pushToast} onSuccess={card => setFixedCards(f => ({ ...f, [card.id]: true }))}/>
+      )}
+      <ToastRack toasts={toasts}/>
+      <TweaksPanel>
+        <TweakSection label="Section A health"/>
+        <TweakRadio label="Scenario" value={t.scenario} options={['All healthy','Mixed','Critical']} onChange={v => setTweak('scenario', v)}/>
+        <TweakSection label="Cycle state"/>
+        <TweakRadio label="Run state" value={t.runState} options={['Pre-run','Run complete','Approved']} onChange={v => setTweak('runState', v)}/>
+      </TweaksPanel>
+    </React.Fragment>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+  </script>
 </body>
 </html>
