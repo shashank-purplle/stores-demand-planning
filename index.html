@@ -489,6 +489,46 @@
     font-size:11px;color:var(--text-body);font-weight:500;line-height:1.5;
   }
   .log-remarks strong{color:var(--red);font-weight:700;display:block;margin-bottom:2px;letter-spacing:.02em;text-transform:uppercase;font-size:10px}
+  .log-attach{margin-bottom:10px}
+  .log-attach-label{
+    font-size:10px;font-weight:700;color:var(--text-meta);text-transform:uppercase;
+    letter-spacing:.02em;margin-bottom:5px;display:block;
+  }
+  .log-attach-item{
+    display:flex;align-items:center;gap:9px;width:100%;box-sizing:border-box;
+    padding:7px 10px;background:#fff;border:1px solid var(--border);border-radius:6px;
+    margin-bottom:5px;cursor:pointer;text-align:left;font-family:inherit;transition:background .15s,border-color .15s;
+  }
+  .log-attach-item:last-child{margin-bottom:0}
+  .log-attach-item:hover{background:var(--green-bg);border-color:var(--green-border)}
+  .log-attach-icon{
+    width:22px;height:22px;border-radius:5px;display:grid;place-items:center;
+    background:var(--green-tint);color:var(--green);font-size:12px;flex-shrink:0;
+  }
+  .log-attach-name{font-size:11px;font-weight:600;color:var(--text-title);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .log-attach-size{font-size:10px;color:var(--text-meta);font-weight:500;flex-shrink:0}
+  .log-attach-item .arr{color:var(--text-meta);font-size:13px;flex-shrink:0}
+  .rj-drop{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    border:1px dashed var(--grey-30);border-radius:6px;padding:10px 12px;
+    background:var(--page-bg);cursor:pointer;font-size:11px;font-weight:600;
+    color:var(--text-body);font-family:inherit;width:100%;box-sizing:border-box;
+    transition:background .15s,border-color .15s;
+  }
+  .rj-drop:hover:not(:disabled){background:var(--purple-tertiary);border-color:var(--purple-border);color:var(--purple-primary)}
+  .rj-drop:disabled{opacity:.5;cursor:not-allowed}
+  .rj-file{
+    display:flex;align-items:center;gap:9px;padding:7px 10px;background:#fff;
+    border:1px solid var(--border);border-radius:6px;margin-top:6px;
+  }
+  .rj-file-icon{width:22px;height:22px;border-radius:5px;display:grid;place-items:center;background:var(--green-tint);color:var(--green);font-size:12px;flex-shrink:0}
+  .rj-file-name{font-size:11px;font-weight:600;color:var(--text-title);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rj-file-size{font-size:10px;color:var(--text-meta);font-weight:500;flex-shrink:0}
+  .rj-file-x{
+    border:none;background:none;cursor:pointer;color:var(--text-meta);font-size:14px;
+    display:grid;place-items:center;width:20px;height:20px;border-radius:4px;flex-shrink:0;
+  }
+  .rj-file-x:hover{background:var(--red-bg);color:var(--red)}
   .log-dl{
     display:flex;align-items:center;gap:10px;padding:9px 12px;
     background:#fff;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;
@@ -753,7 +793,7 @@ const SUBSECTIONS = [
 // is prepended at render time based on runState.
 const PAST_LOGS = [
   { runId:'2026-05-W3-v2', cycle:'2026-05-W3 · 11–17 May', status:'Approved', generatedAt:'12 May 2026, 14:08', generatedBy:'Priya Shah',  actionedBy:'Rohan Verma', actionedAt:'12 May 2026, 16:21', rows:32612, stores:165, mpcs:1241 },
-  { runId:'2026-05-W3-v1', cycle:'2026-05-W3 · 11–17 May', status:'Rejected', generatedAt:'12 May 2026, 09:14', generatedBy:'Priya Shah',  actionedBy:'Rohan Verma', actionedAt:'12 May 2026, 11:42', rows:31204, stores:165, mpcs:1238, remarks:'ROS multipliers for Lakmé looked inflated — revisit national rows before re-running.' },
+  { runId:'2026-05-W3-v1', cycle:'2026-05-W3 · 11–17 May', status:'Rejected', generatedAt:'12 May 2026, 09:14', generatedBy:'Priya Shah',  actionedBy:'Rohan Verma', actionedAt:'12 May 2026, 11:42', rows:31204, stores:165, mpcs:1238, remarks:'ROS multipliers for Lakmé looked inflated — revisit national rows before re-running.', attachments:[{name:'ros-variance-review.xlsx', size:'42 KB'},{name:'lakme-national-rows.xlsx', size:'18 KB'}] },
   { runId:'2026-05-W2-v1', cycle:'2026-05-W2 · 04–10 May', status:'Approved', generatedAt:'05 May 2026, 10:32', generatedBy:'Priya Shah',  actionedBy:'Rohan Verma', actionedAt:'05 May 2026, 12:11', rows:30894, stores:163, mpcs:1224 },
   { runId:'2026-05-W1-v1', cycle:'2026-05-W1 · 01–03 May', status:'Approved', generatedAt:'02 May 2026, 09:50', generatedBy:'Priya Shah',  actionedBy:'Rohan Verma', actionedAt:'02 May 2026, 11:35', rows:12407, stores:162, mpcs:1219 },
   { runId:'2026-04-W4-v2', cycle:'2026-04-W4 · 20–26 Apr', status:'Approved', generatedAt:'21 Apr 2026, 11:18', generatedBy:'Priya Shah',  actionedBy:'Rohan Verma', actionedAt:'21 Apr 2026, 13:42', rows:29754, stores:161, mpcs:1207 },
@@ -1275,6 +1315,15 @@ function LogEntry({ entry, defaultOpen, pushToast }) {
       pushToast(ok ? `Downloaded run-${entry.runId}-inputs-snapshot.xlsx` : 'Excel library not loaded', ok ? 'success' : 'error');
     }
   };
+  const dlAttachment = (att) => {
+    if (att.blob) {
+      const url = URL.createObjectURL(att.blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = att.name; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+    pushToast(`Downloaded ${att.name}`, 'success');
+  };
   const statusKey = entry.status.toLowerCase();
   const dotHealth = statusKey === 'approved' ? 'healthy' : statusKey === 'rejected' ? 'unhealthy' : 'warning';
   return (
@@ -1305,6 +1354,19 @@ function LogEntry({ entry, defaultOpen, pushToast }) {
             <div className="log-remarks">
               <strong>Rejection remarks</strong>
               {entry.remarks}
+            </div>
+          )}
+          {entry.attachments && entry.attachments.length > 0 && (
+            <div className="log-attach">
+              <span className="log-attach-label">Admin attachments · {entry.attachments.length}</span>
+              {entry.attachments.map((att, i) => (
+                <button key={i} className="log-attach-item" onClick={() => dlAttachment(att)}>
+                  <div className="log-attach-icon"><i className="ri-file-excel-2-line"/></div>
+                  <span className="log-attach-name">{att.name}</span>
+                  <span className="log-attach-size">{att.size}</span>
+                  <i className="ri-download-2-line arr"/>
+                </button>
+              ))}
             </div>
           )}
           <button className="log-dl" onClick={() => dl('output')}>
@@ -1445,11 +1507,26 @@ function ActionBar({ cards, role, runState, setRunState, checking, lastChecked, 
   );
 }
 
-function RejectionModal({ runId, onClose, onConfirm }) {
+function RejectionModal({ runId, onClose, onConfirm, pushToast }) {
   const [remarks, setRemarks] = useState('');
+  const [files, setFiles] = useState([]);
   const trimmed = remarks.trim();
   const tooShort = trimmed.length < 3;
   const ref = useRef(null);
+  const fileRef = useRef(null);
+  const fmtSize = (b) => b < 1024 ? `${b} B` : b < 1048576 ? `${Math.round(b/1024)} KB` : `${(b/1048576).toFixed(1)} MB`;
+  const addFiles = (list) => {
+    const picked = Array.from(list || []);
+    if (!picked.length) return;
+    const valid = picked.filter(f => /\.(xlsx|xls|csv)$/i.test(f.name));
+    if (valid.length < picked.length) pushToast && pushToast('Only .xlsx, .xls or .csv files can be attached', 'error');
+    setFiles(prev => {
+      const room = 3 - prev.length;
+      if (room <= 0) { pushToast && pushToast('You can attach up to 3 files', 'error'); return prev; }
+      if (valid.length > room) pushToast && pushToast('You can attach up to 3 files', 'error');
+      return [...prev, ...valid.slice(0, room).map(f => ({ name:f.name, size:fmtSize(f.size), blob:f }))];
+    });
+  };
   useEffect(() => { ref.current?.focus(); }, []);
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };
@@ -1492,6 +1569,36 @@ function RejectionModal({ runId, onClose, onConfirm }) {
           <div style={{fontSize:11,color:'var(--text-meta)',marginTop:4,fontWeight:500}}>
             Remarks are logged with the run and shown to the planner in the rejection toast.
           </div>
+
+          <div style={{display:'flex',alignItems:'baseline',justifyContent:'space-between',marginTop:16,marginBottom:6}}>
+            <label style={{fontSize:12,fontWeight:600,color:'var(--text-body)'}}>
+              Attachments <span style={{color:'var(--text-meta)',fontWeight:500}}>(optional)</span>
+            </label>
+            <span style={{fontSize:11,color:'var(--text-meta)',fontWeight:500}}>{files.length}/3 · .xlsx</span>
+          </div>
+          <input
+            ref={fileRef} type="file" accept=".xlsx,.xls,.csv" multiple hidden
+            onChange={e => { addFiles(e.target.files); e.target.value = ''; }}
+          />
+          <button
+            className="rj-drop" disabled={files.length >= 3}
+            onClick={() => fileRef.current?.click()}>
+            <i className="ri-attachment-2" style={{fontSize:14}}/>
+            {files.length >= 3 ? 'Attachment limit reached (3 files)' : 'Attach Excel files — up to 3'}
+          </button>
+          {files.map((f, i) => (
+            <div className="rj-file" key={i}>
+              <div className="rj-file-icon"><i className="ri-file-excel-2-line"/></div>
+              <span className="rj-file-name">{f.name}</span>
+              <span className="rj-file-size">{f.size}</span>
+              <button className="rj-file-x" title="Remove" onClick={() => setFiles(prev => prev.filter((_, j) => j !== i))}>
+                <i className="ri-close-line"/>
+              </button>
+            </div>
+          ))}
+          <div style={{fontSize:11,color:'var(--text-meta)',marginTop:6,fontWeight:500,lineHeight:1.5}}>
+            Attached files are stored with the run and downloadable by the planner from run history.
+          </div>
         </div>
 
         <div className="modal-foot">
@@ -1501,7 +1608,7 @@ function RejectionModal({ runId, onClose, onConfirm }) {
             <button
               className="btn btn-destructive"
               disabled={tooShort}
-              onClick={() => onConfirm(trimmed)}
+              onClick={() => onConfirm(trimmed, files)}
               title={tooShort ? 'Add remarks (min. 3 characters) to reject' : ''}
               style={tooShort ? {opacity:.5, cursor:'not-allowed'} : {}}>
               <i className="ri-close-line" style={{fontSize:14}}/>Reject run
@@ -1675,6 +1782,7 @@ function App() {
   const [reviewOpen, setReviewOpen] = useState(false);
   const [logsOpen, setLogsOpen]   = useState(false);
   const [rejecting, setRejecting] = useState(false);
+  const [rejectedRun, setRejectedRun] = useState(null);
 
   const resolvedCards = useMemo(() => {
     const scen = SCENARIOS[t.scenario] || SCENARIOS['Mixed'];
@@ -1694,9 +1802,11 @@ function App() {
       list.unshift({ runId, cycle:cycleLabel, status:'Pending', generatedAt:'just now', generatedBy:'Priya Shah', rows:32847, stores:166, mpcs:1247 });
     } else if (t.runState === 'Approved') {
       list.unshift({ runId, cycle:cycleLabel, status:'Approved', generatedAt:'just now', generatedBy:'Priya Shah', actionedBy:'Rohan Verma', actionedAt:'just now', rows:32847, stores:166, mpcs:1247 });
+    } else if (rejectedRun) {
+      list.unshift(rejectedRun);
     }
     return list;
-  }, [t.runState, runId, cycleLabel]);
+  }, [t.runState, runId, cycleLabel, rejectedRun]);
   const logStatus = logEntries[0].status.toLowerCase(); // 'pending' | 'approved' | 'rejected'
 
   // When a run is awaiting approval, lock further input uploads.
@@ -1728,11 +1838,17 @@ function App() {
 
   const handleApprove = () => { const id = currentRunId(); setTweak('runState', 'Approved'); pushToast(`Run #${id} approved — push to dp_fulcrum queued`, 'success'); };
   const requestReject = () => { setReviewOpen(false); setRejecting(true); };
-  const confirmReject = (remarks) => {
+  const confirmReject = (remarks, attachments = []) => {
     const id = currentRunId();
     setTweak('runState', 'Pre-run');
     setRejecting(false);
-    pushToast(`Run #${id} rejected · Remarks: "${remarks}"`, 'error', 6000);
+    setRejectedRun({
+      runId:id, cycle:cycleLabel, status:'Rejected', generatedAt:'just now', generatedBy:'Priya Shah',
+      actionedBy:'Rohan Verma', actionedAt:'just now', rows:32847, stores:166, mpcs:1247,
+      remarks, attachments,
+    });
+    const suffix = attachments.length ? ` · ${attachments.length} file${attachments.length > 1 ? 's' : ''} attached` : '';
+    pushToast(`Run #${id} rejected · Remarks: "${remarks}"${suffix}`, 'error', 6000);
   };
 
   return (
@@ -1755,7 +1871,7 @@ function App() {
       />
       <LogsDrawer open={logsOpen} onClose={() => setLogsOpen(false)} entries={logEntries} pushToast={pushToast}/>
       {rejecting && (
-        <RejectionModal runId={currentRunId()} onClose={() => setRejecting(false)} onConfirm={confirmReject}/>
+        <RejectionModal runId={currentRunId()} onClose={() => setRejecting(false)} onConfirm={confirmReject} pushToast={pushToast}/>
       )}
       {modalCard && (
         <UploadModal card={modalCard} onClose={() => setModalCard(null)} pushToast={pushToast} onSuccess={card => setFixedCards(f => ({ ...f, [card.id]: true }))}/>
